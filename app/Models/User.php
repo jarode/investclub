@@ -4,6 +4,7 @@ namespace App\Models;
 
 // use Illuminate\Contracts\Auth\MustVerifyEmail;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Laravel\Fortify\TwoFactorAuthenticatable;
@@ -68,6 +69,7 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
+            'wallet_balance' => 'decimal:2',
         ];
     }
 
@@ -78,7 +80,7 @@ class User extends Authenticatable
      */
     public function isAdmin(): bool
     {
-        return $this->role === 'admin';
+        return $this->role === 'admin' || $this->role === 'Administrator';
     }
 
     /**
@@ -99,7 +101,10 @@ class User extends Authenticatable
      */
     public function hasRole(string $role): bool
     {
-        return $this->role === $role;
+        // Obsługuje zarówno nazwy ról z dużych liter (Administrator) jak i małych (admin)
+        $normalisedRole = strtolower($this->role);
+        $normalisedRoleToCheck = strtolower($role);
+        return $normalisedRole === $normalisedRoleToCheck;
     }
     
     /**
@@ -110,6 +115,23 @@ class User extends Authenticatable
      */
     public function hasAnyRole(array $roles): bool
     {
-        return in_array($this->role, $roles);
+        $normalisedRole = strtolower($this->role);
+        return in_array($normalisedRole, array_map('strtolower', $roles));
+    }
+    
+    /**
+     * Pobiera projekty utworzone przez użytkownika.
+     */
+    public function ownedProjects(): HasMany
+    {
+        return $this->hasMany(Project::class, 'owner_id');
+    }
+    
+    /**
+     * Pobiera inwestycje użytkownika.
+     */
+    public function investments(): HasMany
+    {
+        return $this->hasMany(Investment::class);
     }
 }

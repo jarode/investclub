@@ -16,19 +16,23 @@
                         {{ __('Dashboard') }}
                     </x-nav-link>
                     
-                    @if(Auth::user()->hasRole('admin'))
+                    @if(Auth::check() && Auth::user()->hasRole('admin'))
                         <x-nav-link href="{{ route('admin.dashboard') }}" :active="request()->routeIs('admin.dashboard')">
                             {{ __('Panel administratora') }}
                         </x-nav-link>
                     @endif
                     
-                    @if(Auth::user()->hasRole('manager'))
+                    @if(Auth::check() && Auth::user()->hasRole('manager'))
                         <x-nav-link href="{{ route('manager.dashboard') }}" :active="request()->routeIs('manager.dashboard')">
                             {{ __('Panel managera') }}
                         </x-nav-link>
                     @endif
                     
-                    @if(Auth::user()->hasAnyRole(['admin', 'manager']))
+                    <x-nav-link href="{{ route('projects.index') }}" :active="request()->routeIs('projects.*')">
+                        {{ __('Projekty') }}
+                    </x-nav-link>
+                    
+                    @if(Auth::check() && Auth::user()->hasAnyRole(['admin', 'manager']))
                         <x-nav-link href="{{ route('users.index') }}" :active="request()->routeIs('users.*')">
                             {{ __('Użytkownicy') }}
                         </x-nav-link>
@@ -44,7 +48,7 @@
                             <x-slot name="trigger">
                                 <span class="inline-flex rounded-md">
                                     <button type="button" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none focus:bg-gray-50 active:bg-gray-50 transition ease-in-out duration-150">
-                                        {{ Auth::user()->currentTeam->name }}
+                                        {{ Auth::check() && Auth::user()->currentTeam ? Auth::user()->currentTeam->name : 'No Team' }}
 
                                         <svg class="ms-2 -me-0.5 size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 15L12 18.75 15.75 15m-7.5-6L12 5.25 15.75 9" />
@@ -61,7 +65,7 @@
                                     </div>
 
                                     <!-- Team Settings -->
-                                    <x-dropdown-link href="{{ route('teams.show', Auth::user()->currentTeam->id) }}">
+                                    <x-dropdown-link href="{{ route('teams.show', Auth::check() && Auth::user()->currentTeam ? Auth::user()->currentTeam->id : 1) }}">
                                         {{ __('Team Settings') }}
                                     </x-dropdown-link>
 
@@ -72,7 +76,7 @@
                                     @endcan
 
                                     <!-- Team Switcher -->
-                                    @if (Auth::user()->allTeams()->count() > 1)
+                                    @if (Auth::check() && Auth::user()->allTeams()->count() > 1)
                                         <div class="border-t border-gray-200"></div>
 
                                         <div class="block px-4 py-2 text-xs text-gray-400">
@@ -95,12 +99,12 @@
                         <x-slot name="trigger">
                             @if (Laravel\Jetstream\Jetstream::managesProfilePhotos())
                                 <button class="flex text-sm border-2 border-transparent rounded-full focus:outline-none focus:border-gray-300 transition">
-                                    <img class="size-8 rounded-full object-cover" src="{{ Auth::user()->profile_photo_url }}" alt="{{ Auth::user()->name }}" />
+                                    <img class="size-8 rounded-full object-cover" src="{{ Auth::check() ? Auth::user()->profile_photo_url : '' }}" alt="{{ Auth::check() ? Auth::user()->name : 'Guest' }}" />
                                 </button>
                             @else
                                 <span class="inline-flex rounded-md">
                                     <button type="button" class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-md text-gray-500 bg-white hover:text-gray-700 focus:outline-none focus:bg-gray-50 active:bg-gray-50 transition ease-in-out duration-150">
-                                        {{ Auth::user()->name }}
+                                        {{ Auth::check() ? Auth::user()->name : 'Guest' }}
 
                                         <svg class="ms-2 -me-0.5 size-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
                                             <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
@@ -161,19 +165,23 @@
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
             
-            @if(Auth::user()->hasRole('admin'))
+            @if(Auth::check() && Auth::user()->hasRole('admin'))
                 <x-responsive-nav-link href="{{ route('admin.dashboard') }}" :active="request()->routeIs('admin.dashboard')">
                     {{ __('Panel administratora') }}
                 </x-responsive-nav-link>
             @endif
             
-            @if(Auth::user()->hasRole('manager'))
+            @if(Auth::check() && Auth::user()->hasRole('manager'))
                 <x-responsive-nav-link href="{{ route('manager.dashboard') }}" :active="request()->routeIs('manager.dashboard')">
                     {{ __('Panel managera') }}
                 </x-responsive-nav-link>
             @endif
             
-            @if(Auth::user()->hasAnyRole(['admin', 'manager']))
+            <x-responsive-nav-link href="{{ route('projects.index') }}" :active="request()->routeIs('projects.*')">
+                {{ __('Projekty') }}
+            </x-responsive-nav-link>
+            
+            @if(Auth::check() && Auth::user()->hasAnyRole(['admin', 'manager']))
                 <x-responsive-nav-link href="{{ route('users.index') }}" :active="request()->routeIs('users.*')">
                     {{ __('Użytkownicy') }}
                 </x-responsive-nav-link>
@@ -185,13 +193,13 @@
             <div class="flex items-center px-4">
                 @if (Laravel\Jetstream\Jetstream::managesProfilePhotos())
                     <div class="shrink-0 me-3">
-                        <img class="size-10 rounded-full object-cover" src="{{ Auth::user()->profile_photo_url }}" alt="{{ Auth::user()->name }}" />
+                        <img class="size-10 rounded-full object-cover" src="{{ Auth::check() ? Auth::user()->profile_photo_url : '' }}" alt="{{ Auth::check() ? Auth::user()->name : 'Guest' }}" />
                     </div>
                 @endif
 
                 <div>
-                    <div class="font-medium text-base text-gray-800">{{ Auth::user()->name }}</div>
-                    <div class="font-medium text-sm text-gray-500">{{ Auth::user()->email }}</div>
+                    <div class="font-medium text-base text-gray-800">{{ Auth::check() ? Auth::user()->name : 'Guest' }}</div>
+                    <div class="font-medium text-sm text-gray-500">{{ Auth::check() ? Auth::user()->email : '' }}</div>
                 </div>
             </div>
 
@@ -226,7 +234,7 @@
                     </div>
 
                     <!-- Team Settings -->
-                    <x-responsive-nav-link href="{{ route('teams.show', Auth::user()->currentTeam->id) }}" :active="request()->routeIs('teams.show')">
+                    <x-responsive-nav-link href="{{ route('teams.show', Auth::check() && Auth::user()->currentTeam ? Auth::user()->currentTeam->id : 1) }}" :active="request()->routeIs('teams.show')">
                         {{ __('Team Settings') }}
                     </x-responsive-nav-link>
 
@@ -237,7 +245,7 @@
                     @endcan
 
                     <!-- Team Switcher -->
-                    @if (Auth::user()->allTeams()->count() > 1)
+                    @if (Auth::check() && Auth::user()->allTeams()->count() > 1)
                         <div class="border-t border-gray-200"></div>
 
                         <div class="block px-4 py-2 text-xs text-gray-400">

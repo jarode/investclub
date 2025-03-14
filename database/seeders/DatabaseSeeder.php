@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
         // Uruchom seeder dla użytkowników z rolami
         $this->call([
             UsersWithRolesSeeder::class,
+            ProjectsSeeder::class,
         ]);
     }
 }
