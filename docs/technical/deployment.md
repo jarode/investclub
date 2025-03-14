@@ -65,7 +65,7 @@ php artisan event:cache
 
 **Deploy Commands**:
 ```
-php artisan migrate --force
+php artisan migrate
 ```
 
 ## 4. Przygotowanie do wdrożenia
