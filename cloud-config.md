@@ -23,20 +23,24 @@ npm run build
 php artisan config:cache
 php artisan route:cache
 php artisan view:cache
+php artisan event:cache
 ```
 
 ### Komenda Deploy
 ```sh
 php artisan migrate --force
+php artisan storage:link
 ```
 
 ## Zasoby
 
 Zaleca się skonfigurowanie następujących zasobów w Laravel Cloud:
 
-1. **Baza danych MySQL**: 
-   - Plan: Najniższy dla środowiska testowego (Standard 1GB dla produkcji)
-   - Nazwa bazy: investclub
+1. **Baza danych PostgreSQL**: 
+   - Plan: Najniższy dla środowiska testowego
+   - Nazwa bazy: developmnet
+   - Host: ep-broad-glitter-ab92nkik.aws-eu-west-2.pg.laravel.cloud
+   - Port: 5432
 
 2. **Redis**:
    - Plan: najniższy dla środowiska testowego
