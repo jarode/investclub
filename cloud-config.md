@@ -28,7 +28,7 @@ php artisan event:cache
 
 ### Komenda Deploy
 ```sh
-php artisan migrate --force
+php artisan migrate
 php artisan storage:link
 ```
 
