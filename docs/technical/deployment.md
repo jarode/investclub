@@ -59,7 +59,7 @@ W panelu Laravel Cloud > Environment > Build and Deploy Commands można dostosow
 
 **Build Commands**:
 ```
-composer install --no-dev --prefer-dist --optimize-autoloader
+composer install --prefer-dist --optimize-autoloader
 php artisan event:cache
 ```
 

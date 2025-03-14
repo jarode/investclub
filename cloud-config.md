@@ -17,7 +17,7 @@ W panelu Laravel Cloud, w ustawieniach aplikacji, skonfiguruj komendy wdrożenio
 
 ### Komenda Build
 ```sh
-composer install --no-interaction --prefer-dist --optimize-autoloader --no-dev
+composer install --no-interaction --prefer-dist --optimize-autoloader
 npm ci
 npm run build
 php artisan config:cache
