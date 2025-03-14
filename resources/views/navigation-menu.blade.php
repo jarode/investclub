@@ -11,10 +11,28 @@
                 </div>
 
                 <!-- Navigation Links -->
-                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
+                <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
                     <x-nav-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')">
                         {{ __('Dashboard') }}
                     </x-nav-link>
+                    
+                    @if(Auth::user()->hasRole('admin'))
+                        <x-nav-link href="{{ route('admin.dashboard') }}" :active="request()->routeIs('admin.dashboard')">
+                            {{ __('Panel administratora') }}
+                        </x-nav-link>
+                    @endif
+                    
+                    @if(Auth::user()->hasRole('manager'))
+                        <x-nav-link href="{{ route('manager.dashboard') }}" :active="request()->routeIs('manager.dashboard')">
+                            {{ __('Panel managera') }}
+                        </x-nav-link>
+                    @endif
+                    
+                    @if(Auth::user()->hasAnyRole(['admin', 'manager']))
+                        <x-nav-link href="{{ route('users.index') }}" :active="request()->routeIs('users.*')">
+                            {{ __('Użytkownicy') }}
+                        </x-nav-link>
+                    @endif
                 </div>
             </div>
 
@@ -142,6 +160,24 @@
             <x-responsive-nav-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
             </x-responsive-nav-link>
+            
+            @if(Auth::user()->hasRole('admin'))
+                <x-responsive-nav-link href="{{ route('admin.dashboard') }}" :active="request()->routeIs('admin.dashboard')">
+                    {{ __('Panel administratora') }}
+                </x-responsive-nav-link>
+            @endif
+            
+            @if(Auth::user()->hasRole('manager'))
+                <x-responsive-nav-link href="{{ route('manager.dashboard') }}" :active="request()->routeIs('manager.dashboard')">
+                    {{ __('Panel managera') }}
+                </x-responsive-nav-link>
+            @endif
+            
+            @if(Auth::user()->hasAnyRole(['admin', 'manager']))
+                <x-responsive-nav-link href="{{ route('users.index') }}" :active="request()->routeIs('users.*')">
+                    {{ __('Użytkownicy') }}
+                </x-responsive-nav-link>
+            @endif
         </div>
 
         <!-- Responsive Settings Options -->

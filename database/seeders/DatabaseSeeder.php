@@ -13,11 +13,15 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // User::factory(10)->withPersonalTeam()->create();
+        // Wykomentuj domyślne tworzenie użytkownika testowego, ponieważ teraz używamy seedera ról
+        // User::factory()->withPersonalTeam()->create([
+        //    'name' => 'Test User',
+        //    'email' => 'test@example.com',
+        // ]);
 
-        User::factory()->withPersonalTeam()->create([
-            'name' => 'Test User',
-            'email' => 'test@example.com',
+        // Uruchom seeder dla użytkowników z rolami
+        $this->call([
+            UsersWithRolesSeeder::class,
         ]);
     }
 }

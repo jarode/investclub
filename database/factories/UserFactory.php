@@ -36,6 +36,10 @@ class UserFactory extends Factory
             'remember_token' => Str::random(10),
             'profile_photo_path' => null,
             'current_team_id' => null,
+            'role' => 'investor',
+            'verification_status' => 'unverified',
+            'wallet_balance' => 0,
+            'kyc_status' => 'pending',
         ];
     }
 

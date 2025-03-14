@@ -31,6 +31,10 @@ class User extends Authenticatable
         'name',
         'email',
         'password',
+        'role',
+        'verification_status',
+        'wallet_balance',
+        'kyc_status',
     ];
 
     /**
@@ -65,5 +69,47 @@ class User extends Authenticatable
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
         ];
+    }
+
+    /**
+     * Check if user is an administrator.
+     *
+     * @return bool
+     */
+    public function isAdmin(): bool
+    {
+        return $this->role === 'admin';
+    }
+
+    /**
+     * Check if user is verified.
+     *
+     * @return bool
+     */
+    public function isVerified(): bool
+    {
+        return $this->verification_status === 'verified';
+    }
+    
+    /**
+     * Sprawdza czy użytkownik ma określoną rolę.
+     *
+     * @param string $role
+     * @return bool
+     */
+    public function hasRole(string $role): bool
+    {
+        return $this->role === $role;
+    }
+    
+    /**
+     * Sprawdza czy użytkownik ma jedną z wielu określonych ról.
+     *
+     * @param array $roles
+     * @return bool
+     */
+    public function hasAnyRole(array $roles): bool
+    {
+        return in_array($this->role, $roles);
     }
 }
