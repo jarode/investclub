@@ -13,9 +13,11 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        // Uruchom seeder danych testowych do testów manualnych
+        // Podstawowy seeder tworzący konto administratora
         $this->call([
-            ManualTestSeeder::class,
+            AdminUserSeeder::class,
         ]);
+        
+        // Pozostałe seedery będą dodawane w trakcie implementacji POC
     }
 }

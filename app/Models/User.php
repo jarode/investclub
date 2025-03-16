@@ -35,6 +35,8 @@ class User extends Authenticatable
         'role',
         'verification_status',
         'kyc_status',
+        'stripe_id',
+        'stripe_subscription_status',
     ];
 
     /**
@@ -119,6 +121,26 @@ class User extends Authenticatable
     public function getKycVerifiedAttribute(): bool
     {
         return $this->isKycVerified();
+    }
+    
+    /**
+     * Sprawdza czy użytkownik ma aktywną subskrypcję.
+     *
+     * @return bool
+     */
+    public function hasActiveSubscription(): bool
+    {
+        return $this->stripe_subscription_status === 'active';
+    }
+    
+    /**
+     * Accessor dla statusu subskrypcji.
+     *
+     * @return bool
+     */
+    public function getActiveSubscriptionAttribute(): bool
+    {
+        return $this->hasActiveSubscription();
     }
     
     /**

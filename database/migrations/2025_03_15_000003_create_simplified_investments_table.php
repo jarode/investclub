@@ -16,8 +16,15 @@ return new class extends Migration
             $table->foreignId('user_id')->constrained()->onDelete('cascade');
             $table->foreignId('project_id')->constrained()->onDelete('cascade');
             $table->decimal('amount', 10, 2);
-            $table->enum('status', ['declared', 'paid', 'confirmed', 'cancelled'])->default('declared');
-            $table->string('transaction_reference')->nullable();
+            
+            // Nowe statusy zamiast starych (declared, paid, confirmed)
+            $table->enum('status', ['interested', 'in_talks', 'contract_signed', 'cancelled'])
+                  ->default('interested');
+            
+            // Pola kontaktowe zamiast transaction_reference
+            $table->string('contact_preference')->nullable();
+            $table->text('contact_details')->nullable();
+            
             $table->text('notes')->nullable();
             $table->timestamps();
             $table->softDeletes();

@@ -38,8 +38,9 @@ class UserFactory extends Factory
             'current_team_id' => null,
             'role' => 'investor',
             'verification_status' => 'unverified',
-            'wallet_balance' => 0,
             'kyc_status' => 'pending',
+            'stripe_id' => null,
+            'stripe_subscription_status' => 'inactive',
         ];
     }
 

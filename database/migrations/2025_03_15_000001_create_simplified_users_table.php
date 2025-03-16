@@ -17,9 +17,27 @@ return new class extends Migration
             $table->string('email')->unique();
             $table->timestamp('email_verified_at')->nullable();
             $table->string('password');
+            
+            // Two-factor authentication fields
+            $table->text('two_factor_secret')->nullable();
+            $table->text('two_factor_recovery_codes')->nullable();
+            $table->timestamp('two_factor_confirmed_at')->nullable();
+            
             $table->rememberToken();
+            
+            // Pola ról i weryfikacji użytkownika
+            $table->string('role')->default('investor');
+            $table->string('verification_status')->default('unverified');
+            $table->string('kyc_status')->default('pending');
+            
+            // Pola dla integracji ze Stripe
+            $table->string('stripe_id')->nullable();
+            $table->string('stripe_subscription_status')->default('inactive');
+            
+            // Jetstream fields
             $table->foreignId('current_team_id')->nullable();
             $table->string('profile_photo_path', 2048)->nullable();
+            
             $table->timestamps();
         });
 
