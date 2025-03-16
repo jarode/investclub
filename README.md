@@ -8,7 +8,7 @@ Platforma inwestycyjna działająca w modelu Marketplace + Private Club.
 - Livewire 3 + Filament
 - MySQL
 - Redis
-- Stripe (KYC i płatności)
+- Stripe (weryfikacja KYC i zarządzanie subskrypcjami)
 
 ## Wymagania
 
@@ -77,6 +77,29 @@ php artisan serve
 
 Aplikacja będzie dostępna pod adresem: http://localhost:8000
 
+## Model biznesowy
+
+### Jak to działa?
+
+1. Platforma działa jako marketplace (katalog projektów inwestycyjnych)
+   - Prezentujemy projekty inwestycyjne, ale nie pośredniczymy w transakcjach
+   - Inwestorzy kontaktują się bezpośrednio z właścicielem projektu
+   - Brak przechowywania środków – transakcje odbywają się poza platformą
+
+2. Dostęp do marketplace mają tylko zweryfikowani członkowie („Private Club")
+   - Rejestracja na platformie jest otwarta dla wszystkich
+   - Dostęp do projektów i funkcjonalności platformy mają tylko użytkownicy po weryfikacji KYC przez system Stripe i opłaceniu abonamentu
+   - System zarządzania subskrypcjami i płatnościami abonamentowymi realizowany jest przez Stripe
+   - Pobieramy abonament od inwestorów i właścicieli projektów za dostęp do platformy
+
+### Proces na platformie
+
+1. Właściciel projektu rejestruje się, przechodzi weryfikację i publikuje ofertę
+2. Oferta widoczna jest tylko dla zweryfikowanych inwestorów
+3. Inwestorzy kontaktują się bezpośrednio z właścicielem projektu
+4. Po uzyskaniu porozumienia transakcja odbywa się poza platformą
+5. Platforma pobiera opłatę abonamentową za dostęp do ofert
+
 ## Struktura projektu
 
 - `app/` - Główny kod aplikacji
@@ -105,10 +128,14 @@ Projekt jest skonfigurowany do automatycznego wdrażania na Laravel Cloud. Szcze
 ## Dokumentacja
 
 - [Procesy biznesowe](docs/business/processes.md)
+- [Model biznesowy: Marketplace + Private Club](docs/business/marketplace_private_club.md)
 - [Dokumentacja techniczna](docs/technical/development.md)
-- [Integracja ze Stripe](docs/technical/stripe_integration.md)
+- [Architektura systemu](docs/technical/architecture.md)
+- [Przewodnik implementacyjny](docs/technical/implementation_guide.md)
+- [Plan wdrożenia POC](docs/technical/poc_implementation_plan.md)
 - [Akceleracja rozwoju](docs/technical/acceleration.md)
 - [Wdrażanie](docs/technical/deployment.md)
+- [Plan testowania manualnego](docs/testing/manual_test_plan.md)
 
 ## Licencja
 

@@ -1,27 +1,26 @@
-# Dokumentacja Platformy Inwestycyjnej
+# Dokumentacja InvestClub
 
-## Struktura Dokumentacji
+## Dokumentacja biznesowa
 
-### 📁 /technical
-- Dokumentacja techniczna
-- Stack technologiczny
-- Architektura systemu
-- Instrukcje instalacji i konfiguracji
+- [Procesy biznesowe](business/processes.md) - Ogólne procesy biznesowe platformy
+- [Model biznesowy: Marketplace + Private Club](business/marketplace_private_club.md) - Szczegółowy opis modelu biznesowego
 
-### 📁 /business
-- Procesy biznesowe
-- Modele użytkowników
-- Regulamin platformy
-- Polityka prywatności
+## Dokumentacja techniczna
 
-### 📁 /api
-- Dokumentacja API
-- Integracje zewnętrzne
-- Webhooks
-- Przykłady użycia
+- [Architektura systemu](technical/architecture.md) - Architektura i główne komponenty systemu
+- [Przewodnik implementacyjny](technical/implementation_guide.md) - Szczegóły implementacji zgodne z modelem biznesowym
+- [Plan wdrożenia POC](technical/poc_implementation_plan.md) - Plan wdrożenia minimalnego POC platformy
+- [Przewodnik instalacji](technical/installation.md) - Instrukcje instalacji i konfiguracji
+- [Deployment](technical/deployment.md) - Proces wdrażania aplikacji
+- [Akceleracja rozwoju](technical/acceleration.md) - Wskazówki i najlepsze praktyki
+- [Middleware i polityki](technical/middleware_i_polityki.md) - Opis middleware i polityk dostępu
+- [Testowanie autoryzacji](technical/testowanie_autoryzacji.md) - Jak testować autoryzację w systemie
+- [Testy](technical/tests.md) - Ogólne podejście do testowania
 
-## Szybki Start
-1. [Instalacja i Konfiguracja](technical/installation.md)
-2. [Architektura Systemu](technical/architecture.md)
-3. [Procesy Biznesowe](business/processes.md)
-4. [Dokumentacja API](api/README.md) 
+## Dokumentacja API
+
+- [API Reference](api/README.md) - Dokumentacja API platformy
+
+## Dokumentacja testów
+
+- [Plan testowania manualnego](testing/manual_test_plan.md) - Plan testów manualnych 
