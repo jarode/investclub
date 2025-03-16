@@ -43,6 +43,19 @@
                             {{ __('Użytkownicy') }}
                         </x-nav-link>
                     @endif
+                    
+                    <!-- Weryfikacja KYC i Subskrypcja -->
+                    @if(Auth::check())
+                        <x-nav-link href="{{ route('subscription.show') }}" :active="request()->routeIs('subscription.*')">
+                            {{ __('Subskrypcja') }}
+                        </x-nav-link>
+                        
+                        @if(Auth::user()->kyc_status !== 'verified')
+                            <x-nav-link href="{{ route('kyc.verify') }}" :active="request()->routeIs('kyc.*')">
+                                {{ __('Weryfikacja KYC') }}
+                            </x-nav-link>
+                        @endif
+                    @endif
                 </div>
             </div>
 
@@ -135,6 +148,13 @@
                                     {{ __('API Tokens') }}
                                 </x-dropdown-link>
                             @endif
+                            
+                            <!-- Zarządzanie płatnościami -->
+                            @if(Auth::check() && Auth::user()->hasStripeId())
+                                <x-dropdown-link href="{{ route('billing.portal') }}">
+                                    {{ __('Zarządzanie płatnościami') }}
+                                </x-dropdown-link>
+                            @endif
 
                             <div class="border-t border-gray-200"></div>
 
@@ -198,6 +218,19 @@
                     {{ __('Użytkownicy') }}
                 </x-responsive-nav-link>
             @endif
+            
+            <!-- Weryfikacja KYC i Subskrypcja (mobilne) -->
+            @if(Auth::check())
+                <x-responsive-nav-link href="{{ route('subscription.show') }}" :active="request()->routeIs('subscription.*')">
+                    {{ __('Subskrypcja') }}
+                </x-responsive-nav-link>
+                
+                @if(Auth::user()->kyc_status !== 'verified')
+                    <x-responsive-nav-link href="{{ route('kyc.verify') }}" :active="request()->routeIs('kyc.*')">
+                        {{ __('Weryfikacja KYC') }}
+                    </x-responsive-nav-link>
+                @endif
+            @endif
         </div>
 
         <!-- Responsive Settings Options -->
@@ -224,6 +257,13 @@
                 @if (Laravel\Jetstream\Jetstream::hasApiFeatures())
                     <x-responsive-nav-link href="{{ route('api-tokens.index') }}" :active="request()->routeIs('api-tokens.index')">
                         {{ __('API Tokens') }}
+                    </x-responsive-nav-link>
+                @endif
+                
+                <!-- Zarządzanie płatnościami (mobilne) -->
+                @if(Auth::check() && Auth::user()->hasStripeId())
+                    <x-responsive-nav-link href="{{ route('billing.portal') }}">
+                        {{ __('Zarządzanie płatnościami') }}
                     </x-responsive-nav-link>
                 @endif
 

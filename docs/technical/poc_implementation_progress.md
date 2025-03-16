@@ -9,29 +9,29 @@
 ## Etap 1: Przygotowanie środowiska
 
 1. **Konfiguracja Laravel Cloud**
-   - ❌ Utworzenie konta w Laravel Cloud
-   - ❌ Konfiguracja środowiska staging
-   - ❌ Konfiguracja bazy danych MySQL
-   - ❌ Konfiguracja Redis dla sesji i cache
+   - ✅ Utworzenie konta w Laravel Cloud
+   - ✅ Konfiguracja środowiska staging
+   - ✅ Konfiguracja bazy danych MySQL
+   - ✅ Konfiguracja Redis dla sesji i cache
 
 2. **Konfiguracja Stripe**
-   - ❌ Utworzenie konta deweloperskiego Stripe
-   - ❌ Konfiguracja API Keys
-   - ❌ Przygotowanie planów subskrypcyjnych
-   - ❌ Konfiguracja ścieżek KYC
+   - ✅ Utworzenie konta deweloperskiego Stripe
+   - ✅ Konfiguracja API Keys
+   - 🔄 Przygotowanie planów subskrypcyjnych
+   - 🔄 Konfiguracja ścieżek KYC
 
 3. **Konfiguracja repozytorium**
    - ✅ Utworzenie repozytorium GitHub
-   - ❌ Konfiguracja GitHub Actions dla CI/CD
-   - ❌ Integracja z Laravel Cloud
+   - ✅ Konfiguracja GitHub Actions dla CI/CD
+   - ✅ Integracja z Laravel Cloud
 
 ## Etap 2: Implementacja podstawowych funkcjonalności
 
 1. **System użytkowników**
    - ✅ Implementacja Jetstream z Teams
    - ✅ Rozszerzenie modelu User o role (admin, manager, investor)
-   - 🔧 Implementacja weryfikacji KYC poprzez Stripe
-   - 🔧 Integracja z systemem subskrypcji Stripe
+   - 🔄 Implementacja weryfikacji KYC poprzez Stripe
+   - 🔄 Integracja z systemem subskrypcji Stripe
 
 2. **Podstawowy katalog projektów**
    - ✅ Model Project z wymaganymi polami

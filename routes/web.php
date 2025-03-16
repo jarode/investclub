@@ -4,6 +4,7 @@ use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProjectController;
 use App\Http\Controllers\InvestmentController;
+use App\Http\Controllers\StripeController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -60,4 +61,26 @@ Route::middleware([
     // Dodatkowa trasa dla zmiany statusu inwestycji
     Route::patch('/investments/{investment}/change-status', [InvestmentController::class, 'changeStatus'])
         ->name('investments.changeStatus');
+        
+    // Trasy dla integracji ze Stripe
+    Route::get('/subscription', [StripeController::class, 'showSubscription'])
+        ->name('subscription.show');
+    Route::post('/subscription', [StripeController::class, 'createSubscription'])
+        ->name('subscription.create');
+    Route::delete('/subscription', [StripeController::class, 'cancelSubscription'])
+        ->name('subscription.cancel');
+    Route::get('/billing-portal', [StripeController::class, 'billingPortal'])
+        ->name('billing.portal');
+    Route::get('/kyc/verify', [StripeController::class, 'startKycVerification'])
+        ->name('kyc.verify');
 });
+
+// Webhook dla Stripe (wymaga braku CSRF protection)
+Route::post('/stripe/webhook', [StripeController::class, 'handleKycWebhook'])
+    ->name('stripe.webhook')
+    ->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);
+
+// Trasa webhooka Cashier
+Route::post('/stripe/webhook/cashier', '\Laravel\Cashier\Http\Controllers\WebhookController@handleWebhook')
+    ->name('cashier.webhook')
+    ->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);

@@ -30,8 +30,7 @@ return new class extends Migration
             $table->string('verification_status')->default('unverified');
             $table->string('kyc_status')->default('pending');
             
-            // Pola dla integracji ze Stripe
-            $table->string('stripe_id')->nullable();
+            // Pole dla statusu subskrypcji Stripe
             $table->string('stripe_subscription_status')->default('inactive');
             
             // Jetstream fields
