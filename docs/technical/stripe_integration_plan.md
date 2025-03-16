@@ -1,0 +1,135 @@
+# Plan wdrożenia integracji Stripe dla KYC i subskrypcji
+
+## Wprowadzenie
+
+Dokument zawiera szczegółowy plan wdrożenia integracji z systemem Stripe dla procesu weryfikacji KYC (Know Your Customer) oraz zarządzania subskrypcjami w platformie InvestClub. Integracja ma na celu umożliwienie weryfikacji tożsamości użytkowników oraz zarządzanie modelami płatności opartymi o subskrypcje.
+
+## Aktualna implementacja
+
+Aktualnie system zawiera już:
+- Podstawową strukturę integracji ze Stripe za pomocą Laravel Cashier
+- Modele i tabele w bazie danych dla subskrypcji
+- Middleware do sprawdzania statusu KYC i aktywnych subskrypcji
+- Widoki dla procesu weryfikacji KYC i wyboru planów subskrypcji
+- Trasy dla procesów weryfikacji i płatności
+- Obsługę webhooków Stripe
+
+## Plan wdrożenia
+
+### 1. Testowanie podstawowej funkcjonalności (1-2 dni)
+
+- [ ] Weryfikacja procesu rejestracji użytkownika
+- [ ] Sprawdzenie czy nowy użytkownik ma dostęp tylko do dashboardu, KYC i subskrypcji
+- [ ] Weryfikacja czy dostęp do projektów i inwestycji jest blokowany bez KYC i subskrypcji
+- [ ] Testowanie poprawności działania middleware `verified.kyc` i `active.subscription`
+- [ ] Sprawdzenie procesów logowania i wylogowywania w kontekście statusów weryfikacji
+
+### 2. Konfiguracja webhooków Stripe (1 dzień)
+
+- [ ] Konfiguracja adresu webhook dla KYC w panelu Stripe
+- [ ] Konfiguracja adresu webhook dla subskrypcji w panelu Stripe
+- [ ] Ustawienie sekretów webhooków w pliku `.env`
+- [ ] Testowanie webhooków za pomocą narzędzia `stripe listen`
+- [ ] Weryfikacja czy system poprawnie odbiera i przetwarza zdarzenia z webhook
+
+### 3. Dopracowanie procesu KYC (2-3 dni)
+
+- [ ] Testowanie rozpoczęcia procesu weryfikacji KYC z aplikacji
+- [ ] Weryfikacja procesu przekierowania do Stripe i powrotu do aplikacji
+- [ ] Sprawdzenie czy status KYC jest prawidłowo aktualizowany po weryfikacji
+- [ ] Implementacja szczegółowego logowania dla diagnozowania problemów
+- [ ] Testowanie różnych scenariuszy weryfikacji (udana, nieudana, przerwana)
+- [ ] Dodanie dodatkowych komunikatów dla użytkownika o statusie weryfikacji
+
+### 4. Dopracowanie zarządzania subskrypcjami (2-3 dni)
+
+- [ ] Testowanie aktywacji pakietu darmowego (I-Free)
+- [ ] Testowanie aktywacji pakietu płatnego (I-Premium) z użyciem kart testowych Stripe
+- [ ] Testowanie aktywacji pakietu dla właścicieli projektów (O-Premium)
+- [ ] Weryfikacja procesu anulowania subskrypcji
+- [ ] Testowanie zmiany pakietu subskrypcji
+- [ ] Sprawdzenie czy status subskrypcji poprawnie wpływa na uprawnienia
+- [ ] Testowanie portalu płatności Stripe (Billing Portal)
+
+### 5. Optymalizacja interfejsu użytkownika (1-2 dni)
+
+- [ ] Dopracowanie informacji o statusie weryfikacji KYC na dashboardzie
+- [ ] Dodanie szczegółowych informacji o statusie subskrypcji
+- [ ] Implementacja jasnych komunikatów o brakujących uprawnieniach
+- [ ] Dodanie komunikatów sukcesu/błędu przy procesach zmiany statusu
+- [ ] Optymalizacja formularza wyboru subskrypcji
+- [ ] Dostosowanie widoku weryfikacji KYC
+
+### 6. Bezpieczeństwo i obsługa błędów (2 dni)
+
+- [ ] Testowanie różnych scenariuszy błędów podczas płatności
+- [ ] Testowanie przypadków gdy weryfikacja KYC się nie powiedzie
+- [ ] Weryfikacja zabezpieczeń tras i middleware
+- [ ] Implementacja mechanizmów obsługi błędów dla Stripe API
+- [ ] Dodanie zabezpieczeń przed wielokrotnym rozpoczynaniem procesów weryfikacji/płatności
+- [ ] Testowanie sesji wygasających podczas procesów płatności/weryfikacji
+
+### 7. Dokumentacja i procedury (1 dzień)
+
+- [ ] Przygotowanie instrukcji dla użytkowników dotyczących procesu weryfikacji KYC
+- [ ] Dokumentacja procesu subskrypcji dla użytkowników
+- [ ] Przygotowanie dokumentacji dla administratorów
+- [ ] Procedury obsługi najczęstszych problemów
+- [ ] Instrukcje dla obsługi klienta dotyczące typowych zgłoszeń
+
+### 8. Wdrożenie produkcyjne (1-2 dni)
+
+- [ ] Konfiguracja kluczy produkcyjnych Stripe
+- [ ] Testowanie produkcyjne procesu weryfikacji KYC
+- [ ] Testowanie produkcyjne procesów płatności
+- [ ] Konfiguracja monitoringu dla procesów Stripe
+- [ ] Weryfikacja logów i alarmów dla zdarzeń Stripe
+- [ ] Finalne testy procesu end-to-end
+
+## Priorytety i harmonogram
+
+### Priorytety wysokie (realizacja w pierwszej kolejności)
+1. Testowanie podstawowej funkcjonalności (blokady dostępu)
+2. Konfiguracja webhooków Stripe
+3. Testowanie procesu weryfikacji KYC
+
+### Priorytety średnie
+1. Dopracowanie zarządzania subskrypcjami
+2. Optymalizacja interfejsu użytkownika
+3. Bezpieczeństwo i obsługa błędów
+
+### Priorytety niskie
+1. Dokumentacja i procedury
+2. Drobne poprawki UI/UX
+
+### Szacowany czas realizacji
+- Całkowity czas: 10-15 dni roboczych
+- Data zakończenia: do końca marca 2025
+
+## Potencjalne ryzyka i rozwiązania
+
+1. **Problemy z webhookami Stripe**
+   - Rozwiązanie: Wdrożenie mechanizmu retry i systemu alertów
+
+2. **Problemy z weryfikacją KYC**
+   - Rozwiązanie: Alternatywna ścieżka weryfikacji dla wyjątkowych przypadków
+
+3. **Problemy z płatnościami**
+   - Rozwiązanie: Szczegółowe logi, procedury rozwiązywania problemów dla obsługi klienta
+
+4. **Zmiany w API Stripe**
+   - Rozwiązanie: Regularne monitorowanie dokumentacji Stripe i aktualizacje
+
+## Zespół odpowiedzialny
+
+- Product Owner: [DO UZUPEŁNIENIA]
+- Programista backend: [DO UZUPEŁNIENIA]
+- Programista frontend: [DO UZUPEŁNIENIA]
+- Tester: [DO UZUPEŁNIENIA]
+
+## Metryki sukcesu
+
+1. Minimum 95% pomyślnie zakończonych procesów weryfikacji KYC
+2. Minimum 90% pomyślnie zakończonych procesów płatności
+3. Czas odpowiedzi na problemy z płatnościami: maks. 4 godziny
+4. Zero incydentów związanych z bezpieczeństwem danych w Stripe 
