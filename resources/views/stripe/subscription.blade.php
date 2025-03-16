@@ -157,7 +157,7 @@
                         @csrf
                         <input type="hidden" name="plan" id="selected-plan" value="">
                         
-                        <div class="mb-4">
+                        <div id="payment-details" class="mb-4">
                             <div id="card-element" class="border p-3 rounded-md"></div>
                             <div id="card-errors" class="text-red-600 mt-2"></div>
                         </div>
@@ -202,8 +202,20 @@
                     const plan = this.getAttribute('data-plan');
                     document.getElementById('selected-plan').value = plan;
                     
-                    // Pokaż formularz płatności
+                    // Sprawdź czy wybrano darmowy plan
+                    const isFree = plan === 'prod_RxFr1ajRyqgFqa';
+                    
+                    // Pokaż formularz płatności dla planów płatnych lub ukryty formularz dla darmowego
                     document.getElementById('payment-form-container').classList.remove('hidden');
+                    
+                    // Wyświetl lub ukryj elementy płatności dla darmowego planu
+                    if (isFree) {
+                        document.getElementById('payment-details').style.display = 'none';
+                        document.getElementById('submit-button').textContent = 'Aktywuj darmowy plan';
+                    } else {
+                        document.getElementById('payment-details').style.display = 'block';
+                        document.getElementById('submit-button').textContent = 'Rozpocznij subskrypcję';
+                    }
                     
                     // Przewiń do formularza płatności
                     document.getElementById('payment-form-container').scrollIntoView({
@@ -227,7 +239,17 @@
                 submitButton.disabled = true;
                 submitButton.textContent = 'Przetwarzanie...';
                 
-                // Utworzenie tokenu karty
+                const plan = document.getElementById('selected-plan').value;
+                const isFree = plan === 'prod_RxFr1ajRyqgFqa';
+                
+                // Dla darmowego planu nie wymagamy metody płatności
+                if (isFree) {
+                    // Wyślij formularz bezpośrednio
+                    form.submit();
+                    return;
+                }
+                
+                // Dla płatnych planów pobierz metodę płatności
                 const { paymentMethod, error } = await stripe.createPaymentMethod({
                     type: 'card',
                     card: cardElement,

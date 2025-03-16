@@ -37,7 +37,7 @@ class StripeController extends Controller
     {
         $request->validate([
             'plan' => 'required',
-            'payment_method' => 'required',
+            'payment_method' => 'required_unless:plan,prod_RxFr1ajRyqgFqa', // Wymagane tylko dla płatnych planów
         ]);
 
         $user = $request->user();
