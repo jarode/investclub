@@ -16,51 +16,52 @@
                     </div>
                 @endif
 
+                @if (auth()->user()->role === 'investor')
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
-                    <!-- Plan Podstawowy -->
+                    <!-- Plan Darmowy dla Inwestora -->
                     <div class="border rounded-lg p-6 hover:shadow-lg transition duration-300">
-                        <h4 class="text-xl font-semibold mb-2">Plan Podstawowy</h4>
-                        <p class="text-gray-600 mb-4">Dostęp do wszystkich podstawowych funkcji platformy.</p>
-                        <p class="text-2xl font-bold mb-4">99 zł / miesiąc</p>
+                        <h4 class="text-xl font-semibold mb-2">I-Free</h4>
+                        <p class="text-gray-600 mb-4">Podstawowy dostęp do platformy dla inwestorów.</p>
+                        <p class="text-2xl font-bold mb-4">0 zł / miesiąc</p>
                         <ul class="mb-6 space-y-2">
                             <li class="flex items-center">
                                 <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                Dostęp do katalogu projektów
+                                Przeglądanie projektów
                             </li>
                             <li class="flex items-center">
                                 <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                Możliwość wyrażenia zainteresowania
+                                Wyrażanie zainteresowania
                             </li>
                             <li class="flex items-center">
-                                <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                <svg class="w-5 h-5 text-red-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                                 </svg>
-                                Podstawowe analizy projektów
+                                Ograniczony dostęp do szczegółów
                             </li>
                         </ul>
                         <button 
                             type="button"
                             class="subscribe-button w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600"
-                            data-plan="price_basic">
+                            data-plan="prod_RxFr1ajRyqgFqa">
                             Wybierz plan
                         </button>
                     </div>
 
-                    <!-- Plan Premium -->
+                    <!-- Plan Premium dla Inwestora -->
                     <div class="border rounded-lg p-6 bg-gray-50 hover:shadow-lg transition duration-300">
-                        <h4 class="text-xl font-semibold mb-2">Plan Premium</h4>
-                        <p class="text-gray-600 mb-4">Dostęp do wszystkich funkcji platformy z priorytetową obsługą.</p>
-                        <p class="text-2xl font-bold mb-4">299 zł / miesiąc</p>
+                        <h4 class="text-xl font-semibold mb-2">I-Premium</h4>
+                        <p class="text-gray-600 mb-4">Pełny dostęp do platformy dla inwestorów z dodatkowymi korzyściami.</p>
+                        <p class="text-2xl font-bold mb-4">500 zł / miesiąc</p>
                         <ul class="mb-6 space-y-2">
                             <li class="flex items-center">
                                 <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
-                                Wszystko z planu Podstawowego
+                                Wszystko z planu I-Free
                             </li>
                             <li class="flex items-center">
                                 <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -90,11 +91,63 @@
                         <button 
                             type="button"
                             class="subscribe-button w-full bg-indigo-600 text-white py-2 px-4 rounded hover:bg-indigo-700"
-                            data-plan="price_premium">
+                            data-plan="prod_RxFs58AVJVHqx2">
                             Wybierz plan
                         </button>
                     </div>
                 </div>
+                @elseif (auth()->user()->role === 'project_owner')
+                <div class="grid grid-cols-1 gap-6 mb-6">
+                    <!-- Plan Premium dla Właściciela Projektu -->
+                    <div class="border rounded-lg p-6 bg-gray-50 hover:shadow-lg transition duration-300">
+                        <h4 class="text-xl font-semibold mb-2">O-Premium</h4>
+                        <p class="text-gray-600 mb-4">Pełny dostęp do platformy dla właścicieli projektów.</p>
+                        <p class="text-2xl font-bold mb-4">1000 zł / miesiąc</p>
+                        <ul class="mb-6 space-y-2">
+                            <li class="flex items-center">
+                                <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                Możliwość dodawania projektów
+                            </li>
+                            <li class="flex items-center">
+                                <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                Dostęp do bazy inwestorów premium
+                            </li>
+                            <li class="flex items-center">
+                                <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                Narzędzia do analizy zainteresowania
+                            </li>
+                            <li class="flex items-center">
+                                <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                Wsparcie w procesie pozyskiwania finansowania
+                            </li>
+                            <li class="flex items-center">
+                                <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                </svg>
+                                Promocja projektu na platformie
+                            </li>
+                        </ul>
+                        <button 
+                            type="button"
+                            class="subscribe-button w-full bg-indigo-600 text-white py-2 px-4 rounded hover:bg-indigo-700"
+                            data-plan="prod_RxG8yaXSS7WZoE">
+                            Wybierz plan
+                        </button>
+                    </div>
+                </div>
+                @else
+                <div class="text-center py-10">
+                    <p class="text-xl text-gray-600">Wybór planów nie jest dostępny dla administratorów.</p>
+                </div>
+                @endif
 
                 <!-- Formularz płatności (ukryty na początku) -->
                 <div id="payment-form-container" class="hidden mt-8 border-t pt-6">

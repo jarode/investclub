@@ -6,9 +6,17 @@ use Illuminate\Http\Request;
 use Laravel\Cashier\Exceptions\IncompletePayment;
 use Illuminate\Support\Facades\Log;
 use Stripe\Exception\ApiErrorException;
+use App\Models\User;
 
 class StripeController extends Controller
 {
+    // Lista cenników produktów
+    protected $priceIds = [
+        'prod_RxFr1ajRyqgFqa' => 'price_free', // I-Free - darmowy plan dla inwestorów
+        'prod_RxFs58AVJVHqx2' => 'price_1RxFtY2BTxeaIpqRB3AcVn3q', // I-Premium - plan dla inwestorów 500zł/m
+        'prod_RxG8yaXSS7WZoE' => 'price_1RxG9F2BTxeaIpqRBxFN1KHc', // O-Premium - plan dla właścicieli projektów 1000zł/m
+    ];
+
     /**
      * Wyświetla formularz subskrypcji.
      *
@@ -33,13 +41,30 @@ class StripeController extends Controller
         ]);
 
         $user = $request->user();
+        $productId = $request->plan;
+        
+        // Sprawdź, czy wybrano darmowy plan
+        if ($productId === 'prod_RxFr1ajRyqgFqa') {
+            // Dla darmowego planu nie tworzymy subskrypcji Stripe
+            $user->stripe_subscription_status = 'active';
+            $user->save();
+            
+            return redirect()->route('dashboard')->with('success', 'Aktywowano darmowy plan subskrypcji.');
+        }
+        
+        // Pobierz cenę na podstawie ID produktu
+        $priceId = $this->priceIds[$productId] ?? null;
+        
+        if (!$priceId) {
+            return back()->withErrors(['error' => 'Wybrany plan nie istnieje.']);
+        }
 
         // Ustaw metodę płatności jako domyślną
         $user->updateDefaultPaymentMethod($request->payment_method);
 
         try {
             // Utwórz subskrypcję
-            $subscription = $user->newSubscription('default', $request->plan)
+            $subscription = $user->newSubscription('default', $priceId)
                 ->create($request->payment_method);
 
             // Zaktualizuj status subskrypcji użytkownika
@@ -53,7 +78,7 @@ class StripeController extends Controller
             ]);
         } catch (\Exception $e) {
             Log::error('Błąd tworzenia subskrypcji: ' . $e->getMessage());
-            return back()->withErrors(['error' => 'Wystąpił błąd podczas tworzenia subskrypcji.']);
+            return back()->withErrors(['error' => 'Wystąpił błąd podczas tworzenia subskrypcji: ' . $e->getMessage()]);
         }
     }
 
@@ -67,8 +92,11 @@ class StripeController extends Controller
     {
         $user = $request->user();
 
-        // Anuluj subskrypcję na koniec okresu rozliczeniowego
-        $user->subscription('default')->cancel();
+        // Sprawdź czy użytkownik ma aktywną subskrypcję płatną
+        if ($user->subscription('default')) {
+            // Anuluj subskrypcję na koniec okresu rozliczeniowego
+            $user->subscription('default')->cancel();
+        }
 
         // Zaktualizuj status subskrypcji użytkownika
         $user->stripe_subscription_status = 'cancelled';
@@ -138,7 +166,7 @@ class StripeController extends Controller
                 $session = $event->data->object;
                 $userId = $session->metadata->user_id;
 
-                $user = \App\Models\User::findOrFail($userId);
+                $user = User::findOrFail($userId);
                 $user->kyc_status = 'verified';
                 $user->save();
             }
