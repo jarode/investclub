@@ -10,6 +10,7 @@
 - [Architektura systemu](technical/architecture.md) - Architektura i główne komponenty systemu
 - [Przewodnik implementacyjny](technical/implementation_guide.md) - Szczegóły implementacji zgodne z modelem biznesowym
 - [Plan wdrożenia POC](technical/poc_implementation_plan.md) - Plan wdrożenia minimalnego POC platformy
+- [Status wdrożenia POC](technical/poc_implementation_progress.md) - Bieżący status i postęp wdrożenia POC
 - [Przewodnik instalacji](technical/installation.md) - Instrukcje instalacji i konfiguracji
 - [Deployment](technical/deployment.md) - Proces wdrażania aplikacji
 - [Akceleracja rozwoju](technical/acceleration.md) - Wskazówki i najlepsze praktyki
