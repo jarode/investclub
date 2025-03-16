@@ -117,6 +117,18 @@ class StripeController extends Controller
     }
 
     /**
+     * Wyświetla stronę z informacją o statusie weryfikacji KYC.
+     *
+     * @param Request $request
+     * @return \Illuminate\View\View
+     */
+    public function showKycStatus(Request $request)
+    {
+        $user = $request->user();
+        return view('stripe.kyc', ['kycStatus' => $user->kyc_status]);
+    }
+
+    /**
      * Rozpoczyna proces weryfikacji KYC.
      *
      * @param  \Illuminate\Http\Request  $request
@@ -130,18 +142,66 @@ class StripeController extends Controller
             // Tworzenie sesji weryfikacji Identity w Stripe
             $stripe = new \Stripe\StripeClient(config('cashier.secret'));
             
+            // Definiujemy pełny adres URL z poprawnym hostem i portem
+            $host = $request->getHost();
+            $port = $request->getPort();
+            $scheme = $request->getScheme();
+            
+            // Tworzymy URL powrotu z uwzględnieniem portu (jeśli jest niestandardowy)
+            $returnUrl = $port == 80 || $port == 443 
+                ? "{$scheme}://{$host}/kyc/completed" 
+                : "{$scheme}://{$host}:{$port}/kyc/completed";
+            
             $session = $stripe->identity->verificationSessions->create([
                 'type' => 'document',
                 'metadata' => [
                     'user_id' => $user->id,
                 ],
+                'return_url' => $returnUrl,
             ]);
+
+            // Zapisz ID sesji weryfikacji
+            $user->verification_session_id = $session->id;
+            $user->save();
 
             // Przekierowanie użytkownika do strony weryfikacji Stripe
             return redirect($session->url);
         } catch (ApiErrorException $e) {
             Log::error('Błąd podczas inicjowania weryfikacji KYC: ' . $e->getMessage());
             return back()->withErrors(['error' => 'Nie udało się rozpocząć weryfikacji KYC. Spróbuj ponownie później.']);
+        }
+    }
+
+    /**
+     * Obsługuje powrót użytkownika po procesie weryfikacji KYC.
+     *
+     * @param Request $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function kycCompleted(Request $request)
+    {
+        $user = $request->user();
+        
+        // Sprawdź status weryfikacji w Stripe
+        try {
+            $stripe = new \Stripe\StripeClient(config('cashier.secret'));
+            
+            if ($user->verification_session_id) {
+                $session = $stripe->identity->verificationSessions->retrieve($user->verification_session_id);
+                
+                if ($session->status === 'verified') {
+                    $user->kyc_status = 'verified';
+                    $user->save();
+                    return redirect()->route('dashboard')->with('success', 'Weryfikacja KYC zakończona pomyślnie.');
+                } elseif ($session->status === 'requires_input') {
+                    return redirect()->route('kyc.verify')->with('warning', 'Weryfikacja KYC wymaga dodatkowych informacji.');
+                }
+            }
+            
+            return redirect()->route('dashboard')->with('info', 'Weryfikacja KYC jest w trakcie przetwarzania.');
+        } catch (\Exception $e) {
+            Log::error('Błąd podczas sprawdzania statusu weryfikacji KYC: ' . $e->getMessage());
+            return redirect()->route('dashboard')->with('error', 'Wystąpił błąd podczas sprawdzania statusu weryfikacji KYC.');
         }
     }
 
@@ -157,18 +217,26 @@ class StripeController extends Controller
         $sig_header = $request->header('Stripe-Signature');
         $endpoint_secret = config('cashier.webhook.secret');
 
+        Log::info('Otrzymano webhook Stripe: ' . $request->getContent());
+
         try {
             $event = \Stripe\Webhook::constructEvent(
                 $payload, $sig_header, $endpoint_secret
             );
 
+            Log::info('Typ wydarzenia: ' . $event->type);
+
             if ($event->type === 'identity.verification_session.verified') {
                 $session = $event->data->object;
                 $userId = $session->metadata->user_id;
 
+                Log::info('Weryfikacja KYC zatwierdzona dla użytkownika: ' . $userId);
+
                 $user = User::findOrFail($userId);
                 $user->kyc_status = 'verified';
                 $user->save();
+
+                Log::info('Status KYC zaktualizowany dla użytkownika: ' . $userId);
             }
 
             return response()->json(['status' => 'success']);

@@ -8,27 +8,26 @@
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
-                <h1 class="text-2xl font-bold mb-4">Witaj, {{ Auth::user()->name }}</h1>
-                <p class="mb-4">To jest panel administratora dostępny tylko dla użytkowników z rolą "admin".</p>
+                <h3 class="text-lg font-medium mb-4">{{ __('Zarządzanie systemem') }}</h3>
                 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-8">
-                    <div class="bg-gray-100 p-6 rounded-lg shadow">
-                        <h3 class="text-lg font-bold mb-3">Zarządzanie użytkownikami</h3>
-                        <p class="mb-4">Pełna kontrola nad użytkownikami platformy.</p>
-                        <a href="{{ route('users.index') }}" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                            Lista użytkowników
-                        </a>
-                    </div>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <!-- Zarządzanie użytkownikami -->
+                    <a href="{{ route('users.index') }}" class="block border rounded-lg p-4 hover:bg-gray-50 transition duration-300">
+                        <h4 class="font-semibold mb-2">Użytkownicy</h4>
+                        <p class="text-sm text-gray-600">Zarządzaj użytkownikami platformy.</p>
+                    </a>
                     
-                    <div class="bg-gray-100 p-6 rounded-lg shadow">
-                        <h3 class="text-lg font-bold mb-3">Statystyki systemu</h3>
-                        <ul class="list-disc list-inside mb-4">
-                            <li>Liczba użytkowników: {{ \App\Models\User::count() }}</li>
-                            <li>Liczba administratorów: {{ \App\Models\User::where('role', 'admin')->count() }}</li>
-                            <li>Liczba managerów: {{ \App\Models\User::where('role', 'manager')->count() }}</li>
-                            <li>Liczba inwestorów: {{ \App\Models\User::where('role', 'investor')->count() }}</li>
-                        </ul>
-                    </div>
+                    <!-- Zarządzanie projektami -->
+                    <a href="{{ route('projects.index') }}" class="block border rounded-lg p-4 hover:bg-gray-50 transition duration-300">
+                        <h4 class="font-semibold mb-2">Projekty</h4>
+                        <p class="text-sm text-gray-600">Przeglądaj i zarządzaj projektami inwestycyjnymi.</p>
+                    </a>
+                    
+                    <!-- Zarządzanie inwestycjami -->
+                    <a href="{{ route('investments.index') }}" class="block border rounded-lg p-4 hover:bg-gray-50 transition duration-300">
+                        <h4 class="font-semibold mb-2">Inwestycje</h4>
+                        <p class="text-sm text-gray-600">Monitoruj inwestycje na platformie.</p>
+                    </a>
                 </div>
             </div>
         </div>

@@ -8,7 +8,11 @@
     <div class="py-12">
         <div class="max-w-7xl mx-auto sm:px-6 lg:px-8">
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
-                <h3 class="text-lg font-medium mb-4">{{ __('Weryfikacja Know Your Customer (KYC)') }}</h3>
+                @if (session('warning'))
+                    <div class="mb-4 bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded">
+                        {{ session('warning') }}
+                    </div>
+                @endif
 
                 @if (session('error'))
                     <div class="mb-4 bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded">
@@ -16,86 +20,70 @@
                     </div>
                 @endif
 
-                <div class="mb-6 text-gray-600">
-                    <p class="mb-4">
-                        Aby korzystać z platformy InvestClub, musimy zweryfikować Twoją tożsamość zgodnie z wymogami regulacyjnymi.
-                        Proces weryfikacji KYC (Know Your Customer) jest prosty i zabezpieczony.
-                    </p>
-                
-                    <div class="bg-blue-50 border-l-4 border-blue-500 p-4 mb-6">
-                        <div class="flex">
-                            <div class="flex-shrink-0">
-                                <svg class="h-5 w-5 text-blue-400" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                                </svg>
-                            </div>
-                            <div class="ml-3">
-                                <p class="text-sm text-blue-700">
-                                    Twoje dane są bezpieczne i będą używane wyłącznie do celów weryfikacji.
-                                </p>
-                            </div>
-                        </div>
+                @if (session('success'))
+                    <div class="mb-4 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
+                        {{ session('success') }}
                     </div>
-                
-                    <h4 class="text-lg font-medium mb-3">Czego będziesz potrzebować:</h4>
-                    <ul class="list-disc pl-5 mb-6 space-y-2">
-                        <li>Ważnego dokumentu tożsamości (dowód osobisty, paszport)</li>
-                        <li>Urządzenia z kamerą (do zrobienia zdjęć dokumentów)</li>
-                        <li>Kilku minut Twojego czasu</li>
-                    </ul>
-                
-                    <h4 class="text-lg font-medium mb-3">Przebieg procesu:</h4>
-                    <ol class="list-decimal pl-5 mb-6 space-y-2">
-                        <li>Po kliknięciu przycisku "Rozpocznij weryfikację" zostaniesz przekierowany na bezpieczną stronę Stripe</li>
-                        <li>Zrobisz zdjęcie swojego dokumentu tożsamości</li>
-                        <li>Zrobisz selfie w celu porównania z dokumentem</li>
-                        <li>Po zakończeniu procesu zostaniesz przekierowany z powrotem do aplikacji</li>
-                        <li>Twoja tożsamość zostanie zweryfikowana w ciągu 24 godzin</li>
-                    </ol>
+                @endif
+
+                <div class="mb-6">
+                    <h3 class="text-lg font-medium mb-2">Status weryfikacji KYC</h3>
+                    
+                    @if ($kycStatus === 'verified')
+                        <div class="flex items-center text-green-600">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                            </svg>
+                            <span>Weryfikacja KYC zakończona pomyślnie</span>
+                        </div>
+                        <p class="mt-2 text-gray-600">Masz pełny dostęp do platformy InvestClub.</p>
+                    @elseif ($kycStatus === 'pending')
+                        <div class="flex items-center text-yellow-600">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                            </svg>
+                            <span>Weryfikacja KYC w trakcie przetwarzania</span>
+                        </div>
+                        <p class="mt-2 text-gray-600">Twoja weryfikacja jest w trakcie przetwarzania. Proces może potrwać do 24 godzin.</p>
+                    @else
+                        <div class="flex items-center text-red-600">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                            </svg>
+                            <span>Weryfikacja KYC nie została przeprowadzona</span>
+                        </div>
+                        <p class="mt-2 text-gray-600">Aby uzyskać pełny dostęp do platformy InvestClub, musisz przejść weryfikację KYC.</p>
+                    @endif
                 </div>
 
-                <div class="mt-6">
-                    @if(auth()->user()->kyc_status === 'verified')
-                        <div class="bg-green-50 border-l-4 border-green-500 p-4">
-                            <div class="flex">
-                                <div class="flex-shrink-0">
-                                    <svg class="h-5 w-5 text-green-400" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clip-rule="evenodd"/>
-                                    </svg>
-                                </div>
-                                <div class="ml-3">
-                                    <p class="text-sm text-green-700">
-                                        Twoja tożsamość została już pomyślnie zweryfikowana.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-                    @elseif(auth()->user()->kyc_status === 'pending')
-                        <div class="bg-yellow-50 border-l-4 border-yellow-500 p-4 mb-4">
-                            <div class="flex">
-                                <div class="flex-shrink-0">
-                                    <svg class="h-5 w-5 text-yellow-400" fill="currentColor" viewBox="0 0 20 20">
-                                        <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm1-8.414l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 011.414-1.414L9 9.586V5a1 1 0 012 0v4.586z" clip-rule="evenodd"/>
-                                    </svg>
-                                </div>
-                                <div class="ml-3">
-                                    <p class="text-sm text-yellow-700">
-                                        Twoja weryfikacja jest w trakcie przetwarzania. Prosimy o cierpliwość, ten proces może potrwać do 24 godzin.
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
+                @if ($kycStatus !== 'verified')
+                    <div class="mb-6">
+                        <h3 class="text-lg font-medium mb-2">Przeprowadź weryfikację KYC</h3>
+                        <p class="mb-4 text-gray-600">
+                            Weryfikacja KYC (Know Your Customer) jest wymagana przez przepisy prawne i pomaga nam zapewnić bezpieczeństwo wszystkim uczestnikom. 
+                            Zostaniesz przekierowany do bezpiecznego procesu weryfikacji obsługiwanego przez Stripe.
+                        </p>
                         
-                        <a href="{{ route('kyc.verify') }}" 
-                           class="inline-block bg-yellow-500 text-white py-2 px-4 rounded hover:bg-yellow-600">
-                            Przeprowadź weryfikację ponownie
-                        </a>
-                    @else
-                        <a href="{{ route('kyc.verify') }}" 
-                           class="inline-block bg-indigo-600 text-white py-2 px-4 rounded hover:bg-indigo-700">
-                            Rozpocznij weryfikację
-                        </a>
-                    @endif
+                        <form action="{{ route('kyc.start') }}" method="POST">
+                            @csrf
+                            <button type="submit" class="bg-indigo-600 text-white py-2 px-4 rounded hover:bg-indigo-700">
+                                Rozpocznij weryfikację KYC
+                            </button>
+                        </form>
+                    </div>
+                @endif
+
+                <div>
+                    <h3 class="text-lg font-medium mb-2">Dlaczego weryfikacja KYC jest ważna?</h3>
+                    <p class="text-gray-600">
+                        Weryfikacja KYC jest istotnym elementem bezpieczeństwa w branży inwestycyjnej. Pomaga nam:
+                    </p>
+                    <ul class="mt-2 space-y-1 list-disc list-inside text-gray-600">
+                        <li>Zapobiegać oszustwom i praniu pieniędzy</li>
+                        <li>Spełniać wymogi prawne i regulacyjne</li>
+                        <li>Zwiększać bezpieczeństwo i zaufanie wszystkich uczestników platformy</li>
+                        <li>Zapewniać najwyższe standardy bezpieczeństwa transakcji</li>
+                    </ul>
                 </div>
             </div>
         </div>

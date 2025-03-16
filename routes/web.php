@@ -1,79 +1,69 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
-use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InvestmentController;
+use App\Http\Controllers\UserController;
 use App\Http\Controllers\StripeController;
+
+/*
+|--------------------------------------------------------------------------
+| Web Routes
+|--------------------------------------------------------------------------
+|
+| Here is where you can register web routes for your application. These
+| routes are loaded by the RouteServiceProvider and all of them will
+| be assigned to the "web" middleware group. Make something great!
+|
+*/
 
 Route::get('/', function () {
     return view('welcome');
 });
 
-Route::middleware([
-    'auth:sanctum',
-    config('jetstream.auth_session'),
-    'verified',
-])->group(function () {
-    // Dashboard dla wszystkich zalogowanych użytkowników
-    Route::get('/dashboard', function () {
-        return view('dashboard');
-    })->name('dashboard');
-    
-    // Trasy chronione middleware 'role' - sprawdzające role użytkowników
-    Route::get('/admin/dashboard', function () {
+Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified'])->group(function () {
+    Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // Role-specific dashboards
+    Route::get('/admin/dashboard', function() {
         return view('admin.dashboard');
     })->middleware('role:admin')->name('admin.dashboard');
     
-    Route::get('/manager/dashboard', function () {
+    Route::get('/manager/dashboard', function() {
         return view('manager.dashboard');
     })->middleware('role:manager')->name('manager.dashboard');
-    
-    // Trasy zarządzania użytkownikami - wykorzystujące policies
-    Route::get('/users', [UserController::class, 'index'])->name('users.index');
-    
-    // Trasy wymagające roli admin - muszą być przed trasą z parametrem {user}
-    Route::middleware('role:admin')->group(function () {
-        Route::get('/users/create', [UserController::class, 'create'])->name('users.create');
-        Route::post('/users', [UserController::class, 'store'])->name('users.store');
+
+    // Trasy dla użytkowników (tylko dla administratorów)
+    Route::middleware(['role:admin'])->group(function () {
+        Route::get('/users', [UserController::class, 'index'])->name('users.index');
+        Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show');
+    });
+
+    // Trasy dla projektów - wymagają weryfikacji KYC i aktywnej subskrypcji
+    Route::middleware(['verified.kyc', 'active.subscription'])->group(function () {
+        Route::resource('projects', ProjectController::class);
+        Route::patch('/projects/{project}/change-status', [ProjectController::class, 'changeStatus'])
+            ->name('projects.changeStatus');
+
+        // Trasy dla inwestycji
+        Route::resource('investments', InvestmentController::class);
+        Route::patch('/investments/{investment}/change-status', [InvestmentController::class, 'changeStatus'])
+            ->name('investments.changeStatus');
     });
     
-    // Trasy z parametrem {user}
-    Route::get('/users/{user}', [UserController::class, 'show'])->name('users.show');
-    
-    // Trasy wymagające roli admin dla operacji z parametrem {user}
-    Route::middleware('role:admin')->group(function () {
-        Route::get('/users/{user}/edit', [UserController::class, 'edit'])->name('users.edit');
-        Route::put('/users/{user}', [UserController::class, 'update'])->name('users.update');
-        Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
-    });
-    
-    // Trasy dla projektów inwestycyjnych
-    Route::resource('projects', ProjectController::class);
-    
-    // Dodatkowa trasa dla zmiany statusu projektu
-    Route::patch('/projects/{project}/change-status', [ProjectController::class, 'changeStatus'])
-        ->name('projects.changeStatus');
-        
-    // Trasy dla inwestycji
-    Route::resource('investments', InvestmentController::class);
-    
-    // Dodatkowa trasa dla zmiany statusu inwestycji
-    Route::patch('/investments/{investment}/change-status', [InvestmentController::class, 'changeStatus'])
-        ->name('investments.changeStatus');
-        
-    // Trasy dla integracji ze Stripe
-    Route::get('/subscription', [StripeController::class, 'showSubscription'])
-        ->name('subscription.show');
-    Route::post('/subscription', [StripeController::class, 'createSubscription'])
-        ->name('subscription.create');
-    Route::delete('/subscription', [StripeController::class, 'cancelSubscription'])
-        ->name('subscription.cancel');
-    Route::get('/billing-portal', [StripeController::class, 'billingPortal'])
-        ->name('billing.portal');
-    Route::get('/kyc/verify', [StripeController::class, 'startKycVerification'])
-        ->name('kyc.verify');
+    // Trasy dotyczące Stripe
+    Route::get('/subscription', [StripeController::class, 'showSubscription'])->name('subscription');
+    Route::post('/subscription/create', [StripeController::class, 'createSubscription'])->name('subscription.create');
+    Route::post('/subscription/cancel', [StripeController::class, 'cancelSubscription'])->name('subscription.cancel');
+    Route::get('/billing-portal', [StripeController::class, 'billingPortal'])->name('billing.portal');
+    Route::get('/kyc/verify', [StripeController::class, 'showKycStatus'])->name('kyc.verify');
+    Route::post('/kyc/verify', [StripeController::class, 'startKycVerification'])->name('kyc.start');
+    Route::get('/kyc/completed', [StripeController::class, 'kycCompleted'])->name('kyc.completed');
 });
+
+// Trasy dla webhooków Stripe
+Route::post('/stripe/webhook/kyc', [StripeController::class, 'handleKycWebhook'])->name('webhook.kyc');
 
 // Webhook dla Stripe (wymaga braku CSRF protection)
 Route::post('/stripe/webhook', [StripeController::class, 'handleKycWebhook'])

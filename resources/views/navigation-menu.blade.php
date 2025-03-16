@@ -46,7 +46,7 @@
                     
                     <!-- Weryfikacja KYC i Subskrypcja -->
                     @if(Auth::check())
-                        <x-nav-link href="{{ route('subscription.show') }}" :active="request()->routeIs('subscription.*')">
+                        <x-nav-link href="{{ route('subscription') }}" :active="request()->routeIs('subscription.*')">
                             {{ __('Subskrypcja') }}
                         </x-nav-link>
                         
@@ -221,7 +221,7 @@
             
             <!-- Weryfikacja KYC i Subskrypcja (mobilne) -->
             @if(Auth::check())
-                <x-responsive-nav-link href="{{ route('subscription.show') }}" :active="request()->routeIs('subscription.*')">
+                <x-responsive-nav-link href="{{ route('subscription') }}" :active="request()->routeIs('subscription.*')">
                     {{ __('Subskrypcja') }}
                 </x-responsive-nav-link>
                 
