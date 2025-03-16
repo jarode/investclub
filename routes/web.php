@@ -54,7 +54,8 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
     
     // Trasy dotyczące Stripe
     Route::get('/subscription', [StripeController::class, 'showSubscription'])->name('subscription');
-    Route::post('/subscription/create', [StripeController::class, 'createSubscription'])->name('subscription.create');
+    Route::post('/subscription/checkout', [StripeController::class, 'createCheckoutSession'])->name('subscription.checkout');
+    Route::get('/subscription/success', [StripeController::class, 'handleCheckoutSuccess'])->name('subscription.success');
     Route::post('/subscription/cancel', [StripeController::class, 'cancelSubscription'])->name('subscription.cancel');
     Route::get('/billing-portal', [StripeController::class, 'billingPortal'])->name('billing.portal');
     Route::get('/kyc/verify', [StripeController::class, 'showKycStatus'])->name('kyc.verify');
@@ -62,15 +63,12 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
     Route::get('/kyc/completed', [StripeController::class, 'kycCompleted'])->name('kyc.completed');
 });
 
-// Trasy dla webhooków Stripe
-Route::post('/stripe/webhook/kyc', [StripeController::class, 'handleKycWebhook'])->name('webhook.kyc');
-
-// Webhook dla Stripe (wymaga braku CSRF protection)
+// Trasa webhooka dla Stripe
 Route::post('/stripe/webhook', [StripeController::class, 'handleKycWebhook'])
     ->name('stripe.webhook')
     ->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);
 
-// Trasa webhooka Cashier
-Route::post('/stripe/webhook/cashier', '\Laravel\Cashier\Http\Controllers\WebhookController@handleWebhook')
-    ->name('cashier.webhook')
+// Trasa webhooka dla subskrypcji
+Route::post('/stripe/webhook/subscription', [StripeController::class, 'handleSubscriptionWebhook'])
+    ->name('webhook.subscription')
     ->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);

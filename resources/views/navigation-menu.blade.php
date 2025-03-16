@@ -150,7 +150,7 @@
                             @endif
                             
                             <!-- Zarządzanie płatnościami -->
-                            @if(Auth::check() && Auth::user()->hasStripeId())
+                            @if(Auth::check() && Auth::user()->stripe_customer_id && Auth::user()->stripe_subscription_id)
                                 <x-dropdown-link href="{{ route('billing.portal') }}">
                                     {{ __('Zarządzanie płatnościami') }}
                                 </x-dropdown-link>
@@ -261,7 +261,7 @@
                 @endif
                 
                 <!-- Zarządzanie płatnościami (mobilne) -->
-                @if(Auth::check() && Auth::user()->hasStripeId())
+                @if(Auth::check() && Auth::user()->stripe_customer_id && Auth::user()->stripe_subscription_id)
                     <x-responsive-nav-link href="{{ route('billing.portal') }}">
                         {{ __('Zarządzanie płatnościami') }}
                     </x-responsive-nav-link>

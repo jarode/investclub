@@ -19,6 +19,12 @@
                 </div>
             @endif
 
+            @if (session('warning'))
+                <div class="mb-4 bg-yellow-100 border border-yellow-400 text-yellow-700 px-4 py-3 rounded">
+                    {{ session('warning') }}
+                </div>
+            @endif
+
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6 mb-6">
                 <h3 class="text-lg font-medium mb-4">{{ __('Witaj w InvestClub') }}</h3>
                 <p class="mb-4">
