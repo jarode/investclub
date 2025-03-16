@@ -2,11 +2,15 @@
 
 namespace App\Policies;
 
+use App\Models\Investment;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
+use Illuminate\Auth\Access\HandlesAuthorization;
 
 class InvestmentPolicy
 {
+    use HandlesAuthorization;
+
     /**
      * Metoda uruchamiana przed wszystkimi innymi metodami.
      * Jeśli użytkownik jest administratorem, to ma dostęp do wszystkich operacji.
@@ -21,21 +25,26 @@ class InvestmentPolicy
     }
     
     /**
-     * Określa czy użytkownik może przeglądać inwestycje.
+     * Określa czy użytkownik może przeglądać listę inwestycji.
      */
     public function viewAny(User $user): bool
     {
-        // Każdy zalogowany użytkownik może przeglądać dostępne inwestycje
+        // Każdy zalogowany użytkownik może przeglądać listę swoich inwestycji
         return true;
     }
     
     /**
      * Określa czy użytkownik może przeglądać szczegóły konkretnej inwestycji.
      */
-    public function view(User $user, $investment): bool
+    public function view(User $user, Investment $investment): bool
     {
-        // Każdy zalogowany użytkownik może przeglądać dostępne inwestycje
-        return true;
+        // Administrator i manager mogą przeglądać wszystkie inwestycje
+        if ($user->isAdmin() || $user->isManager()) {
+            return true;
+        }
+
+        // Użytkownik może przeglądać tylko swoje inwestycje
+        return $user->id === $investment->user_id;
     }
     
     /**
@@ -43,43 +52,72 @@ class InvestmentPolicy
      */
     public function create(User $user): bool
     {
-        // Tylko administrator i manager mogą tworzyć inwestycje
-        return $user->hasAnyRole(['admin', 'manager']);
+        // Tylko zweryfikowani użytkownicy mogą tworzyć inwestycje
+        return $user->kyc_status === 'verified';
     }
     
     /**
      * Określa czy użytkownik może aktualizować inwestycję.
      */
-    public function update(User $user, $investment): bool
+    public function update(User $user, Investment $investment): bool
     {
-        // Tylko administrator i manager mogą aktualizować inwestycje
-        return $user->hasAnyRole(['admin', 'manager']);
+        // Administrator i manager mogą edytować wszystkie inwestycje
+        if ($user->isAdmin() || $user->isManager()) {
+            return true;
+        }
+
+        // Użytkownik może edytować tylko swoje inwestycje w statusie "zainteresowany"
+        return $user->id === $investment->user_id && $investment->isInterested();
     }
     
     /**
-     * Określa czy użytkownik może usuwać inwestycję.
+     * Określa czy użytkownik może anulować inwestycję.
      */
-    public function delete(User $user, $investment): bool
+    public function delete(User $user, Investment $investment): bool
     {
-        // Tylko administrator może usuwać inwestycje
+        // Administrator i manager mogą anulować wszystkie inwestycje
+        if ($user->isAdmin() || $user->isManager()) {
+            return true;
+        }
+
+        // Użytkownik może anulować tylko swoje inwestycje w statusie "zainteresowany" lub "w trakcie rozmów"
+        return $user->id === $investment->user_id && 
+               ($investment->isInterested() || $investment->isInTalks());
+    }
+    
+    /**
+     * Określa czy użytkownik może przywrócić usuniętą inwestycję.
+     */
+    public function restore(User $user, Investment $investment): bool
+    {
+        // Tylko administrator może przywracać usunięte inwestycje
         return $user->isAdmin();
     }
     
     /**
-     * Określa czy użytkownik może inwestować.
+     * Określa czy użytkownik może trwale usunąć inwestycję.
      */
-    public function invest(User $user, $investment): bool
+    public function forceDelete(User $user, Investment $investment): bool
     {
-        // Użytkownik może inwestować, jeśli jest zweryfikowany
-        return $user->isVerified();
+        // Tylko administrator może trwale usuwać inwestycje
+        return $user->isAdmin();
     }
     
     /**
-     * Określa czy użytkownik może przeglądać raporty finansowe inwestycji.
+     * Określa czy użytkownik może zmienić status inwestycji.
      */
-    public function viewReports(User $user, $investment): bool
+    public function changeStatus(User $user, Investment $investment): bool
     {
-        // Tylko administrator, manager i księgowy mogą przeglądać raporty
-        return $user->hasAnyRole(['admin', 'manager', 'accountant']);
+        // Tylko administrator i manager mogą zmieniać status inwestycji
+        return $user->isAdmin() || $user->isManager();
+    }
+    
+    /**
+     * Określa czy użytkownik może przeglądać statystyki platformy.
+     */
+    public function viewStatistics(User $user): bool
+    {
+        // Tylko administrator i manager mogą przeglądać statystyki
+        return $user->hasAnyRole(['admin', 'manager']);
     }
 }

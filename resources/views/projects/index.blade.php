@@ -63,7 +63,7 @@
                     <div>
                         <h3 class="text-lg font-medium text-gray-900">{{ $projects->total() }} projektów</h3>
                     </div>
-                    <div>
+<div>
                         @can('create', App\Models\Project::class)
                             <a href="{{ route('projects.create') }}" class="inline-flex items-center px-4 py-2 bg-green-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-green-700 active:bg-green-800 focus:outline-none focus:border-green-800 focus:ring focus:ring-green-300 disabled:opacity-25 transition">
                                 <svg class="w-4 h-4 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
@@ -239,7 +239,7 @@
                             @endforelse
                         </tbody>
                     </table>
-                </div>
+</div>
                 
                 <!-- Paginacja -->
                 <div class="mt-4">

@@ -22,13 +22,14 @@ class Project extends Model
         'name',
         'description',
         'target_amount',
-        'current_amount',
         'min_investment',
         'status',
         'start_date',
         'end_date',
         'returns_projection',
         'risk_level',
+        'category',
+        'location',
         'owner_id',
     ];
     
@@ -39,7 +40,6 @@ class Project extends Model
      */
     protected $casts = [
         'target_amount' => 'decimal:2',
-        'current_amount' => 'decimal:2',
         'min_investment' => 'decimal:2',
         'returns_projection' => 'decimal:2',
         'start_date' => 'date',
@@ -71,41 +71,11 @@ class Project extends Model
     }
     
     /**
-     * Sprawdza, czy projekt został w pełni sfinansowany.
-     */
-    public function isFunded(): bool
-    {
-        return $this->status === 'funded' || $this->current_amount >= $this->target_amount;
-    }
-    
-    /**
      * Sprawdza, czy projekt został zakończony.
      */
     public function isCompleted(): bool
     {
         return $this->status === 'completed';
-    }
-    
-    /**
-     * Oblicza procent finansowania projektu.
-     */
-    public function fundingPercentage(): float
-    {
-        if ($this->target_amount <= 0) {
-            return 0;
-        }
-        
-        $percentage = ($this->current_amount / $this->target_amount) * 100;
-        return round($percentage, 2);
-    }
-    
-    /**
-     * Oblicza pozostałą kwotę do osiągnięcia celu.
-     */
-    public function remainingAmount(): float
-    {
-        $remaining = $this->target_amount - $this->current_amount;
-        return max(0, $remaining);
     }
     
     /**

@@ -34,7 +34,6 @@ class User extends Authenticatable
         'password',
         'role',
         'verification_status',
-        'wallet_balance',
         'kyc_status',
     ];
 
@@ -69,7 +68,6 @@ class User extends Authenticatable
         return [
             'email_verified_at' => 'datetime',
             'password' => 'hashed',
-            'wallet_balance' => 'decimal:2',
         ];
     }
 
@@ -84,6 +82,16 @@ class User extends Authenticatable
     }
 
     /**
+     * Check if user is a manager.
+     *
+     * @return bool
+     */
+    public function isManager(): bool
+    {
+        return $this->role === 'manager' || $this->role === 'Manager';
+    }
+
+    /**
      * Check if user is verified.
      *
      * @return bool
@@ -91,6 +99,26 @@ class User extends Authenticatable
     public function isVerified(): bool
     {
         return $this->verification_status === 'verified';
+    }
+    
+    /**
+     * Check if user has completed KYC verification.
+     *
+     * @return bool
+     */
+    public function isKycVerified(): bool
+    {
+        return $this->kyc_status === 'verified';
+    }
+    
+    /**
+     * Accessor for kyc_verified attribute.
+     *
+     * @return bool
+     */
+    public function getKycVerifiedAttribute(): bool
+    {
+        return $this->isKycVerified();
     }
     
     /**

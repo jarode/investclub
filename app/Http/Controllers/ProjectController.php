@@ -85,6 +85,8 @@ class ProjectController extends Controller
             'end_date' => 'required|date|after:start_date',
             'returns_projection' => 'required|numeric|min:0|max:100',
             'risk_level' => 'required|in:low,medium,high',
+            'category' => 'required|string|max:255',
+            'location' => 'required|string|max:255',
         ]);
         
         // Ustaw domyślne wartości
@@ -143,6 +145,8 @@ class ProjectController extends Controller
             'end_date' => 'required|date|after:start_date',
             'returns_projection' => 'required|numeric|min:0|max:100',
             'risk_level' => 'required|in:low,medium,high',
+            'category' => 'required|string|max:255',
+            'location' => 'required|string|max:255',
         ]);
         
         // Tylko administratorzy mogą zmienić status projektu
@@ -179,7 +183,7 @@ class ProjectController extends Controller
         $this->authorize('changeStatus', $project);
         
         $validated = $request->validate([
-            'status' => 'required|in:draft,active,funded,completed',
+            'status' => 'required|in:draft,active,completed',
         ]);
         
         $project->status = $validated['status'];

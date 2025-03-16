@@ -1,212 +1,181 @@
-# Architektura Systemu dla Laravel Cloud
+# Architektura Systemu InvestClub
 
-## Stack Technologiczny
+## Przegląd
+
+InvestClub to platforma typu marketplace + private club, która łączy właścicieli projektów inwestycyjnych z potencjalnymi inwestorami. System działa jako katalog projektów z kontrolą dostępu, bez pośredniczenia w transakcjach finansowych.
+
+## Główne komponenty
+
+### 1. System Użytkowników
+- Rejestracja i logowanie (Jetstream)
+- Weryfikacja KYC (Stripe)
+- Role i uprawnienia
+- Profile użytkowników
+- System subskrypcji (Stripe)
+
+### 2. Katalog Projektów
+- Zarządzanie projektami
+- Wyszukiwanie i filtrowanie
+- System kategorii i lokalizacji
+- Wielojęzyczność (PL, EN, DE)
+- Dokumentacja projektów
+
+### 3. System Matchingu
+- Deklaracje zainteresowania
+- Dane kontaktowe inwestorów
+- Powiadomienia o nowych projektach
+- Scoring i rekomendacje
+
+### 4. Bezpośrednia Komunikacja
+- Preferencje kontaktu
+- Dane kontaktowe
+- Statusy rozmów
+- Historia interakcji
+
+### 5. Panel Administracyjny
+- Zarządzanie użytkownikami
+- Weryfikacja projektów
+- Monitoring aktywności
+- Statystyki i raporty
+- Zarządzanie subskrypcjami
+
+## Technologie
 
 ### Backend
 - Laravel 11
-- PHP 8.2+
-- Laravel Cloud (PaaS)
-- Laravel Jetstream (autentykacja i zespoły)
-- Laravel Sanctum (API)
-- Laravel Cashier (płatności)
+- MySQL (Laravel Cloud managed)
+- Redis (Laravel Cloud managed)
+- Laravel Scout z Meilisearch (wyszukiwanie)
 
 ### Frontend
-- Livewire 3.0
+- Blade + Livewire
+- TailwindCSS
 - Alpine.js
-- Tailwind CSS
-- Blade Templates
+- Laravel Echo (real-time z Redis)
 
-### Infrastruktura (Laravel Cloud)
-- Automatyczne skalowanie
-- Load Balancing
-- SSL/TLS
-- CDN i Edge Network
-- DDoS Protection
+### Infrastruktura
+- Laravel Cloud (produkcja)
+- CI/CD (GitHub Actions z Laravel Cloud)
+- S3 (dokumenty) lub Laravel Cloud Storage
+- Stripe (płatności, KYC, subskrypcje)
 
-### Usługi Zarządzane
-- Managed MySQL/PostgreSQL
-- Managed Redis/KV Store
-- Object Storage
-- WebSocket Servers
+## Modele danych
 
-### Zewnętrzne Systemy
-- Stripe (płatności i subskrypcje)
-- Veriff (KYC)
-- Mailgun (maile)
-- Cloudflare (przez Laravel Cloud)
+### User
+- Podstawowe dane
+- Status KYC
+- Informacje o subskrypcji
+- Rola w systemie
+- Preferencje inwestycyjne
 
-## Moduły Systemu
+### Project
+- Informacje podstawowe
+- Dokumentacja
+- Wymagania inwestycyjne
+- Status
+- Kategoria i lokalizacja
+- Tłumaczenia
 
-### 1. Moduł Autentykacji i Autoryzacji
-- Rejestracja i logowanie
-- Role i uprawnienia
-- Dwuetapowa weryfikacja
-- Zarządzanie sesjami
+### Investment
+- Deklarowana kwota
+- Status rozmów (zainteresowany, w trakcie rozmów, umowa podpisana)
+- Preferencje kontaktu
+- Dane kontaktowe
+- Notatki
 
-### 2. Moduł KYC
-- Weryfikacja tożsamości
-- Przechowywanie dokumentów w Object Storage
-- Integracja z Veriff
-- Status weryfikacji
+### Notification
+- Typ powiadomienia
+- Treść
+- Status odczytania
+- Relacje do obiektów
 
-### 3. Moduł Projektów
-- Zarządzanie projektami
-- Kategorie projektów
-- System tagów
-- Wyszukiwarka
-- Cache przez Redis
-
-### 4. Moduł Subskrypcji
-- Plany subskrypcyjne
-- Płatności cykliczne przez Stripe
-- Faktury
+### Subscription (Stripe)
+- Plan
+- Status
 - Historia płatności
-
-### 5. Moduł Komunikacji
-- Wiadomości prywatne
-- Powiadomienia w czasie rzeczywistym
-- Komentarze
-- WebSocket dla chatu
-
-### 6. Moduł Administracyjny
-- Panel administracyjny
-- Moderacja treści
-- Raporty i statystyki
-- Zarządzanie użytkownikami
-
-## Architektura Cloud
-
-### Środowiska
-1. Production
-   - Multiple compute instances
-   - High-availability database
-   - Dedicated Redis
-   - CDN dla statycznych assetów
-
-2. Staging
-   - Single compute instance
-   - Development database
-   - Shared Redis
-   - Testowanie funkcjonalności
-
-3. Development
-   - Development environment
-   - Local database
-   - Local Redis
-   - Szybkie iteracje
-
-### Skalowanie
-- Auto-scaling compute instances
-- Read replicas dla bazy danych
-- Distributed cache
-- Load balancing
-
-### Monitoring
-- Real-time metryki
-- Logi aplikacji
-- Performance monitoring
-- Error tracking
-
-## Baza Danych
-
-### Managed Database
-```sql
-users
-- id
-- name
-- email
-- password
-- user_type
-- is_kyc_verified
-- subscription_status
-- stripe_id
-- created_at
-- updated_at
-
-projects
-- id
-- user_id
-- title
-- description
-- target_amount
-- current_amount
-- status
-- category_id
-- created_at
-- updated_at
-
-subscriptions
-- id
-- user_id
-- stripe_id
-- stripe_status
-- stripe_price
-- quantity
-- trial_ends_at
-- ends_at
-
-kyc_verifications
-- id
-- user_id
-- status
-- verification_id
-- documents
-- verified_at
-- created_at
-- updated_at
-```
+- Funkcje dodatkowe
 
 ## Bezpieczeństwo
 
-### Zabezpieczenia Laravel Cloud
-- Web Application Firewall
-- DDoS protection
-- Automatyczne aktualizacje SSL
-- Network isolation
+### Autoryzacja
+- Wielopoziomowa kontrola dostępu
+- Polityki dostępu do zasobów
+- Logowanie aktywności
+- 2FA dla kont (Jetstream)
 
-### Aplikacyjne
-1. Szyfrowanie danych wrażliwych
-2. Dwuetapowa weryfikacja
-3. Rate limiting
-4. CSRF protection
-5. XSS protection
-6. SQL injection protection
+### Prywatność danych
+- Szyfrowanie wrażliwych danych
+- Zgodność z RODO
+- Bezpieczne przechowywanie dokumentów
+- Audyt dostępu
 
-### Uprawnienia
-1. Role i uprawnienia
-2. Polityki dostępu
-3. Middleware autoryzacji
+### Komunikacja
+- SSL/TLS (automatycznie przez Laravel Cloud)
+- Bezpieczne udostępnianie dokumentów
+- Podpisy cyfrowe
 
-## Cache i Kolejki
+## Monitoring i utrzymanie
 
-### Cache
-- Distributed Redis cache
-- Object caching
-- Session storage
-- API response caching
-
-### Kolejki
-- Laravel Horizon
-- Multiple queue workers
-- Failed job handling
-- Job batching
-
-## Deployment
-
-### CI/CD
-- Automatyczne testy
-- Code quality checks
-- Security scanning
-- Zero-downtime deployment
-
-### Monitoring
-- Application metrics
-- Database monitoring
-- Cache hit rates
-- Queue monitoring
+### Wydajność
+- Laravel Cloud Monitoring
+- Optymalizacja zapytań
+- Cache'owanie (Redis)
+- CDN dla statycznych zasobów (zintegrowany z Laravel Cloud)
 
 ### Backup
-- Automated database backups
-- Object storage backups
-- Point-in-time recovery
-- Disaster recovery plan 
+- Automatyczne kopie zapasowe (Laravel Cloud)
+- Replikacja bazy danych (zarządzana)
+- Disaster recovery plan (wbudowany)
+- Archiwizacja dokumentów
+
+### Logi i audyt
+- Logi systemowe (Laravel Cloud)
+- Audyt działań użytkowników
+- Alerty bezpieczeństwa
+- Statystyki wykorzystania
+
+## Skalowalność
+
+### Horyzontalna
+- Automatyczny scaling (Laravel Cloud)
+- Replikacja bazy danych (zarządzana)
+- Distributed caching (Redis)
+- Optymalizacja dla wysokiego obciążenia
+
+### Wertykalna
+- Automatyczna optymalizacja zasobów (Laravel Cloud)
+- Upgrade instancji (według potrzeb)
+- Monitoring wykorzystania (wbudowany)
+- Planowanie pojemności
+
+## API i integracje
+
+### Wewnętrzne API
+- REST API dla frontendu
+- WebSocket dla real-time (Laravel Echo)
+- GraphQL (opcjonalnie)
+
+### Zewnętrzne integracje
+- Stripe (weryfikacja KYC, subskrypcje, płatności) 
+- AWS/S3 (storage opcjonalnie)
+- Laravel Notifications (email)
+- Kalendarz (Google/Outlook) opcjonalnie
+
+## Rozwój i deployment
+
+### Środowiska
+- Development (lokalne)
+- Staging (Laravel Cloud)
+- Production (Laravel Cloud)
+
+### CI/CD
+- Automatyczne testy (GitHub Actions)
+- Code review
+- Automatyczny deployment (Laravel Cloud)
+- Monitoring wdrożeń
+
+### Dokumentacja
+- API docs
+- Developer guides
+- User guides
+- Security guidelines 

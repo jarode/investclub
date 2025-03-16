@@ -110,16 +110,4 @@ class UserController extends Controller
         return redirect()->route('users.index')
                          ->with('success', 'Użytkownik został usunięty.');
     }
-    
-    /**
-     * Przykład użycia Gate do autoryzacji
-     */
-    public function manageInvestments(User $user)
-    {
-        // Użycie traita AuthorizesRequests
-        $this->authorize('manageInvestments', $user);
-        
-        // Logika zarządzania inwestycjami
-        return view('users.investments', compact('user'));
-    }
 }

@@ -22,15 +22,15 @@ class ProjectPolicy
      */
     public function view(User $user, Project $project): bool
     {
-        // Projekty aktywne, sfinansowane lub zakończone mogą zobaczyć wszyscy zalogowani użytkownicy
-        if (in_array($project->status, ['active', 'funded', 'completed'])) {
+        // Projekty aktywne lub zakończone mogą zobaczyć wszyscy zalogowani użytkownicy
+        if (in_array($project->status, ['active', 'completed'])) {
             return true;
         }
         
         // Projekty w trybie draft mogą zobaczyć tylko właściciele, administratorzy i managerowie
         return $project->owner_id === $user->id || 
-               $user->hasRole('Administrator') || 
-               $user->hasRole('Manager');
+               $user->role === 'admin' || 
+               $user->role === 'manager';
     }
 
     /**
@@ -39,7 +39,7 @@ class ProjectPolicy
     public function create(User $user): bool
     {
         // Tylko administratorzy i managerowie mogą tworzyć projekty
-        return $user->hasAnyRole(['Administrator', 'Manager']);
+        return in_array($user->role, ['admin', 'manager']);
     }
 
     /**
@@ -47,10 +47,15 @@ class ProjectPolicy
      */
     public function update(User $user, Project $project): bool
     {
+        // Nie można edytować zakończonych projektów
+        if ($project->status === 'completed') {
+            return false;
+        }
+        
         // Właściciel projektu, administratorzy i managerowie mogą aktualizować projekt
         return $project->owner_id === $user->id || 
-               $user->hasRole('Administrator') || 
-               $user->hasRole('Manager');
+               $user->role === 'admin' || 
+               $user->role === 'manager';
     }
 
     /**
@@ -60,7 +65,7 @@ class ProjectPolicy
     {
         // Tylko właściciele projektów i administratorzy mogą usuwać projekty
         return $project->owner_id === $user->id || 
-               $user->hasRole('Administrator');
+               $user->role === 'admin';
     }
 
     /**
@@ -69,7 +74,7 @@ class ProjectPolicy
     public function restore(User $user, Project $project): bool
     {
         // Tylko administratorzy mogą przywracać usunięte projekty
-        return $user->hasRole('Administrator');
+        return $user->role === 'admin';
     }
 
     /**
@@ -78,7 +83,7 @@ class ProjectPolicy
     public function forceDelete(User $user, Project $project): bool
     {
         // Tylko administratorzy mogą trwale usuwać projekty
-        return $user->hasRole('Administrator');
+        return $user->role === 'admin';
     }
     
     /**
@@ -87,6 +92,6 @@ class ProjectPolicy
     public function changeStatus(User $user, Project $project): bool
     {
         // Tylko administratorzy mogą zmieniać status projektu
-        return $user->hasRole('Administrator');
+        return $user->role === 'admin';
     }
 }

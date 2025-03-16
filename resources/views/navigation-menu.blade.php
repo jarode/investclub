@@ -32,6 +32,12 @@
                         {{ __('Projekty') }}
                     </x-nav-link>
                     
+                    @if(Auth::check() && Auth::user()->hasRole('investor'))
+                        <x-nav-link href="{{ route('investments.index') }}" :active="request()->routeIs('investments.*')">
+                            {{ __('Moje inwestycje') }}
+                        </x-nav-link>
+                    @endif
+                    
                     @if(Auth::check() && Auth::user()->hasAnyRole(['admin', 'manager']))
                         <x-nav-link href="{{ route('users.index') }}" :active="request()->routeIs('users.*')">
                             {{ __('Użytkownicy') }}
@@ -180,6 +186,12 @@
             <x-responsive-nav-link href="{{ route('projects.index') }}" :active="request()->routeIs('projects.*')">
                 {{ __('Projekty') }}
             </x-responsive-nav-link>
+            
+            @if(Auth::check() && Auth::user()->hasRole('investor'))
+                <x-responsive-nav-link href="{{ route('investments.index') }}" :active="request()->routeIs('investments.*')">
+                    {{ __('Moje inwestycje') }}
+                </x-responsive-nav-link>
+            @endif
             
             @if(Auth::check() && Auth::user()->hasAnyRole(['admin', 'manager']))
                 <x-responsive-nav-link href="{{ route('users.index') }}" :active="request()->routeIs('users.*')">

@@ -137,12 +137,13 @@
                             <h3 class="text-xl font-bold text-green-800 mb-4">Zainwestuj w ten projekt</h3>
                             
                             @if(auth()->user()->wallet_balance >= $project->min_investment && auth()->user()->kyc_verified)
-                                <form action="#" method="POST" class="space-y-4">
+                                <form action="{{ route('investments.store') }}" method="POST" class="space-y-4">
                                     @csrf
+                                    <input type="hidden" name="project_id" value="{{ $project->id }}">
                                     <div>
-                                        <label for="investment_amount" class="block text-sm font-medium text-gray-700">Kwota inwestycji (min. {{ number_format($project->min_investment, 2, ',', ' ') }} zł)</label>
+                                        <label for="amount" class="block text-sm font-medium text-gray-700">Kwota inwestycji (min. {{ number_format($project->min_investment, 2, ',', ' ') }} zł)</label>
                                         <div class="mt-1 flex rounded-md shadow-sm">
-                                            <input type="number" name="investment_amount" id="investment_amount" min="{{ $project->min_investment }}" step="100" value="{{ $project->min_investment }}"
+                                            <input type="number" name="amount" id="amount" min="{{ $project->min_investment }}" step="100" value="{{ $project->min_investment }}"
                                                 class="focus:ring-indigo-500 focus:border-indigo-500 flex-1 block w-full rounded-md sm:text-sm border-gray-300">
                                             <span class="inline-flex items-center px-3 rounded-r-md border border-l-0 border-gray-300 bg-gray-50 text-gray-500 text-sm">
                                                 zł
@@ -150,8 +151,13 @@
                                         </div>
                                     </div>
                                     
+                                    <div>
+                                        <label for="notes" class="block text-sm font-medium text-gray-700">Uwagi (opcjonalnie)</label>
+                                        <textarea id="notes" name="notes" rows="3" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 mt-1 block w-full sm:text-sm border border-gray-300 rounded-md"></textarea>
+                                    </div>
+                                    
                                     <div class="flex items-center">
-                                        <input id="agreement" name="agreement" type="checkbox" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded">
+                                        <input id="agreement" name="agreement" type="checkbox" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded" required>
                                         <label for="agreement" class="ml-2 block text-sm text-gray-900">
                                             Potwierdzam, że zapoznałem się z warunkami inwestycji i akceptuję ryzyko związane z tym projektem.
                                         </label>
@@ -159,7 +165,7 @@
                                     
                                     <div>
                                         <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                                            Potwierdź inwestycję
+                                            Zadeklaruj inwestycję
                                         </button>
                                     </div>
                                 </form>

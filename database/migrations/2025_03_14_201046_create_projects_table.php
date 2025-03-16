@@ -18,12 +18,14 @@ return new class extends Migration
             $table->decimal('target_amount', 12, 2);
             $table->decimal('current_amount', 12, 2)->default(0);
             $table->decimal('min_investment', 12, 2);
-            $table->enum('status', ['draft', 'active', 'funded', 'completed'])->default('draft');
+            $table->string('status')->default('draft');
             $table->date('start_date');
             $table->date('end_date');
             $table->decimal('returns_projection', 5, 2); // Np. 8.50 dla 8.5%
-            $table->enum('risk_level', ['low', 'medium', 'high']);
-            $table->foreignId('owner_id')->constrained('users');
+            $table->string('risk_level');
+            $table->string('category');
+            $table->string('location');
+            $table->foreignId('owner_id')->constrained('users')->onDelete('cascade');
             $table->timestamps();
             $table->softDeletes(); // Dodajemy możliwość miękkiego usuwania projektów
         });

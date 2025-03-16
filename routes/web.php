@@ -3,6 +3,7 @@
 use Illuminate\Support\Facades\Route;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\ProjectController;
+use App\Http\Controllers\InvestmentController;
 
 Route::get('/', function () {
     return view('welcome');
@@ -46,14 +47,17 @@ Route::middleware([
         Route::delete('/users/{user}', [UserController::class, 'destroy'])->name('users.destroy');
     });
     
-    // Trasa przykładowa do testowania Gate
-    Route::get('/users/{user}/investments', [UserController::class, 'manageInvestments'])
-        ->name('users.investments');
-        
     // Trasy dla projektów inwestycyjnych
     Route::resource('projects', ProjectController::class);
     
     // Dodatkowa trasa dla zmiany statusu projektu
     Route::patch('/projects/{project}/change-status', [ProjectController::class, 'changeStatus'])
         ->name('projects.changeStatus');
+        
+    // Trasy dla inwestycji
+    Route::resource('investments', InvestmentController::class);
+    
+    // Dodatkowa trasa dla zmiany statusu inwestycji
+    Route::patch('/investments/{investment}/change-status', [InvestmentController::class, 'changeStatus'])
+        ->name('investments.changeStatus');
 });
