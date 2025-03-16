@@ -12,8 +12,13 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('plan_type')->nullable()->after('stripe_subscription_status');
-            $table->boolean('cancellation_requested')->default(false)->after('plan_type');
+            if (!Schema::hasColumn('users', 'plan_type')) {
+                $table->string('plan_type')->nullable()->after('stripe_subscription_status');
+            }
+            
+            if (!Schema::hasColumn('users', 'cancellation_requested')) {
+                $table->boolean('cancellation_requested')->default(false)->after('plan_type');
+            }
         });
     }
 

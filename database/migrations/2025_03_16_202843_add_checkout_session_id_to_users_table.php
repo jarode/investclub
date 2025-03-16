@@ -12,7 +12,10 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->string('checkout_session_id')->nullable();
+            // Dodajemy checkout_session_id tylko jeśli nie istnieje
+            if (!Schema::hasColumn('users', 'checkout_session_id')) {
+                $table->string('checkout_session_id')->nullable();
+            }
             
             // Sprawdź, czy istnieją inne wymagane kolumny, jeśli nie, to je dodaj
             if (!Schema::hasColumn('users', 'stripe_subscription_status')) {
