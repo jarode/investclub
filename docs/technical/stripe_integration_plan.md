@@ -7,22 +7,23 @@ Dokument zawiera szczegółowy plan wdrożenia integracji z systemem Stripe dla 
 ## Aktualna implementacja
 
 Aktualnie system zawiera już:
-- Podstawową strukturę integracji ze Stripe za pomocą Laravel Cashier
+- Bezpośrednią integrację ze Stripe SDK (usunięto zależność od Laravel Cashier)
 - Modele i tabele w bazie danych dla subskrypcji
 - Middleware do sprawdzania statusu KYC i aktywnych subskrypcji
 - Widoki dla procesu weryfikacji KYC i wyboru planów subskrypcji
 - Trasy dla procesów weryfikacji i płatności
-- Obsługę webhooków Stripe
+- Obsługę sukcesów i anulowania subskrypcji
+- Integrację z Portalem Płatności Stripe
 
 ## Plan wdrożenia
 
 ### 1. Testowanie podstawowej funkcjonalności (1-2 dni)
 
-- [ ] Weryfikacja procesu rejestracji użytkownika
-- [ ] Sprawdzenie czy nowy użytkownik ma dostęp tylko do dashboardu, KYC i subskrypcji
-- [ ] Weryfikacja czy dostęp do projektów i inwestycji jest blokowany bez KYC i subskrypcji
-- [ ] Testowanie poprawności działania middleware `verified.kyc` i `active.subscription`
-- [ ] Sprawdzenie procesów logowania i wylogowywania w kontekście statusów weryfikacji
+- [x] Weryfikacja procesu rejestracji użytkownika
+- [x] Sprawdzenie czy nowy użytkownik ma dostęp tylko do dashboardu, KYC i subskrypcji
+- [x] Weryfikacja czy dostęp do projektów i inwestycji jest blokowany bez KYC i subskrypcji
+- [x] Testowanie poprawności działania middleware `verified.kyc` i `active.subscription`
+- [x] Sprawdzenie procesów logowania i wylogowywania w kontekście statusów weryfikacji
 
 ### 2. Konfiguracja webhooków Stripe (1 dzień)
 
@@ -34,39 +35,39 @@ Aktualnie system zawiera już:
 
 ### 3. Dopracowanie procesu KYC (2-3 dni)
 
-- [ ] Testowanie rozpoczęcia procesu weryfikacji KYC z aplikacji
-- [ ] Weryfikacja procesu przekierowania do Stripe i powrotu do aplikacji
-- [ ] Sprawdzenie czy status KYC jest prawidłowo aktualizowany po weryfikacji
-- [ ] Implementacja szczegółowego logowania dla diagnozowania problemów
-- [ ] Testowanie różnych scenariuszy weryfikacji (udana, nieudana, przerwana)
-- [ ] Dodanie dodatkowych komunikatów dla użytkownika o statusie weryfikacji
+- [x] Testowanie rozpoczęcia procesu weryfikacji KYC z aplikacji
+- [x] Weryfikacja procesu przekierowania do Stripe i powrotu do aplikacji
+- [x] Sprawdzenie czy status KYC jest prawidłowo aktualizowany po weryfikacji
+- [x] Implementacja szczegółowego logowania dla diagnozowania problemów
+- [x] Testowanie różnych scenariuszy weryfikacji (udana, nieudana, przerwana)
+- [x] Dodanie dodatkowych komunikatów dla użytkownika o statusie weryfikacji
 
 ### 4. Dopracowanie zarządzania subskrypcjami (2-3 dni)
 
-- [ ] Testowanie aktywacji pakietu darmowego (I-Free)
-- [ ] Testowanie aktywacji pakietu płatnego (I-Premium) z użyciem kart testowych Stripe
-- [ ] Testowanie aktywacji pakietu dla właścicieli projektów (O-Premium)
-- [ ] Weryfikacja procesu anulowania subskrypcji
-- [ ] Testowanie zmiany pakietu subskrypcji
-- [ ] Sprawdzenie czy status subskrypcji poprawnie wpływa na uprawnienia
-- [ ] Testowanie portalu płatności Stripe (Billing Portal)
+- [x] Testowanie aktywacji pakietu darmowego (I-Free)
+- [x] Testowanie aktywacji pakietu płatnego (I-Premium) z użyciem kart testowych Stripe
+- [x] Testowanie aktywacji pakietu dla właścicieli projektów (O-Premium)
+- [x] Weryfikacja procesu anulowania subskrypcji
+- [x] Testowanie zmiany pakietu subskrypcji
+- [x] Sprawdzenie czy status subskrypcji poprawnie wpływa na uprawnienia
+- [x] Testowanie portalu płatności Stripe (Billing Portal)
 
 ### 5. Optymalizacja interfejsu użytkownika (1-2 dni)
 
-- [ ] Dopracowanie informacji o statusie weryfikacji KYC na dashboardzie
-- [ ] Dodanie szczegółowych informacji o statusie subskrypcji
-- [ ] Implementacja jasnych komunikatów o brakujących uprawnieniach
-- [ ] Dodanie komunikatów sukcesu/błędu przy procesach zmiany statusu
-- [ ] Optymalizacja formularza wyboru subskrypcji
-- [ ] Dostosowanie widoku weryfikacji KYC
+- [x] Dopracowanie informacji o statusie weryfikacji KYC na dashboardzie
+- [x] Dodanie szczegółowych informacji o statusie subskrypcji
+- [x] Implementacja jasnych komunikatów o brakujących uprawnieniach
+- [x] Dodanie komunikatów sukcesu/błędu przy procesach zmiany statusu
+- [x] Optymalizacja formularza wyboru subskrypcji
+- [x] Dostosowanie widoku weryfikacji KYC
 
 ### 6. Bezpieczeństwo i obsługa błędów (2 dni)
 
-- [ ] Testowanie różnych scenariuszy błędów podczas płatności
-- [ ] Testowanie przypadków gdy weryfikacja KYC się nie powiedzie
-- [ ] Weryfikacja zabezpieczeń tras i middleware
-- [ ] Implementacja mechanizmów obsługi błędów dla Stripe API
-- [ ] Dodanie zabezpieczeń przed wielokrotnym rozpoczynaniem procesów weryfikacji/płatności
+- [x] Testowanie różnych scenariuszy błędów podczas płatności
+- [x] Testowanie przypadków gdy weryfikacja KYC się nie powiedzie
+- [x] Weryfikacja zabezpieczeń tras i middleware
+- [x] Implementacja mechanizmów obsługi błędów dla Stripe API
+- [x] Dodanie zabezpieczeń przed wielokrotnym rozpoczynaniem procesów weryfikacji/płatności
 - [ ] Testowanie sesji wygasających podczas procesów płatności/weryfikacji
 
 ### 7. Dokumentacja i procedury (1 dzień)
@@ -89,21 +90,21 @@ Aktualnie system zawiera już:
 ## Priorytety i harmonogram
 
 ### Priorytety wysokie (realizacja w pierwszej kolejności)
-1. Testowanie podstawowej funkcjonalności (blokady dostępu)
+1. ~~Testowanie podstawowej funkcjonalności (blokady dostępu)~~ ✅
 2. Konfiguracja webhooków Stripe
-3. Testowanie procesu weryfikacji KYC
+3. ~~Testowanie procesu weryfikacji KYC~~ ✅
 
 ### Priorytety średnie
-1. Dopracowanie zarządzania subskrypcjami
-2. Optymalizacja interfejsu użytkownika
-3. Bezpieczeństwo i obsługa błędów
+1. ~~Dopracowanie zarządzania subskrypcjami~~ ✅
+2. ~~Optymalizacja interfejsu użytkownika~~ ✅
+3. Pełna obsługa błędów i logowanie zdarzeń Stripe
 
 ### Priorytety niskie
 1. Dokumentacja i procedury
 2. Drobne poprawki UI/UX
 
 ### Szacowany czas realizacji
-- Całkowity czas: 10-15 dni roboczych
+- Czas pozostały: 4-6 dni roboczych
 - Data zakończenia: do końca marca 2025
 
 ## Potencjalne ryzyka i rozwiązania
