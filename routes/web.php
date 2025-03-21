@@ -42,12 +42,33 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
 
     // Trasy dla projektów - wymagają weryfikacji KYC i aktywnej subskrypcji
     Route::middleware(['verified.kyc', 'active.subscription'])->group(function () {
-        Route::resource('projects', ProjectController::class);
+        // Podstawowe projekty dostępne dla wszystkich użytkowników z aktywną subskrypcją
+        Route::resource('projects', ProjectController::class, ['only' => ['index', 'show']]);
+        
+        // Trasy dla inwestycji - podstawowe operacje dostępne dla wszystkich użytkowników
+        Route::resource('investments', InvestmentController::class, ['only' => ['index', 'show']]);
+    });
+    
+    // Trasy dla właścicieli projektów z planem O-Premium
+    Route::middleware(['verified.kyc', 'subscription.plan:owner'])->group(function () {
+        // Zarządzanie projektami
+        Route::resource('projects', ProjectController::class, ['except' => ['index', 'show']]);
         Route::patch('/projects/{project}/change-status', [ProjectController::class, 'changeStatus'])
             ->name('projects.changeStatus');
-
-        // Trasy dla inwestycji
-        Route::resource('investments', InvestmentController::class);
+        
+        // Dashboard dla właścicieli projektów
+        Route::get('/project-dashboard', [DashboardController::class, 'projectOwner'])
+            ->name('project.dashboard');
+    });
+    
+    // Trasy dla inwestorów premium
+    Route::middleware(['verified.kyc', 'subscription.plan:premium'])->group(function () {
+        // Ekskluzywne projekty
+        Route::get('/exclusive-projects', [ProjectController::class, 'exclusive'])
+            ->name('projects.exclusive');
+        
+        // Zaawansowane operacje inwestycyjne
+        Route::resource('investments', InvestmentController::class, ['except' => ['index', 'show']]);
         Route::patch('/investments/{investment}/change-status', [InvestmentController::class, 'changeStatus'])
             ->name('investments.changeStatus');
     });

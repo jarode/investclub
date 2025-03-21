@@ -57,9 +57,9 @@
                                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                                 </svg>
-                                <span>Niezweryfikowany</span>
+                                <span>Nieukończona weryfikacja</span>
                             </div>
-                            <p class="text-sm text-gray-600">Musisz przeprowadzić weryfikację KYC, aby uzyskać pełny dostęp.</p>
+                            <p class="text-sm text-gray-600">Rozpocznij proces weryfikacji KYC, aby uzyskać pełny dostęp do platformy.</p>
                         @endif
                         
                         <div class="mt-4">
@@ -149,8 +149,59 @@
                             </div>
                         @endif
                     </a>
+                    
+                    @if (auth()->user()->plan_type === 'premium-investor' || auth()->user()->plan_type === 'premium-owner')
+                    <a href="{{ route('projects.exclusive') }}" class="block border rounded-lg p-4 hover:bg-gray-50 transition duration-300 h-full bg-purple-50 border-purple-200">
+                        <div class="flex items-center mb-2">
+                            <h4 class="font-semibold">Projekty ekskluzywne</h4>
+                            <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-purple-100 text-purple-800">Premium</span>
+                        </div>
+                        <p class="text-sm text-gray-600">Uzyskaj dostęp do ekskluzywnych projektów dostępnych tylko dla użytkowników premium.</p>
+                    </a>
+                    @endif
+                    
+                    @if (auth()->user()->canManageProjects())
+                    <a href="{{ route('project.dashboard') }}" class="block border rounded-lg p-4 hover:bg-gray-50 transition duration-300 h-full bg-blue-50 border-blue-200">
+                        <div class="flex items-center mb-2">
+                            <h4 class="font-semibold">Panel właściciela projektów</h4>
+                            <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">O-Premium</span>
+                        </div>
+                        <p class="text-sm text-gray-600">Zarządzaj swoimi projektami, śledź inwestycje i analizuj wyniki.</p>
+                    </a>
+                    
+                    <a href="{{ route('projects.create') }}" class="block border rounded-lg p-4 hover:bg-gray-50 transition duration-300 h-full bg-blue-50 border-blue-200">
+                        <div class="flex items-center mb-2">
+                            <h4 class="font-semibold">Utwórz nowy projekt</h4>
+                            <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-blue-100 text-blue-800">O-Premium</span>
+                        </div>
+                        <p class="text-sm text-gray-600">Dodaj nowy projekt inwestycyjny do platformy.</p>
+                    </a>
+                    @endif
                 </div>
             </div>
+            
+            @if (!auth()->user()->canManageProjects() && auth()->user()->plan_type !== 'premium-owner')
+            <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6 mt-6 border-t-4 border-blue-400">
+                <div class="flex items-start">
+                    <div class="flex-shrink-0 pt-1">
+                        <svg class="h-6 w-6 text-blue-600" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                    </div>
+                    <div class="ml-4">
+                        <h3 class="text-lg font-medium mb-2">{{ __('Chcesz dodawać własne projekty?') }}</h3>
+                        <p class="text-sm text-gray-600 mb-4">
+                            Przejdź na plan O-Premium, aby uzyskać możliwość dodawania i zarządzania własnymi projektami inwestycyjnymi.
+                            Otrzymasz dostęp do zaawansowanych narzędzi analitycznych i będziesz mógł dotrzeć do inwestorów na naszej platformie.
+                        </p>
+                        <a href="{{ route('subscription') }}" class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 active:bg-blue-600 transition">
+                            {{ __('Przejdź na O-Premium') }}
+                        </a>
+                    </div>
+                </div>
+            </div>
+            @endif
+            
         </div>
     </div>
 </x-app-layout>

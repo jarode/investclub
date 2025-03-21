@@ -52,8 +52,8 @@ class InvestmentPolicy
      */
     public function create(User $user): bool
     {
-        // Tylko zweryfikowani użytkownicy mogą tworzyć inwestycje
-        return $user->kyc_status === 'verified';
+        // Tylko zweryfikowani użytkownicy z aktywną subskrypcją mogą tworzyć inwestycje
+        return $user->kyc_status === 'verified' && $user->hasActiveSubscription();
     }
     
     /**
@@ -117,7 +117,18 @@ class InvestmentPolicy
      */
     public function viewStatistics(User $user): bool
     {
-        // Tylko administrator i manager mogą przeglądać statystyki
-        return $user->hasAnyRole(['admin', 'manager']);
+        // Administratorzy, managerowie i użytkownicy z planem premium-owner mogą przeglądać statystyki
+        return $user->hasAnyRole(['admin', 'manager']) || 
+               ($user->hasActiveSubscription() && $user->plan_type === 'premium-owner');
+    }
+    
+    /**
+     * Określa czy użytkownik może inwestować w ekskluzywne projekty.
+     */
+    public function investInExclusive(User $user): bool
+    {
+        // Tylko użytkownicy z planem premium mogą inwestować w ekskluzywne projekty
+        return $user->hasActiveSubscription() && 
+               in_array($user->plan_type, ['premium-investor', 'premium-owner']);
     }
 }

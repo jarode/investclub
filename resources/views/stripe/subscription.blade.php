@@ -26,7 +26,7 @@
                     <div class="mb-6 bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded">
                         <h4 class="font-bold text-lg mb-2">Twoja subskrypcja jest aktywna</h4>
                         
-                        @if (Auth::user()->stripe_subscription_id)
+                        @if (Auth::user()->plan_type === 'premium-investor' || Auth::user()->plan_type === 'premium-owner')
                             <!-- Płatna subskrypcja -->
                             <p class="mb-3">Obecnie korzystasz z planu 
                                 <span class="font-semibold">
@@ -62,42 +62,135 @@
                                 </form>
                                 @endif
                             </div>
+                            
+                            <!-- Opcja zmiany planu na wyższy -->
+                            @if (Auth::user()->plan_type === 'premium-investor' && !Auth::user()->cancellation_requested)
+                                <div class="mt-6 pt-6 border-t border-gray-200">
+                                    <h4 class="text-lg font-medium mb-3">Zmień na wyższy plan</h4>
+                                    <div class="border rounded-lg p-6 bg-gray-50 hover:shadow-lg transition duration-300">
+                                        <h4 class="text-xl font-semibold mb-2">O-Premium</h4>
+                                        <p class="text-gray-600 mb-4">Pełny dostęp do platformy dla właścicieli projektów.</p>
+                                        <p class="text-2xl font-bold mb-4">1000 zł / miesiąc</p>
+                                        <ul class="mb-6 space-y-2">
+                                            <li class="flex items-center">
+                                                <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                                </svg>
+                                                Możliwość dodawania projektów
+                                            </li>
+                                            <li class="flex items-center">
+                                                <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                                </svg>
+                                                Dostęp do bazy inwestorów premium
+                                            </li>
+                                            <li class="flex items-center">
+                                                <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                                </svg>
+                                                Narzędzia do analizy zainteresowania
+                                            </li>
+                                            <li class="flex items-center">
+                                                <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                                </svg>
+                                                Wsparcie w procesie pozyskiwania finansowania
+                                            </li>
+                                        </ul>
+                                        <div class="flex justify-center mt-8">
+                                            <button onclick="createCheckoutSession('{{ config('stripe.products.premium_owner.price_id') }}')" 
+                                                    class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition duration-300">
+                                                Wybierz plan
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            @endif
                         @else
                             <!-- Darmowa subskrypcja -->
                             <p class="mb-3">Obecnie korzystasz z <span class="font-semibold">darmowego planu I-Free</span>.</p>
                             <p class="mb-4">Chcesz uzyskać więcej możliwości? Rozważ przejście na plan premium:</p>
                             
-                            <div class="border rounded-lg p-6 bg-gray-50 hover:shadow-lg transition duration-300">
-                                <h4 class="text-xl font-semibold mb-2">I-Premium</h4>
-                                <p class="text-gray-600 mb-4">Pełny dostęp do platformy dla inwestorów z dodatkowymi korzyściami.</p>
-                                <p class="text-2xl font-bold mb-4">500 zł / miesiąc</p>
-                                <ul class="mb-6 space-y-2">
-                                    <li class="flex items-center">
-                                        <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                        </svg>
-                                        Priorytetowy dostęp do nowych projektów
-                                    </li>
-                                    <li class="flex items-center">
-                                        <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                        </svg>
-                                        Zaawansowane analizy i raporty
-                                    </li>
-                                    <li class="flex items-center">
-                                        <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-                                        </svg>
-                                        Dostęp do ekskluzywnych projektów
-                                    </li>
-                                </ul>
-                                <form action="{{ route('subscription.checkout') }}" method="POST" class="subscription-form">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                                <!-- Plan Premium dla Inwestora -->
+                                <div class="border rounded-lg p-6 bg-gray-50 hover:shadow-lg transition duration-300">
+                                    <h4 class="text-xl font-semibold mb-2">I-Premium</h4>
+                                    <p class="text-gray-600 mb-4">Pełny dostęp do platformy dla inwestorów z dodatkowymi korzyściami.</p>
+                                    <p class="text-2xl font-bold mb-4">500 zł / miesiąc</p>
+                                    <ul class="mb-6 space-y-2">
+                                        <li class="flex items-center">
+                                            <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                            </svg>
+                                            Priorytetowy dostęp do nowych projektów
+                                        </li>
+                                        <li class="flex items-center">
+                                            <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                            </svg>
+                                            Zaawansowane analizy i raporty
+                                        </li>
+                                        <li class="flex items-center">
+                                            <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                            </svg>
+                                            Dostęp do ekskluzywnych projektów
+                                        </li>
+                                    </ul>
+                                    <div class="flex justify-center mt-8">
+                                        <button onclick="createCheckoutSession('{{ config('stripe.products.premium_investor.price_id') }}')" 
+                                                class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition duration-300">
+                                            Wybierz plan
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <!-- Plan Premium dla Właściciela Projektu -->
+                                <div class="border rounded-lg p-6 bg-gray-50 hover:shadow-lg transition duration-300">
+                                    <h4 class="text-xl font-semibold mb-2">O-Premium</h4>
+                                    <p class="text-gray-600 mb-4">Pełny dostęp do platformy dla właścicieli projektów.</p>
+                                    <p class="text-2xl font-bold mb-4">1000 zł / miesiąc</p>
+                                    <ul class="mb-6 space-y-2">
+                                        <li class="flex items-center">
+                                            <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                            </svg>
+                                            Możliwość dodawania projektów
+                                        </li>
+                                        <li class="flex items-center">
+                                            <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                            </svg>
+                                            Dostęp do bazy inwestorów premium
+                                        </li>
+                                        <li class="flex items-center">
+                                            <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                            </svg>
+                                            Narzędzia do analizy zainteresowania
+                                        </li>
+                                        <li class="flex items-center">
+                                            <svg class="w-5 h-5 text-green-500 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+                                            </svg>
+                                            Wsparcie w procesie pozyskiwania finansowania
+                                        </li>
+                                    </ul>
+                                    <div class="flex justify-center mt-8">
+                                        <button onclick="createCheckoutSession('{{ config('stripe.products.premium_owner.price_id') }}')" 
+                                                class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition duration-300">
+                                            Wybierz plan
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Przycisk anulowania darmowej subskrypcji -->
+                            <div class="mt-6 pt-4 border-t border-gray-200">
+                                <form action="{{ route('subscription.cancel') }}" method="POST">
                                     @csrf
-                                    <input type="hidden" name="plan" value="prod_RxFs58AVJVHqx2">
-                                    <button 
-                                        type="submit"
-                                        class="w-full bg-indigo-600 text-white py-2 px-4 rounded hover:bg-indigo-700">
-                                        Przejdź na plan Premium
+                                    <button type="submit" class="bg-red-500 text-white py-2 px-4 rounded hover:bg-red-600">
+                                        Anuluj darmową subskrypcję
                                     </button>
                                 </form>
                             </div>
@@ -109,8 +202,7 @@
                         Plany płatne wymagają podania danych karty na stronie Stripe.</p>
                     </div>
 
-                    @if (auth()->user()->role === 'investor')
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
                         <!-- Plan Darmowy dla Inwestora -->
                         <div class="border rounded-lg p-6 hover:shadow-lg transition duration-300">
                             <h4 class="text-xl font-semibold mb-2">I-Free</h4>
@@ -136,15 +228,12 @@
                                     Ograniczony dostęp do szczegółów
                                 </li>
                             </ul>
-                            <form action="{{ route('subscription.checkout') }}" method="POST" class="subscription-form">
-                                @csrf
-                                <input type="hidden" name="plan" value="prod_RxFr1ajRyqgFqa">
-                                <button 
-                                    type="submit"
-                                    class="w-full bg-blue-500 text-white py-2 px-4 rounded hover:bg-blue-600">
+                            <div class="flex justify-center mt-8">
+                                <button onclick="createCheckoutSession('{{ config('stripe.products.premium_investor.price_id') }}')" 
+                                        class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition duration-300">
                                     Wybierz plan
                                 </button>
-                            </form>
+                            </div>
                         </div>
 
                         <!-- Plan Premium dla Inwestora -->
@@ -184,19 +273,14 @@
                                     Indywidualne doradztwo
                                 </li>
                             </ul>
-                            <form action="{{ route('subscription.checkout') }}" method="POST" class="subscription-form">
-                                @csrf
-                                <input type="hidden" name="plan" value="prod_RxFs58AVJVHqx2">
-                                <button 
-                                    type="submit"
-                                    class="w-full bg-indigo-600 text-white py-2 px-4 rounded hover:bg-indigo-700">
+                            <div class="flex justify-center mt-8">
+                                <button onclick="createCheckoutSession('{{ config('stripe.products.premium_investor.price_id') }}')" 
+                                        class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition duration-300">
                                     Wybierz plan
                                 </button>
-                            </form>
+                            </div>
                         </div>
-                    </div>
-                    @elseif (auth()->user()->role === 'project_owner')
-                    <div class="grid grid-cols-1 gap-6 mb-6">
+                        
                         <!-- Plan Premium dla Właściciela Projektu -->
                         <div class="border rounded-lg p-6 bg-gray-50 hover:shadow-lg transition duration-300">
                             <h4 class="text-xl font-semibold mb-2">O-Premium</h4>
@@ -234,22 +318,14 @@
                                     Promocja projektu na platformie
                                 </li>
                             </ul>
-                            <form action="{{ route('subscription.checkout') }}" method="POST" class="subscription-form">
-                                @csrf
-                                <input type="hidden" name="plan" value="prod_RxG8yaXSS7WZoE">
-                                <button 
-                                    type="submit"
-                                    class="w-full bg-indigo-600 text-white py-2 px-4 rounded hover:bg-indigo-700">
+                            <div class="flex justify-center mt-8">
+                                <button onclick="createCheckoutSession('{{ config('stripe.products.premium_owner.price_id') }}')" 
+                                        class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition duration-300">
                                     Wybierz plan
                                 </button>
-                            </form>
+                            </div>
                         </div>
                     </div>
-                    @else
-                    <div class="text-center py-10">
-                        <p class="text-xl text-gray-600">Wybór planów nie jest dostępny dla administratorów.</p>
-                    </div>
-                    @endif
                 @endif
             </div>
         </div>

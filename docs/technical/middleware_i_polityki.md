@@ -1,82 +1,136 @@
-# Middleware i Polityki w InvestClub
+# Middleware i polityki dostępu w InvestClub
 
 ## Wprowadzenie
 
-W aplikacji InvestClub wykorzystujemy dwa główne mechanizmy autoryzacji:
+W aplikacji InvestClub stosujemy dwa mechanizmy kontroli dostępu:
+1. **Middleware** - kontroluje dostęp na poziomie trasy
+2. **Polityki (policies)** - zarządzają dostępem na poziomie zasobu
 
-1. **Middleware** - do kontroli dostępu na poziomie tras (routes)
-2. **Polityki (Policies)** - do kontroli dostępu na poziomie zasobów (resources)
-
-Laravel Jetstream wykorzystuje zarówno middleware jak i polityki, ale główny nacisk kładzie na polityki do zarządzania autoryzacją w aplikacji.
+Ten dokument opisuje, jak używamy obu tych mechanizmów oraz jak je integrujemy z nowym modelem dostępu opartym na subskrypcjach.
 
 ## Middleware w Laravel 11
 
-W Laravel 11 wprowadzono nowy sposób konfiguracji middleware poprzez klasę `Illuminate\Foundation\Configuration\Middleware`. Konfiguracja odbywa się w pliku `bootstrap/app.php`.
-
-### Rejestracja Middleware
+W Laravel 11 middleware są rejestrowane przy użyciu klasy `Illuminate\Foundation\Configuration\Middleware`. Oto przykład, jak rejestrujemy middleware w projekcie:
 
 ```php
 // bootstrap/app.php
-use Illuminate\Foundation\Application;
-use Illuminate\Foundation\Configuration\Middleware;
-
-return Application::configure(basePath: dirname(__DIR__))
-    // ...
-    ->withMiddleware(function (Middleware $middleware) {
-        // Rejestracja middleware dla ról
-        $middleware->alias([
-            'role' => \App\Http\Middleware\RoleMiddleware::class,
-        ]);
-    })
-    // ...
-    ->create();
+$middleware->alias([
+    'role' => \App\Http\Middleware\RoleMiddleware::class,
+    'verified.kyc' => \App\Http\Middleware\EnsureKycIsVerified::class,
+    'subscription.plan' => \App\Http\Middleware\CheckSubscriptionPlan::class,
+]);
 ```
 
-### RoleMiddleware
-
-Nasze middleware `RoleMiddleware` sprawdza, czy zalogowany użytkownik ma określoną rolę:
+### Przykład middleware do weryfikacji roli
 
 ```php
 // app/Http/Middleware/RoleMiddleware.php
-public function handle(Request $request, Closure $next, string $role): Response
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+
+class RoleMiddleware
 {
-    if (!auth()->check()) {
-        return redirect()->route('login');
-    }
+    public function handle(Request $request, Closure $next, string $role): mixed
+    {
+        if (!$request->user() || !$request->user()->hasRole($role)) {
+            return redirect()->route('dashboard')
+                ->with('error', 'Nie masz uprawnień do tej sekcji.');
+        }
 
-    if (!auth()->user()->hasRole($role)) {
-        abort(403, 'Brak dostępu - wymagana rola: ' . $role);
+        return $next($request);
     }
-
-    return $next($request);
 }
 ```
 
-### Użycie Middleware w Kontrolerach
-
-Middleware można stosować na poziomie konstruktora kontrolera:
+### Nowe middleware do weryfikacji planu subskrypcji
 
 ```php
-// app/Http/Controllers/UserController.php
-public function __construct()
+// app/Http/Middleware/CheckSubscriptionPlan.php
+namespace App\Http\Middleware;
+
+use Closure;
+use Illuminate\Http\Request;
+
+class CheckSubscriptionPlan
 {
-    $this->middleware('role:admin')->only(['create', 'store', 'edit', 'update', 'destroy']);
+    public function handle(Request $request, Closure $next, string $planType): mixed
+    {
+        $user = $request->user();
+        
+        if (!$user) {
+            return redirect()->route('login');
+        }
+        
+        // Administratorzy mają dostęp do wszystkiego
+        if ($user->isAdmin()) {
+            return $next($request);
+        }
+        
+        // Dla właścicieli projektów
+        if ($planType === 'owner' && !$user->canManageProjects()) {
+            return redirect()->route('subscription')
+                ->with('warning', 'Ta funkcja wymaga pakietu O-Premium.');
+        }
+        
+        // Dla inwestorów premium
+        if ($planType === 'premium' && 
+            (!$user->hasActiveSubscription() || $user->plan_type === 'free')) {
+            return redirect()->route('subscription')
+                ->with('warning', 'Ta funkcja wymaga pakietu Premium.');
+        }
+        
+        return $next($request);
+    }
 }
 ```
 
-## Polityki (Policies) w Laravel Jetstream
+### Middleware weryfikacji KYC
 
-Jetstream opiera się głównie na politykach do kontroli dostępu do zasobów. Polityki są klasami PHP, które grupują logikę autoryzacji dla danego modelu.
+```php
+// app/Http/Middleware/EnsureKycIsVerified.php
+namespace App\Http\Middleware;
 
-### Struktura Polityk
+use Closure;
+use Illuminate\Http\Request;
 
-Polityki są umieszczone w katalogu `app/Policies`. Każda polityka powinna być powiązana z modelem, którego dotyczy.
+class EnsureKycIsVerified
+{
+    public function handle(Request $request, Closure $next): mixed
+    {
+        if (!$request->user() || !$request->user()->hasVerifiedKyc()) {
+            return redirect()->route('kyc.start')
+                ->with('warning', 'Musisz przejść weryfikację KYC, aby kontynuować.');
+        }
 
-### Rejestracja Polityk
+        return $next($request);
+    }
+}
+```
 
-Laravel automatycznie wykrywa polityki na podstawie konwencji nazewnictwa. Na przykład, polityka dla modelu `User` powinna nazywać się `UserPolicy`.
+## Polityki w Laravel Jetstream
 
-### UserPolicy
+Polityki kontrolują dostęp do poszczególnych zasobów. W systemie Laravel Jetstream, polityki są automatycznie powiązane z modelami na podstawie konwencji nazewnictwa.
+
+### Struktura polityk
+
+Polityki są przechowywane w katalogu `app/Policies` i powiązane z modelami. Na przykład, `UserPolicy` jest powiązana z modelem `User`.
+
+### Rejestracja polityk
+
+Polityki są automatycznie rejestrowane przez Laravel przy użyciu konwencji nazewnictwa. Można też ręcznie zarejestrować polityki w pliku `app/Providers/AuthServiceProvider.php`:
+
+```php
+// app/Providers/AuthServiceProvider.php
+protected $policies = [
+    'App\Models\User' => 'App\Policies\UserPolicy',
+    'App\Models\Project' => 'App\Policies\ProjectPolicy',
+    'App\Models\Investment' => 'App\Policies\InvestmentPolicy',
+];
+```
+
+### Przykład polityki użytkownika
 
 ```php
 // app/Policies/UserPolicy.php
@@ -86,132 +140,224 @@ use App\Models\User;
 
 class UserPolicy
 {
-    // Metoda before uruchamiana przed wszystkimi innymi metodami
-    public function before(User $user, string $ability): bool|null
-    {
-        if ($user->isAdmin()) {
-            return true; // Administratorzy mają dostęp do wszystkiego
-        }
-        
-        return null; // Kontynuuj sprawdzanie w pozostałych metodach
-    }
-
-    // Określa czy użytkownik może wyświetlać listę użytkowników
     public function viewAny(User $user): bool
     {
-        return true; // Każdy zalogowany użytkownik może wyświetlać listę
+        return $user->isAdmin();
     }
 
-    // Określa czy użytkownik może wyświetlić profil innego użytkownika
-    public function view(User $user, User $model): bool
+    public function update(User $user, User $targetUser): bool
     {
-        return $user->id === $model->id || $user->hasRole('manager');
+        return $user->id === $targetUser->id || $user->isAdmin();
     }
-
-    // Inne metody polityki...
 }
 ```
 
-### InvestmentPolicy
+### Przykład polityki inwestycji (z obsługą subskrypcji)
 
 ```php
 // app/Policies/InvestmentPolicy.php
 namespace App\Policies;
 
 use App\Models\User;
+use App\Models\Investment;
+use App\Models\Project;
 
 class InvestmentPolicy
 {
-    // Metody polityki dla inwestycji...
-    
-    public function invest(User $user, $investment): bool
+    public function create(User $user, Project $project): bool
     {
-        return $user->isVerified(); // Tylko zweryfikowani użytkownicy mogą inwestować
+        // Użytkownik musi mieć zweryfikowane KYC i aktywną subskrypcję
+        return $user->hasVerifiedKyc() && $user->hasActiveSubscription();
+    }
+
+    public function view(User $user, Investment $investment): bool
+    {
+        // Właściciel inwestycji lub administrator może zobaczyć
+        if ($user->id === $investment->user_id || $user->isAdmin()) {
+            return true;
+        }
+        
+        // Właściciel projektu powiązanego z inwestycją również może zobaczyć
+        return $user->canManageProjects() && 
+               $user->id === $investment->project->user_id;
     }
 }
 ```
 
-## Użycie Polityk w Kontrolerach
-
-Polityki można stosować na kilka sposobów:
-
-### Sposób 1: Metoda `authorize()`
+### Przykład polityki projektu (z obsługą subskrypcji)
 
 ```php
-// W kontrolerze
-public function show(User $user)
+// app/Policies/ProjectPolicy.php
+namespace App\Policies;
+
+use App\Models\User;
+use App\Models\Project;
+
+class ProjectPolicy
 {
-    $this->authorize('view', $user);
-    
-    return view('users.show', compact('user'));
-}
-```
-
-### Sposób 2: Fasada Gate
-
-```php
-// W kontrolerze
-use Illuminate\Support\Facades\Gate;
-
-public function manageInvestments(User $user)
-{
-    if (Gate::denies('manageInvestments', $user)) {
-        abort(403);
+    public function viewAny(User $user): bool
+    {
+        // Każdy zweryfikowany użytkownik może przeglądać listę projektów
+        return $user->hasVerifiedKyc();
     }
-    
-    // Logika zarządzania inwestycjami
+
+    public function view(User $user, Project $project): bool
+    {
+        // Właściciel projektu, administrator lub użytkownik z subskrypcją
+        return $user->isAdmin() || 
+               $user->id === $project->user_id || 
+               $user->hasActiveSubscription();
+    }
+
+    public function create(User $user): bool
+    {
+        // Tylko użytkownicy z planem O-Premium mogą tworzyć projekty
+        return $user->canManageProjects();
+    }
+
+    public function update(User $user, Project $project): bool
+    {
+        // Właściciel projektu lub administrator
+        return $user->isAdmin() || $user->id === $project->user_id;
+    }
+
+    public function delete(User $user, Project $project): bool
+    {
+        // Właściciel projektu lub administrator
+        return $user->isAdmin() || $user->id === $project->user_id;
+    }
 }
 ```
 
-### Sposób 3: W Blade
-
-```blade
-@can('update', $user)
-    <a href="{{ route('users.edit', $user) }}">Edytuj</a>
-@endcan
-```
-
-## Middleware vs Polityki - Kiedy użyć?
+## Kiedy używać middleware, a kiedy polityk
 
 ### Middleware
-- Do kontroli dostępu na poziomie tras
-- Do prostych, globalnych reguł autoryzacji
-- Przykład: Sprawdzanie czy użytkownik jest zalogowany, czy ma określoną rolę
-
-### Polityki
-- Do kontroli dostępu na poziomie zasobów
-- Do bardziej złożonych reguł autoryzacji
-- Przykład: Sprawdzanie czy użytkownik może edytować konkretny zasób
-
-## Najlepsze Praktyki
-
-1. **Używaj middleware** do prostych, globalnych reguł (np. czy użytkownik ma rolę)
-2. **Używaj polityk** do bardziej szczegółowych reguł (np. czy użytkownik może edytować konkretny zasób)
-3. **Używaj metody `before`** w politykach dla uprawnień administratora
-4. **Grupuj logikę autoryzacji** w metodach modelu (np. `hasRole`, `isAdmin`, `isVerified`)
-5. **Testuj reguły autoryzacji** za pomocą testów funkcjonalnych
-
-## Autoryzacja w Livewire
-
-Jeśli używasz komponentów Livewire (jak w Jetstream), możesz zastosować polityki w podobny sposób:
+- Używaj dla prostych, ogólnych reguł
+- Idealnie do kontroli dostępu na poziomie grup tras
+- Dobre dla warunków, które dotyczą użytkownika, a nie konkretnych zasobów
 
 ```php
-// W komponencie Livewire
-use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+// routes/web.php
+Route::middleware(['auth', 'verified.kyc', 'subscription.plan:owner'])->group(function () {
+    Route::resource('my-projects', ProjectController::class);
+});
+```
 
-class UserProfile extends Component
+### Polityki
+- Używaj dla złożonych reguł na poziomie zasobu
+- Dobre gdy logika autoryzacji zależy od atrybutów zasobu
+- Idealne do kontroli CRUD dla modeli
+
+```php
+// app/Http/Controllers/ProjectController.php
+public function update(Request $request, Project $project)
 {
-    use AuthorizesRequests;
-    
-    public function save()
-    {
-        $this->authorize('update', $this->user);
-        
-        // Zapisz zmiany
+    $this->authorize('update', $project);
+    // Reszta logiki...
+}
+```
+
+## Integracja z modelem opartym na subskrypcjach
+
+Nowe podejście oparte na subskrypcjach wymaga następujących zmian:
+
+1. **W modelu User** dodajemy metody pomocnicze do sprawdzania dostępu:
+
+```php
+// app/Models/User.php
+public function canManageProjects(): bool
+{
+    // Użytkownik może zarządzać projektami, jeśli ma plan O-Premium
+    return $this->hasActiveSubscription() && 
+           $this->plan_type === 'premium-owner';
+}
+
+public function hasFullAccess(): bool
+{
+    // Pełny dostęp mają administratorzy lub użytkownicy z planem O-Premium
+    return $this->isAdmin() || 
+          ($this->hasActiveSubscription() && $this->plan_type === 'premium-owner');
+}
+
+// Zachowanie kompatybilności z istniejącymi metodami:
+public function hasRole(string $role): bool
+{
+    // Dla roli 'project_owner' sprawdzamy subskrypcję O-Premium
+    if (strtolower($role) === 'project_owner' || strtolower($role) === 'manager') {
+        return $this->canManageProjects();
     }
+    
+    // Dla innych ról zachowujemy stare zachowanie
+    return strtolower($this->role) === strtolower($role);
+}
+```
+
+2. **W trasach** używamy nowego middleware:
+
+```php
+// routes/web.php
+// Trasy dla właścicieli projektów
+Route::middleware(['auth', 'verified.kyc', 'subscription.plan:owner'])->group(function () {
+    Route::resource('my-projects', ProjectController::class);
+});
+
+// Trasy dla inwestorów premium
+Route::middleware(['auth', 'verified.kyc', 'subscription.plan:premium'])->group(function () {
+    Route::get('/exclusive-projects', [ProjectController::class, 'exclusive']);
+});
+```
+
+3. **W politykach** wykorzystujemy nowe metody pomocnicze:
+
+```php
+// app/Policies/ProjectPolicy.php
+public function create(User $user): bool
+{
+    return $user->canManageProjects();
+}
+```
+
+## Best Practices dla autoryzacji
+
+1. **Używaj middleware dla globalnych reguł** - weryfikacja KYC, subskrypcji itp.
+2. **Grupuj logikę autoryzacji w metodach modelu** - `canManageProjects()`, `hasFullAccess()`
+3. **Warstw autoryzację** - najpierw middleware ogólne, potem szczegółowe polityki
+4. **Testuj reguły autoryzacji** - pisz testy sprawdzające zarówno pozytywne jak i negatywne przypadki
+5. **Zachowaj spójność** - używaj tych samych mechanizmów w całej aplikacji
+6. **Stosuj przekierowania z informacją zwrotną** - użytkownik powinien wiedzieć, dlaczego nie ma dostępu
+7. **Unikaj duplikowania logiki** - centralizuj reguły w jednym miejscu
+
+## Autoryzacja w komponentach Livewire
+
+W komponentach Livewire, możemy stosować polityki w następujący sposób:
+
+```php
+// app/Http/Livewire/Projects/ProjectsList.php
+namespace App\Http\Livewire\Projects;
+
+use App\Models\Project;
+use Livewire\Component;
+
+class ProjectsList extends Component
+{
+    public function mount()
+    {
+        // Sprawdź, czy użytkownik może oglądać projekty
+        $this->authorize('viewAny', Project::class);
+    }
+    
+    public function deleteProject(Project $project)
+    {
+        // Sprawdź, czy użytkownik może usunąć projekt
+        $this->authorize('delete', $project);
+        
+        $project->delete();
+    }
+    
+    // Reszta komponentu...
 }
 ```
 
 ## Podsumowanie
 
-W InvestClub stosujemy zarówno middleware jak i polityki do zarządzania autoryzacją. Middleware używamy do prostych, globalnych reguł, a polityk do bardziej szczegółowych reguł na poziomie zasobów. Dzięki temu mamy pełną kontrolę nad dostępem do różnych części aplikacji. 
+W InvestClub stosujemy zarówno middleware jak i polityki, aby zarządzać autoryzacją. Middleware odpowiada za proste, globalne reguły, a polityki za szczegółowe reguły na poziomie zasobów. Nowy model oparty na subskrypcjach jest zintegrowany z obydwoma mechanizmami poprzez nowe middleware `subscription.plan` oraz odpowiednie metody w modelu `User`, zachowując kompatybilność z istniejącymi rozwiązaniami. 

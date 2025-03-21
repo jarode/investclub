@@ -30,7 +30,7 @@ return new class extends Migration
                 // Pola ról i weryfikacji użytkownika
                 $table->string('role')->default('investor');
                 $table->string('verification_status')->default('unverified');
-                $table->string('kyc_status')->default('pending');
+                $table->string('kyc_status')->default('unverified');
                 
                 // Pole dla statusu subskrypcji Stripe
                 $table->string('stripe_subscription_status')->default('inactive');
@@ -54,7 +54,7 @@ return new class extends Migration
                     $table->string('verification_status')->default('unverified');
                 }
                 if (!Schema::hasColumn('users', 'kyc_status')) {
-                    $table->string('kyc_status')->default('pending');
+                    $table->string('kyc_status')->default('unverified');
                 }
                 if (!Schema::hasColumn('users', 'stripe_subscription_status')) {
                     $table->string('stripe_subscription_status')->default('inactive');

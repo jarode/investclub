@@ -44,100 +44,86 @@ class StripeController extends Controller
      */
     public function createCheckoutSession(Request $request)
     {
-        $request->validate([
-            'plan' => 'required',
-        ]);
-
-        $user = $request->user();
-        $productId = $request->plan;
-        
-        Log::info('Otrzymano żądanie subskrypcji planu: ' . $productId . ' od użytkownika: ' . $user->id);
-        
-        // Resetujemy poprzednie informacje o subskrypcji, jeśli istnieją
-        if ($user->stripe_subscription_status === 'active' && $user->stripe_subscription_id) {
-            // Jeśli użytkownik ma aktywną płatną subskrypcję, nie pozwalamy na zmianę na darmową
-            // bez wcześniejszego anulowania
-            if ($productId === 'prod_RxFr1ajRyqgFqa') {
-                return redirect()->route('subscription')
-                    ->with('error', 'Musisz najpierw anulować aktualny plan premium, zanim przejdziesz na plan darmowy.');
-            }
-        }
-        
-        // Sprawdź, czy wybrano darmowy plan
-        if ($productId === config('stripe.products.free_investor.product_id')) {
-            // Dla darmowego planu nie tworzymy subskrypcji Stripe
-            $user->stripe_subscription_status = 'active';
-            $user->stripe_subscription_id = null; // wyraźnie usuwamy ID subskrypcji
-            $user->plan_type = 'free';
-            $user->cancellation_requested = false;
-            $user->save();
-            
-            Log::info('Aktywowano darmowy plan dla użytkownika: ' . $user->id);
-            return redirect()->route('dashboard')->with('success', 'Aktywowano darmowy plan subskrypcji I-Free. Masz teraz podstawowy dostęp do platformy.');
-        }
-        
-        // Pobierz cenę na podstawie ID produktu
-        $priceId = null;
-        if ($productId === config('stripe.products.premium_investor.product_id')) {
-            $priceId = config('stripe.products.premium_investor.price_id');
-        } elseif ($productId === config('stripe.products.premium_owner.product_id')) {
-            $priceId = config('stripe.products.premium_owner.price_id');
-        }
-        
-        Log::info('Użycie ceny Stripe: ' . $priceId . ' dla produktu: ' . $productId);
-        
-        if (!$priceId) {
-            Log::error('Nieznany produkt: ' . $productId);
-            return back()->withErrors(['error' => 'Wybrany plan nie istnieje.']);
-        }
-
         try {
-            $stripe = $this->stripe();
+            $user = $request->user();
+            $priceId = $request->input('price_id');
             
-            Log::info('Klucz API Stripe (maskowany): ' . substr(config('stripe.secret'), 0, 8) . '...');
-            
-            // Definiujemy pełny adres URL z poprawnym hostem i portem
-            $host = $request->getHost();
-            $port = $request->getPort();
-            $scheme = $request->getScheme();
-            
-            // Tworzymy URL do przekierowania po sukcesie/anulowaniu
-            $successUrl = $port == 80 || $port == 443 
-                ? "{$scheme}://{$host}/subscription/success?session_id={CHECKOUT_SESSION_ID}" 
-                : "{$scheme}://{$host}:{$port}/subscription/success?session_id={CHECKOUT_SESSION_ID}";
+            // Sprawdź, czy użytkownik ma już aktywną subskrypcję
+            if ($user->stripe_subscription_id) {
+                // Pobierz aktualną subskrypcję ze Stripe
+                $subscription = \Stripe\Subscription::retrieve($user->stripe_subscription_id);
                 
-            $cancelUrl = $port == 80 || $port == 443 
-                ? "{$scheme}://{$host}/subscription" 
-                : "{$scheme}://{$host}:{$port}/subscription";
+                // Jeśli użytkownik ma już aktywną subskrypcję, utwórz sesję z parametrami do aktualizacji
+                $session = \Stripe\Checkout\Session::create([
+                    'customer' => $user->stripe_customer_id,
+                    'payment_method_types' => ['card'],
+                    'line_items' => [[
+                        'price' => $priceId,
+                        'quantity' => 1,
+                    ]],
+                    'mode' => 'subscription',
+                    'success_url' => route('subscription.success') . '?session_id={CHECKOUT_SESSION_ID}',
+                    'cancel_url' => route('subscription'),
+                    'subscription_data' => [
+                        'trial_settings' => [
+                            'end_behavior' => [
+                                'missing_payment_method' => 'cancel',
+                            ],
+                        ],
+                    ],
+                    'allow_promotion_codes' => true,
+                    'billing_address_collection' => 'required',
+                    'customer_update' => [
+                        'address' => 'auto',
+                        'shipping' => 'auto',
+                    ],
+                    'metadata' => [
+                        'user_id' => $user->id,
+                        'price_id' => $priceId,
+                    ],
+                    'subscription' => $user->stripe_subscription_id,
+                    'proration_behavior' => 'always_invoice',
+                ]);
+            } else {
+                // Jeśli użytkownik nie ma subskrypcji, utwórz nową
+                $session = \Stripe\Checkout\Session::create([
+                    'customer' => $user->stripe_customer_id,
+                    'payment_method_types' => ['card'],
+                    'line_items' => [[
+                        'price' => $priceId,
+                        'quantity' => 1,
+                    ]],
+                    'mode' => 'subscription',
+                    'success_url' => route('subscription.success') . '?session_id={CHECKOUT_SESSION_ID}',
+                    'cancel_url' => route('subscription'),
+                    'subscription_data' => [
+                        'trial_settings' => [
+                            'end_behavior' => [
+                                'missing_payment_method' => 'cancel',
+                            ],
+                        ],
+                    ],
+                    'allow_promotion_codes' => true,
+                    'billing_address_collection' => 'required',
+                    'customer_update' => [
+                        'address' => 'auto',
+                        'shipping' => 'auto',
+                    ],
+                    'metadata' => [
+                        'user_id' => $user->id,
+                        'price_id' => $priceId,
+                    ],
+                ]);
+            }
             
-            // Utworzenie sesji Checkout
-            $session = $stripe->checkout->sessions->create([
-                'payment_method_types' => ['card'],
-                'line_items' => [[
-                    'price' => $priceId,
-                    'quantity' => 1,
-                ]],
-                'mode' => 'subscription',
-                'success_url' => $successUrl,
-                'cancel_url' => $cancelUrl,
-                'client_reference_id' => $user->id,
-                'customer_email' => $user->email,
-                'metadata' => [
-                    'user_id' => $user->id,
-                ],
-            ]);
-            
-            // Zapisz ID sesji do późniejszego wykorzystania
+            // Zapisz ID sesji w bazie danych
             $user->checkout_session_id = $session->id;
             $user->save();
             
-            Log::info('Utworzono sesję Checkout: ' . $session->id . ' z URL: ' . $session->url);
-            
-            // Przekierowanie do strony Checkout
-            return redirect($session->url);
+            return response()->json(['url' => $session->url]);
         } catch (\Exception $e) {
-            Log::error('Błąd tworzenia sesji Checkout: ' . $e->getMessage() . "\n" . $e->getTraceAsString());
-            return back()->withErrors(['error' => 'Wystąpił błąd podczas tworzenia sesji płatności: ' . $e->getMessage()]);
+            \Log::error('Błąd podczas tworzenia sesji Stripe: ' . $e->getMessage());
+            return response()->json(['error' => 'Wystąpił błąd podczas tworzenia sesji płatności.'], 500);
         }
     }
 
@@ -152,7 +138,7 @@ class StripeController extends Controller
         $user = $request->user();
         Log::info('Żądanie anulowania subskrypcji dla użytkownika: ' . $user->id);
 
-        // Sprawdź czy użytkownik ma aktywną subskrypcję płatną
+        // Sprawdź czy użytkownik ma aktywną subskrypcję w Stripe
         if ($user->stripe_subscription_id) {
             try {
                 // Anuluj subskrypcję na koniec okresu rozliczeniowego w Stripe
@@ -160,18 +146,46 @@ class StripeController extends Controller
                 $subscription = $stripe->subscriptions->retrieve($user->stripe_subscription_id);
                 
                 if ($subscription && $subscription->status !== 'canceled') {
-                    $stripe->subscriptions->update($user->stripe_subscription_id, [
-                        'cancel_at_period_end' => true
-                    ]);
+                    // Sprawdź czy to darmowa subskrypcja (cena 0 zł)
+                    $isDarmowaPlan = false;
+                    if (isset($subscription->items->data[0]->price) && 
+                        $subscription->items->data[0]->price->id === (config('stripe.products.free_investor.price_id') ?: 'price_1R3LLrBTxeaIpqRB1gppSxzK')) {
+                        $isDarmowaPlan = true;
+                    }
                     
-                    // Zapisujemy informację o planowanym anulowaniu, ale zachowujemy status active
-                    $user->cancellation_requested = true;
-                    $user->stripe_subscription_status = 'active'; // zachowujemy dostęp
-                    $user->save();
-                    
-                    Log::info('Subskrypcja anulowana na koniec okresu dla użytkownika: ' . $user->id);
-                    return redirect()->route('dashboard')->with('success', 
-                        'Subskrypcja została anulowana. Pozostanie aktywna do końca okresu rozliczeniowego.');
+                    if ($isDarmowaPlan) {
+                        // Dla darmowego planu anulujemy natychmiast
+                        $stripe->subscriptions->cancel($user->stripe_subscription_id);
+                        
+                        // Aktualizujemy dane użytkownika
+                        $user->stripe_subscription_status = 'inactive';
+                        $user->stripe_subscription_id = null;
+                        $user->plan_type = null;
+                        $user->cancellation_requested = false;
+                        $user->save();
+                        
+                        Log::info('Darmowa subskrypcja anulowana natychmiast dla użytkownika: ' . $user->id);
+                        return redirect()->route('dashboard')->with('success', 
+                            'Twój darmowy plan został anulowany. Aby ponownie korzystać z platformy, wybierz plan subskrypcji.');
+                    } else {
+                        // Dla płatnych planów anulujemy na koniec okresu rozliczeniowego
+                        $stripe->subscriptions->update($user->stripe_subscription_id, [
+                            'cancel_at_period_end' => true
+                        ]);
+                        
+                        // Zapisujemy informację o planowanym anulowaniu, ale zachowujemy status active i typ planu
+                        $user->cancellation_requested = true;
+                        $user->stripe_subscription_status = 'active'; // zachowujemy dostęp
+                        $user->save();
+                        
+                        // Określamy datę końca okresu rozliczeniowego
+                        $endDate = date('d.m.Y', $subscription->current_period_end);
+                        
+                        Log::info('Subskrypcja anulowana na koniec okresu dla użytkownika: ' . $user->id . ', data końca: ' . $endDate);
+                        return redirect()->route('dashboard')->with('success', 
+                            'Subskrypcja została anulowana. Pozostanie aktywna do końca okresu rozliczeniowego (' . $endDate . '). 
+                            Po tym terminie zostanie automatycznie przypisany plan darmowy.');
+                    }
                 }
             } catch (\Exception $e) {
                 Log::error('Błąd anulowania subskrypcji: ' . $e->getMessage());
@@ -180,6 +194,7 @@ class StripeController extends Controller
                 $user->stripe_subscription_status = 'inactive';
                 $user->stripe_subscription_id = null;
                 $user->cancellation_requested = false;
+                $user->plan_type = null; // Usuwamy przypisanie planu
                 $user->save();
                 
                 return redirect()->route('dashboard')->with('warning', 
@@ -187,14 +202,15 @@ class StripeController extends Controller
             }
         }
 
-        // Dla darmowej subskrypcji lub gdy nie udało się znaleźć subskrypcji w Stripe
+        // Dla przypadku gdy nie znaleziono subskrypcji w Stripe
         $user->stripe_subscription_status = 'inactive';
         $user->stripe_subscription_id = null;
         $user->cancellation_requested = false;
+        $user->plan_type = null; // Usuwamy przypisanie planu zamiast ustawiać 'free'
         $user->save();
         
-        Log::info('Subskrypcja anulowana dla użytkownika: ' . $user->id);
-        return redirect()->route('dashboard')->with('success', 'Subskrypcja została anulowana.');
+        Log::info('Subskrypcja anulowana lokalnie dla użytkownika: ' . $user->id);
+        return redirect()->route('dashboard')->with('success', 'Twoja subskrypcja została anulowana.');
     }
 
     /**
@@ -492,19 +508,38 @@ class StripeController extends Controller
                         switch ($subscription->status) {
                             case 'active':
                                 $user->stripe_subscription_status = 'active';
+                                $user->cancellation_requested = false;
+                                
+                                // Aktualizacja plan_type na podstawie ID produktu
+                                $priceId = $subscription->items->data[0]->price->id;
+                                $planType = '';
+                                if ($priceId === (config('stripe.products.premium_investor.price_id') ?: 'price_1R3LMKBTxeaIpqRBHDccX2U1')) {
+                                    $planType = 'premium-investor';
+                                } elseif ($priceId === (config('stripe.products.premium_owner.price_id') ?: 'price_1R3Lc4BTxeaIpqRBtNBnHwcH')) {
+                                    $planType = 'premium-owner';
+                                } elseif ($priceId === (config('stripe.products.free_investor.price_id') ?: 'price_1R3LLrBTxeaIpqRB1gppSxzK')) {
+                                    $planType = 'free-investor';
+                                } else {
+                                    Log::warning('Nieznane ID ceny w webhookach: ' . $priceId);
+                                }
                                 break;
                             case 'past_due':
                                 $user->stripe_subscription_status = 'past_due';
                                 break;
                             case 'canceled':
                                 $user->stripe_subscription_status = 'cancelled';
+                                
+                                // Jeśli subskrypcja została anulowana, nie zmieniaj planu od razu,
+                                // żeby użytkownik miał dostęp do końca okresu rozliczeniowego
+                                $user->cancellation_requested = true;
                                 break;
                             default:
                                 $user->stripe_subscription_status = $subscription->status;
                         }
                         
+                        $user->plan_type = $planType;
                         $user->save();
-                        Log::info('Status subskrypcji zaktualizowany dla użytkownika: ' . $user->id . ' na: ' . $user->stripe_subscription_status);
+                        Log::info('Status subskrypcji zaktualizowany dla użytkownika: ' . $user->id . ' na: ' . $user->stripe_subscription_status . ', plan: ' . $user->plan_type);
                     }
                     break;
                     
@@ -514,6 +549,12 @@ class StripeController extends Controller
                     
                     if ($user) {
                         $user->stripe_subscription_status = 'cancelled';
+                        
+                        // Po całkowitym usunięciu subskrypcji, możemy zresetować plan na darmowy
+                        if (!$user->cancellation_requested) {
+                            $user->plan_type = 'free-investor';
+                        }
+                        
                         $user->save();
                         Log::info('Subskrypcja anulowana dla użytkownika: ' . $user->id);
                     }

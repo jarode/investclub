@@ -17,6 +17,7 @@ return Application::configure(basePath: dirname(__DIR__))
             'role' => \App\Http\Middleware\CheckRole::class,
             'verified.kyc' => \App\Http\Middleware\EnsureKycIsVerified::class,
             'active.subscription' => \App\Http\Middleware\EnsureSubscriptionIsActive::class,
+            'subscription.plan' => \App\Http\Middleware\CheckSubscriptionPlan::class,
         ]);
     })
     ->withExceptions(function (Exceptions $exceptions) {

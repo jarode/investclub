@@ -144,6 +144,32 @@ class User extends Authenticatable
     }
     
     /**
+     * Sprawdza czy użytkownik może zarządzać projektami.
+     *
+     * @return bool
+     */
+    public function canManageProjects(): bool
+    {
+        // Użytkownik może zarządzać projektami, jeśli ma plan O-Premium
+        // lub rolę administratora/managera
+        return $this->isAdmin() || 
+               $this->isManager() || 
+               ($this->hasActiveSubscription() && $this->plan_type === 'premium-owner');
+    }
+    
+    /**
+     * Sprawdza czy użytkownik ma pełny dostęp do systemu.
+     *
+     * @return bool
+     */
+    public function hasFullAccess(): bool
+    {
+        // Pełny dostęp mają administratorzy lub użytkownicy z planem O-Premium
+        return $this->isAdmin() || 
+              ($this->hasActiveSubscription() && $this->plan_type === 'premium-owner');
+    }
+    
+    /**
      * Sprawdza czy użytkownik ma określoną rolę.
      *
      * @param string $role
@@ -151,6 +177,11 @@ class User extends Authenticatable
      */
     public function hasRole(string $role): bool
     {
+        // Dla roli 'project_owner' lub 'manager' sprawdzamy subskrypcję O-Premium
+        if (strtolower($role) === 'project_owner') {
+            return $this->canManageProjects();
+        }
+        
         // Obsługuje zarówno nazwy ról z dużych liter (Administrator) jak i małych (admin)
         $normalisedRole = strtolower($this->role);
         $normalisedRoleToCheck = strtolower($role);

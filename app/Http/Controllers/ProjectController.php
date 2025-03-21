@@ -192,4 +192,41 @@ class ProjectController extends Controller
         return redirect()->route('projects.show', $project)
                          ->with('success', 'Status projektu został zmieniony.');
     }
+    
+    /**
+     * Wyświetla ekskluzywne projekty dostępne tylko dla użytkowników premium.
+     */
+    public function exclusive(Request $request)
+    {
+        $query = Project::where('is_exclusive', true)
+                       ->where('status', 'active');
+        
+        // Filtrowanie według poziomów ryzyka
+        if ($request->has('risk_level') && in_array($request->risk_level, ['low', 'medium', 'high'])) {
+            $query->where('risk_level', $request->risk_level);
+        }
+        
+        // Wyszukiwanie
+        if ($request->has('search') && !empty($request->search)) {
+            $searchTerm = $request->search;
+            $query->where(function($q) use ($searchTerm) {
+                $q->where('name', 'like', "%{$searchTerm}%")
+                  ->orWhere('description', 'like', "%{$searchTerm}%");
+            });
+        }
+        
+        // Sortowanie
+        $sortBy = $request->sort_by ?? 'created_at';
+        $sortOrder = $request->sort_order ?? 'desc';
+        $allowedSortFields = ['name', 'target_amount', 'returns_projection', 'created_at'];
+        
+        if (in_array($sortBy, $allowedSortFields)) {
+            $query->orderBy($sortBy, $sortOrder === 'asc' ? 'asc' : 'desc');
+        }
+        
+        // Pobierz paginowane projekty
+        $exclusiveProjects = $query->with('owner')->paginate(10);
+        
+        return view('projects.exclusive', compact('exclusiveProjects'));
+    }
 }
