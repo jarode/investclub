@@ -7,6 +7,7 @@ use App\Models\Project;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
+use PHPUnit\Framework\Attributes\Test;
 
 class InvestmentControllerTest extends TestCase
 {
@@ -109,7 +110,7 @@ class InvestmentControllerTest extends TestCase
         ]);
     }
 
-    /** @test */
+    #[Test]
     public function index_displays_investments_for_admin()
     {
         $this->actingAs($this->admin);

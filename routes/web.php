@@ -74,22 +74,23 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
     });
     
     // Trasy dotyczące Stripe
-    Route::get('/subscription', [StripeController::class, 'showSubscription'])->name('subscription');
-    Route::post('/subscription/checkout', [StripeController::class, 'createCheckoutSession'])->name('subscription.checkout');
-    Route::get('/subscription/success', [StripeController::class, 'handleCheckoutSuccess'])->name('subscription.success');
-    Route::post('/subscription/cancel', [StripeController::class, 'cancelSubscription'])->name('subscription.cancel');
-    Route::get('/billing-portal', [StripeController::class, 'billingPortal'])->name('billing.portal');
-    Route::get('/kyc/verify', [StripeController::class, 'showKycStatus'])->name('kyc.verify');
-    Route::post('/kyc/verify', [StripeController::class, 'startKycVerification'])->name('kyc.start');
-    Route::get('/kyc/completed', [StripeController::class, 'kycCompleted'])->name('kyc.completed');
+    Route::prefix('stripe')->group(function () {
+        Route::get('/subscription', [StripeController::class, 'showSubscription'])->name('subscription');
+        Route::post('/checkout', [StripeController::class, 'createCheckoutSession'])->name('stripe.checkout');
+        Route::get('/success', [StripeController::class, 'handleCheckoutSuccess'])->name('subscription.success');
+        Route::post('/cancel', [StripeController::class, 'cancelSubscription'])->name('subscription.cancel');
+        Route::post('/update', [StripeController::class, 'updateSubscription'])->name('subscription.update');
+        Route::post('/portal', [StripeController::class, 'createPortalSession'])->name('stripe.portal');
+        Route::post('/update-portal', [StripeController::class, 'updateSubscriptionPortal'])->name('stripe.update-portal');
+        Route::get('/update-subscription', [StripeController::class, 'updateSubscription'])->name('stripe.update-subscription');
+        Route::post('/webhook', [StripeController::class, 'handleWebhook'])->name('stripe.webhook')
+            ->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);
+    });
+
+    // Trasy dla KYC
+    Route::prefix('kyc')->group(function () {
+        Route::get('/verify', [StripeController::class, 'showKycStatus'])->name('kyc.verify');
+        Route::post('/verify', [StripeController::class, 'startKycVerification'])->name('kyc.start');
+        Route::get('/completed', [StripeController::class, 'kycCompleted'])->name('kyc.completed');
+    });
 });
-
-// Trasa webhooka dla Stripe
-Route::post('/stripe/webhook', [StripeController::class, 'handleKycWebhook'])
-    ->name('stripe.webhook')
-    ->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);
-
-// Trasa webhooka dla subskrypcji
-Route::post('/stripe/webhook/subscription', [StripeController::class, 'handleSubscriptionWebhook'])
-    ->name('webhook.subscription')
-    ->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);

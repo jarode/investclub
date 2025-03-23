@@ -56,11 +56,13 @@ return new class extends Migration
     public function down(): void
     {
         Schema::table('users', function (Blueprint $table) {
-            $table->dropIndex([
-                'stripe_id',
-            ]);
+            // Usuwamy indeks tylko jeśli kolumna istnieje
+            if (Schema::hasColumn('users', 'stripe_id')) {
+                $table->dropIndex(['stripe_id']);
+            }
 
-            $table->dropColumn([
+            // Usuwamy kolumny tylko jeśli istnieją
+            $columns = [
                 'stripe_id',
                 'pm_type',
                 'pm_last_four',
@@ -69,7 +71,13 @@ return new class extends Migration
                 'checkout_session_id',
                 'stripe_customer_id',
                 'stripe_subscription_id',
-            ]);
+            ];
+
+            foreach ($columns as $column) {
+                if (Schema::hasColumn('users', $column)) {
+                    $table->dropColumn($column);
+                }
+            }
         });
     }
 };

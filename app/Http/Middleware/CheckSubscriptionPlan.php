@@ -4,6 +4,7 @@ namespace App\Http\Middleware;
 
 use Closure;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Symfony\Component\HttpFoundation\Response;
 
 class CheckSubscriptionPlan
@@ -11,32 +12,39 @@ class CheckSubscriptionPlan
     /**
      * Handle an incoming request.
      *
-     * @param  \Closure(\Illuminate\Http\Request): (\Symfony\Component\HttpFoundation\Response)  $next
+     * @param  \Illuminate\Http\Request  $request
+     * @param  \Closure  $next
+     * @param  string  $plan
+     * @return mixed
      */
-    public function handle(Request $request, Closure $next, string $planType): Response
+    public function handle(Request $request, Closure $next, $plan): Response
     {
         $user = $request->user();
         
         if (!$user) {
             return redirect()->route('login');
         }
+
+        Log::info('Sprawdzanie planu subskrypcji dla użytkownika: ' . $user->id . ', wymagany plan: ' . $plan);
         
-        // Administratorzy mają dostęp do wszystkiego
-        if ($user->isAdmin()) {
-            return $next($request);
+        // Sprawdź czy użytkownik ma aktywną subskrypcję
+        if ($user->stripe_subscription_status !== 'active') {
+            Log::warning('Użytkownik nie ma aktywnej subskrypcji: ' . $user->id);
+            return redirect()->route('subscription')
+                ->with('warning', 'Aby uzyskać dostęp do tej funkcji, potrzebujesz aktywnej subskrypcji.');
         }
         
-        // Dla właścicieli projektów
-        if ($planType === 'owner' && !$this->canManageProjects($user)) {
+        // Sprawdź czy użytkownik ma odpowiedni plan
+        if ($plan === 'owner' && $user->plan_type !== 'premium-owner') {
+            Log::warning('Użytkownik nie ma planu właściciela: ' . $user->id);
             return redirect()->route('subscription')
-                ->with('warning', 'Ta funkcja wymaga pakietu O-Premium.');
+                ->with('warning', 'Ta funkcja wymaga planu O-Premium dla właścicieli projektów.');
         }
         
-        // Dla inwestorów premium
-        if ($planType === 'premium' && 
-            (!$user->hasActiveSubscription() || $user->plan_type === 'free')) {
+        if ($plan === 'premium' && !in_array($user->plan_type, ['premium-investor', 'premium-owner'])) {
+            Log::warning('Użytkownik nie ma planu premium: ' . $user->id);
             return redirect()->route('subscription')
-                ->with('warning', 'Ta funkcja wymaga pakietu Premium.');
+                ->with('warning', 'Ta funkcja wymaga planu premium.');
         }
         
         return $next($request);

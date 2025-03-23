@@ -136,6 +136,7 @@ Projekt jest skonfigurowany do automatycznego wdrażania na Laravel Cloud. Szcze
 - [Akceleracja rozwoju](docs/technical/acceleration.md)
 - [Wdrażanie](docs/technical/deployment.md)
 - [Plan testowania manualnego](docs/testing/manual_test_plan.md)
+- [System subskrypcji](docs/subscription-system.md)
 
 ## Licencja
 

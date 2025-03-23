@@ -33,10 +33,11 @@ class User extends Authenticatable
         'email',
         'password',
         'role',
-        'verification_status',
-        'kyc_status',
-        'stripe_id',
+        'stripe_customer_id',
+        'stripe_subscription_id',
         'stripe_subscription_status',
+        'plan_type',
+        'is_verified'
     ];
 
     /**
@@ -65,13 +66,11 @@ class User extends Authenticatable
      *
      * @return array<string, string>
      */
-    protected function casts(): array
-    {
-        return [
-            'email_verified_at' => 'datetime',
-            'password' => 'hashed',
-        ];
-    }
+    protected $casts = [
+        'email_verified_at' => 'datetime',
+        'password' => 'hashed',
+        'is_verified' => 'boolean'
+    ];
 
     /**
      * Check if user is an administrator.
@@ -80,7 +79,7 @@ class User extends Authenticatable
      */
     public function isAdmin(): bool
     {
-        return $this->role === 'admin' || $this->role === 'Administrator';
+        return $this->role === 'admin';
     }
 
     /**
@@ -90,7 +89,17 @@ class User extends Authenticatable
      */
     public function isManager(): bool
     {
-        return $this->role === 'manager' || $this->role === 'Manager';
+        return $this->role === 'manager';
+    }
+
+    /**
+     * Check if user is an investor.
+     *
+     * @return bool
+     */
+    public function isInvestor(): bool
+    {
+        return $this->role === 'investor';
     }
 
     /**
@@ -100,27 +109,7 @@ class User extends Authenticatable
      */
     public function isVerified(): bool
     {
-        return $this->verification_status === 'verified';
-    }
-    
-    /**
-     * Check if user has completed KYC verification.
-     *
-     * @return bool
-     */
-    public function isKycVerified(): bool
-    {
-        return $this->kyc_status === 'verified';
-    }
-    
-    /**
-     * Accessor for kyc_verified attribute.
-     *
-     * @return bool
-     */
-    public function getKycVerifiedAttribute(): bool
-    {
-        return $this->isKycVerified();
+        return $this->is_verified;
     }
     
     /**
@@ -134,70 +123,23 @@ class User extends Authenticatable
     }
     
     /**
-     * Accessor dla statusu subskrypcji.
+     * Sprawdza czy użytkownik jest właścicielem projektu.
      *
      * @return bool
      */
-    public function getActiveSubscriptionAttribute(): bool
+    public function isProjectOwner(): bool
     {
-        return $this->hasActiveSubscription();
+        return $this->hasActiveSubscription() && $this->plan_type === 'premium-owner';
     }
     
     /**
-     * Sprawdza czy użytkownik może zarządzać projektami.
+     * Sprawdza czy użytkownik jest inwestorem premium.
      *
      * @return bool
      */
-    public function canManageProjects(): bool
+    public function isPremiumInvestor(): bool
     {
-        // Użytkownik może zarządzać projektami, jeśli ma plan O-Premium
-        // lub rolę administratora/managera
-        return $this->isAdmin() || 
-               $this->isManager() || 
-               ($this->hasActiveSubscription() && $this->plan_type === 'premium-owner');
-    }
-    
-    /**
-     * Sprawdza czy użytkownik ma pełny dostęp do systemu.
-     *
-     * @return bool
-     */
-    public function hasFullAccess(): bool
-    {
-        // Pełny dostęp mają administratorzy lub użytkownicy z planem O-Premium
-        return $this->isAdmin() || 
-              ($this->hasActiveSubscription() && $this->plan_type === 'premium-owner');
-    }
-    
-    /**
-     * Sprawdza czy użytkownik ma określoną rolę.
-     *
-     * @param string $role
-     * @return bool
-     */
-    public function hasRole(string $role): bool
-    {
-        // Dla roli 'project_owner' lub 'manager' sprawdzamy subskrypcję O-Premium
-        if (strtolower($role) === 'project_owner') {
-            return $this->canManageProjects();
-        }
-        
-        // Obsługuje zarówno nazwy ról z dużych liter (Administrator) jak i małych (admin)
-        $normalisedRole = strtolower($this->role);
-        $normalisedRoleToCheck = strtolower($role);
-        return $normalisedRole === $normalisedRoleToCheck;
-    }
-    
-    /**
-     * Sprawdza czy użytkownik ma jedną z wielu określonych ról.
-     *
-     * @param array $roles
-     * @return bool
-     */
-    public function hasAnyRole(array $roles): bool
-    {
-        $normalisedRole = strtolower($this->role);
-        return in_array($normalisedRole, array_map('strtolower', $roles));
+        return $this->hasActiveSubscription() && $this->plan_type === 'premium-investor';
     }
     
     /**
@@ -214,5 +156,38 @@ class User extends Authenticatable
     public function investments(): HasMany
     {
         return $this->hasMany(Investment::class);
+    }
+
+    /**
+     * Sprawdza czy użytkownik ma uprawnienia do zarządzania projektami.
+     *
+     * @return bool
+     */
+    public function canManageProjects(): bool
+    {
+        return $this->plan_type === 'premium-owner' ||
+               $this->role === 'admin';
+    }
+
+    /**
+     * Sprawdza czy użytkownik ma określoną rolę.
+     *
+     * @param string $role
+     * @return bool
+     */
+    public function hasRole(string $role): bool
+    {
+        return $this->role === $role;
+    }
+
+    /**
+     * Sprawdza czy użytkownik ma jedną z podanych ról.
+     *
+     * @param array $roles
+     * @return bool
+     */
+    public function hasAnyRole(array $roles): bool
+    {
+        return in_array($this->role, $roles);
     }
 }

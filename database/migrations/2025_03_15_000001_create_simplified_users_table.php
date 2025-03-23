@@ -27,40 +27,43 @@ return new class extends Migration
                 
                 $table->rememberToken();
                 
-                // Pola ról i weryfikacji użytkownika
-                $table->string('role')->default('investor');
-                $table->string('verification_status')->default('unverified');
-                $table->string('kyc_status')->default('unverified');
-                
-                // Pole dla statusu subskrypcji Stripe
-                $table->string('stripe_subscription_status')->default('inactive');
+                // Uproszczone pola dla subskrypcji i dostępu
+                $table->string('role')->default('user'); // Tylko 'user' lub 'admin'
+                $table->string('stripe_customer_id')->nullable();
+                $table->string('stripe_subscription_id')->nullable();
+                $table->string('subscription_status')->default('inactive'); // 'inactive', 'active', 'past_due'
+                $table->string('subscription_type')->nullable(); // 'investor', 'owner'
+                $table->boolean('is_verified')->default(false); // Zastępuje kyc_status
                 
                 // Jetstream fields
                 $table->foreignId('current_team_id')->nullable();
                 $table->string('profile_photo_path', 2048)->nullable();
                 
-                // New column
-                $table->string('verification_session_id')->nullable();
-                
                 $table->timestamps();
             });
         } else {
-            // Jeśli tabela istnieje, dodaj nowe kolumny, jeśli ich nie ma
+            // Jeśli tabela istnieje, dodaj nowe kolumny i usuń stare
             Schema::table('users', function (Blueprint $table) {
-                if (!Schema::hasColumn('users', 'role')) {
-                    $table->string('role')->default('investor');
+                // Usuń stare kolumny
+                $table->dropColumn([
+                    'verification_status',
+                    'kyc_status',
+                    'stripe_subscription_status',
+                    'stripe_id',
+                    'plan_type',
+                    'cancellation_requested',
+                    'verification_session_id'
+                ]);
+                
+                // Dodaj nowe kolumny
+                if (!Schema::hasColumn('users', 'subscription_status')) {
+                    $table->string('subscription_status')->default('inactive');
                 }
-                if (!Schema::hasColumn('users', 'verification_status')) {
-                    $table->string('verification_status')->default('unverified');
+                if (!Schema::hasColumn('users', 'subscription_type')) {
+                    $table->string('subscription_type')->nullable();
                 }
-                if (!Schema::hasColumn('users', 'kyc_status')) {
-                    $table->string('kyc_status')->default('unverified');
-                }
-                if (!Schema::hasColumn('users', 'stripe_subscription_status')) {
-                    $table->string('stripe_subscription_status')->default('inactive');
-                }
-                if (!Schema::hasColumn('users', 'verification_session_id')) {
-                    $table->string('verification_session_id')->nullable();
+                if (!Schema::hasColumn('users', 'is_verified')) {
+                    $table->boolean('is_verified')->default(false);
                 }
             });
         }
@@ -95,20 +98,14 @@ return new class extends Migration
         // Nie usuwamy tabeli users, tylko dodane kolumny
         if (Schema::hasTable('users')) {
             Schema::table('users', function (Blueprint $table) {
-                if (Schema::hasColumn('users', 'role')) {
-                    $table->dropColumn('role');
+                if (Schema::hasColumn('users', 'subscription_status')) {
+                    $table->dropColumn('subscription_status');
                 }
-                if (Schema::hasColumn('users', 'verification_status')) {
-                    $table->dropColumn('verification_status');
+                if (Schema::hasColumn('users', 'subscription_type')) {
+                    $table->dropColumn('subscription_type');
                 }
-                if (Schema::hasColumn('users', 'kyc_status')) {
-                    $table->dropColumn('kyc_status');
-                }
-                if (Schema::hasColumn('users', 'stripe_subscription_status')) {
-                    $table->dropColumn('stripe_subscription_status');
-                }
-                if (Schema::hasColumn('users', 'verification_session_id')) {
-                    $table->dropColumn('verification_session_id');
+                if (Schema::hasColumn('users', 'is_verified')) {
+                    $table->dropColumn('is_verified');
                 }
             });
         }
