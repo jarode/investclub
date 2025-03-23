@@ -85,6 +85,8 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
         Route::get('/update-subscription', [StripeController::class, 'updateSubscription'])->name('stripe.update-subscription');
         Route::post('/webhook', [StripeController::class, 'handleWebhook'])->name('stripe.webhook')
             ->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);
+        Route::post('/webhook/kyc', [StripeController::class, 'handleKycWebhook'])->name('stripe.webhook.kyc')
+            ->withoutMiddleware([\App\Http\Middleware\VerifyCsrfToken::class]);
     });
 
     // Trasy dla KYC

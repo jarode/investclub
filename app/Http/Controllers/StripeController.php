@@ -302,6 +302,12 @@ class StripeController extends Controller
     {
         $user = $request->user();
 
+        // Sprawdź, czy użytkownik już ma weryfikację w toku
+        if ($user->kyc_status === 'pending' || $user->kyc_status === 'requires_input') {
+            return redirect()->route('kyc.verify')
+                ->with('warning', 'Masz już trwającą weryfikację KYC. Poczekaj na zakończenie procesu lub skontaktuj się z obsługą klienta.');
+        }
+
         try {
             // Tworzenie sesji weryfikacji Identity w Stripe
             $stripe = $this->stripe();
@@ -324,8 +330,9 @@ class StripeController extends Controller
                 'return_url' => $returnUrl,
             ]);
 
-            // Zapisz ID sesji weryfikacji
+            // Zapisz ID sesji weryfikacji i aktualizuj status
             $user->verification_session_id = $session->id;
+            $user->kyc_status = 'pending';
             $user->save();
 
             // Przekierowanie użytkownika do strony weryfikacji Stripe
@@ -359,6 +366,21 @@ class StripeController extends Controller
                     return redirect()->route('dashboard')->with('success', 'Weryfikacja KYC zakończona pomyślnie.');
                 } elseif ($session->status === 'requires_input') {
                     return redirect()->route('kyc.verify')->with('warning', 'Weryfikacja KYC wymaga dodatkowych informacji.');
+                } elseif ($session->status === 'processing') {
+                    $user->kyc_status = 'pending';
+                    $user->save();
+                    return redirect()->route('kyc.verify')->with('warning', 'Weryfikacja KYC jest w trakcie przetwarzania. Proszę sprawdzić status później.');
+                } elseif ($session->status === 'requires_action') {
+                    return redirect()->route('kyc.verify')->with('warning', 'Weryfikacja KYC wymaga dodatkowych działań. Proszę spróbować ponownie.');
+                } elseif ($session->status === 'canceled') {
+                    $user->kyc_status = 'canceled';
+                    $user->save();
+                    return redirect()->route('kyc.verify')->with('error', 'Weryfikacja KYC została anulowana. Proszę spróbować ponownie.');
+                } else {
+                    // Obsługa innych statusów, w tym 'rejected'
+                    $user->kyc_status = 'rejected';
+                    $user->save();
+                    return redirect()->route('kyc.verify')->with('error', 'Weryfikacja KYC została odrzucona. Proszę skontaktować się z obsługą klienta.');
                 }
             }
             
@@ -604,6 +626,59 @@ class StripeController extends Controller
                     $user->save();
                     
                     Log::info('Weryfikacja KYC zakończona pomyślnie dla użytkownika: ' . $user->id);
+                }
+            } elseif ($event->type === 'identity.verification_session.requires_input') {
+                $session = $event->data->object;
+                
+                if (isset($session->metadata->user_id)) {
+                    $user = User::findOrFail($session->metadata->user_id);
+                    $user->kyc_status = 'requires_input';
+                    $user->save();
+                    
+                    Log::info('Weryfikacja KYC wymaga dodatkowych informacji od użytkownika: ' . $user->id);
+                }
+            } elseif ($event->type === 'identity.verification_session.canceled') {
+                $session = $event->data->object;
+                
+                if (isset($session->metadata->user_id)) {
+                    $user = User::findOrFail($session->metadata->user_id);
+                    $user->kyc_status = 'canceled';
+                    $user->save();
+                    
+                    Log::info('Weryfikacja KYC została anulowana dla użytkownika: ' . $user->id);
+                }
+            } elseif ($event->type === 'identity.verification_session.processing') {
+                $session = $event->data->object;
+                
+                if (isset($session->metadata->user_id)) {
+                    $user = User::findOrFail($session->metadata->user_id);
+                    $user->kyc_status = 'pending';
+                    $user->save();
+                    
+                    Log::info('Weryfikacja KYC jest w trakcie przetwarzania dla użytkownika: ' . $user->id);
+                }
+            } elseif ($event->type === 'identity.verification_session.redacted') {
+                $session = $event->data->object;
+                
+                if (isset($session->metadata->user_id)) {
+                    Log::info('Dane weryfikacji KYC zostały usunięte dla użytkownika: ' . $session->metadata->user_id);
+                }
+            } else {
+                // Wszystkie inne zdarzenia, w tym odrzucenie weryfikacji
+                $session = $event->data->object;
+                
+                if (isset($session->metadata->user_id)) {
+                    $user = User::findOrFail($session->metadata->user_id);
+                    
+                    if ($event->type === 'identity.verification_session.created') {
+                        $user->kyc_status = 'pending';
+                        Log::info('Utworzono sesję weryfikacji KYC dla użytkownika: ' . $user->id);
+                    } else {
+                        $user->kyc_status = 'rejected';
+                        Log::info('Odrzucono lub wystąpił inny problem z weryfikacją KYC dla użytkownika: ' . $user->id);
+                    }
+                    
+                    $user->save();
                 }
             }
 

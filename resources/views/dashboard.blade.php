@@ -52,6 +52,30 @@
                                 <span>W trakcie weryfikacji</span>
                             </div>
                             <p class="text-sm text-gray-600">Twoja weryfikacja jest w trakcie przetwarzania.</p>
+                        @elseif ($kycStatus === 'requires_input')
+                            <div class="flex items-center text-yellow-600 mb-2">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <span>Wymaga dodatkowych informacji</span>
+                            </div>
+                            <p class="text-sm text-gray-600">Weryfikacja wymaga od Ciebie dodatkowych informacji.</p>
+                        @elseif ($kycStatus === 'canceled')
+                            <div class="flex items-center text-red-600 mb-2">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                                <span>Anulowana</span>
+                            </div>
+                            <p class="text-sm text-gray-600">Weryfikacja została anulowana. Rozpocznij proces ponownie.</p>
+                        @elseif ($kycStatus === 'rejected')
+                            <div class="flex items-center text-red-600 mb-2">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                                </svg>
+                                <span>Odrzucona</span>
+                            </div>
+                            <p class="text-sm text-gray-600">Weryfikacja została odrzucona. Skontaktuj się z obsługą klienta.</p>
                         @else
                             <div class="flex items-center text-red-600 mb-2">
                                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -64,10 +88,12 @@
                         
                         <div class="mt-4">
                             <a href="{{ route('kyc.verify') }}" class="text-indigo-600 hover:text-indigo-800">
-                                @if ($kycStatus !== 'verified')
-                                    Przeprowadź weryfikację KYC
-                                @else
+                                @if ($kycStatus === 'verified')
                                     Podgląd statusu KYC
+                                @elseif ($kycStatus === 'pending' || $kycStatus === 'requires_input')
+                                    Podgląd statusu KYC
+                                @else
+                                    Przeprowadź weryfikację KYC
                                 @endif
                             </a>
                         </div>
