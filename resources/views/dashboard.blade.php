@@ -77,22 +77,55 @@
                     <div class="border rounded-lg p-4 h-full">
                         <h4 class="font-semibold mb-2">Status subskrypcji</h4>
                         
-                        @if ($subscriptionStatus === 'active')
+                        @if (auth()->user()->hasActiveSubscription())
                             <div class="flex items-center text-green-600 mb-2">
                                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                 </svg>
                                 <span>Aktywna</span>
+                                
+                                @if (auth()->user()->hasSubscriptionPendingCancellation())
+                                    <span class="ml-2 inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800">
+                                        Zakończy się w przyszłym okresie rozliczeniowym
+                                    </span>
+                                @endif
                             </div>
-                            <p class="text-sm text-gray-600">Twoja subskrypcja jest aktywna. Masz pełny dostęp do platformy.</p>
-                        @elseif ($subscriptionStatus === 'cancelled')
+                            
+                            <p class="text-sm text-gray-600 mb-1">
+                                <strong>Plan:</strong> 
+                                @if (auth()->user()->hasPlanType('free-investor'))
+                                    I-Free (Darmowy plan dla inwestorów)
+                                @elseif (auth()->user()->hasPlanType('premium-investor'))
+                                    I-Premium (Premium dla inwestorów)
+                                @elseif (auth()->user()->hasPlanType('premium-owner'))
+                                    O-Premium (Premium dla właścicieli projektów)
+                                @else
+                                    {{ auth()->user()->plan_type }}
+                                @endif
+                            </p>
+                            <p class="text-sm text-gray-600">Twoja subskrypcja jest aktywna. Masz dostęp do funkcji zgodnych z Twoim planem.</p>
+                            
+                            @if($nextPaymentDate && !auth()->user()->hasFreePlan())
+                                <p class="text-sm text-gray-600 mt-2">
+                                    <strong>Następna płatność:</strong> {{ $nextPaymentDate }}
+                                </p>
+                            @endif
+                        @elseif (auth()->user()->stripe_subscription_status === 'past_due')
+                            <div class="flex items-center text-red-600 mb-2">
+                                <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
+                                </svg>
+                                <span>Problem z płatnością</span>
+                            </div>
+                            <p class="text-sm text-gray-600">Wystąpił problem z płatnością Twojej subskrypcji. Zaktualizuj metodę płatności, aby zachować dostęp do platformy.</p>
+                        @elseif (auth()->user()->stripe_subscription_status === 'cancelled')
                             <div class="flex items-center text-yellow-600 mb-2">
                                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                                 </svg>
                                 <span>Anulowana</span>
                             </div>
-                            <p class="text-sm text-gray-600">Twoja subskrypcja została anulowana, ale pozostaje aktywna do końca okresu rozliczeniowego.</p>
+                            <p class="text-sm text-gray-600">Twoja subskrypcja została anulowana. Możesz aktywować nową subskrypcję, aby odzyskać dostęp do platformy.</p>
                         @else
                             <div class="flex items-center text-red-600 mb-2">
                                 <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -104,13 +137,24 @@
                         @endif
                         
                         <div class="mt-4">
-                            <a href="{{ route('subscription') }}" class="text-indigo-600 hover:text-indigo-800">
-                                @if ($subscriptionStatus !== 'active')
-                                    Aktywuj subskrypcję
-                                @else
-                                    Zarządzaj subskrypcją
+                            <div class="flex flex-wrap gap-2">
+                                <a href="{{ route('subscription') }}" class="text-indigo-600 hover:text-indigo-800 px-3 py-1 border border-indigo-600 rounded-md text-sm">
+                                    @if (!auth()->user()->hasActiveSubscription())
+                                        Wybierz plan
+                                    @else
+                                        Zmień plan
+                                    @endif
+                                </a>
+                                
+                                @if (auth()->user()->stripe_customer_id)
+                                    <form action="{{ route('stripe.portal') }}" method="POST" class="inline">
+                                        @csrf
+                                        <button type="submit" class="text-blue-600 hover:text-blue-800 px-3 py-1 border border-blue-600 rounded-md text-sm">
+                                            Portal płatności Stripe
+                                        </button>
+                                    </form>
                                 @endif
-                            </a>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -150,7 +194,7 @@
                         @endif
                     </a>
                     
-                    @if (auth()->user()->plan_type === 'premium-investor' || auth()->user()->plan_type === 'premium-owner')
+                    @if (auth()->user()->isPremiumInvestor() || auth()->user()->isProjectOwner())
                     <a href="{{ route('projects.exclusive') }}" class="block border rounded-lg p-4 hover:bg-gray-50 transition duration-300 h-full bg-purple-50 border-purple-200">
                         <div class="flex items-center mb-2">
                             <h4 class="font-semibold">Projekty ekskluzywne</h4>
@@ -160,9 +204,7 @@
                     </a>
                     @endif
                     
-                    @if (auth()->user()->subscription_type === 'owner' || 
-                         auth()->user()->plan_type === 'premium-owner' || 
-                         auth()->user()->role === 'admin')
+                    @if (auth()->user()->isProjectOwner() || auth()->user()->isAdmin())
                     <a href="{{ route('project.dashboard') }}" class="block border rounded-lg p-4 hover:bg-gray-50 transition duration-300 h-full bg-blue-50 border-blue-200">
                         <div class="flex items-center mb-2">
                             <h4 class="font-semibold">Panel właściciela projektów</h4>
@@ -182,7 +224,7 @@
                 </div>
             </div>
             
-            @if (!auth()->user()->canManageProjects() && auth()->user()->plan_type !== 'premium-owner')
+            @if (!auth()->user()->canManageProjects() && !auth()->user()->isProjectOwner())
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6 mt-6 border-t-4 border-blue-400">
                 <div class="flex items-start">
                     <div class="flex-shrink-0 pt-1">
@@ -202,20 +244,6 @@
                     </div>
                 </div>
             </div>
-            @endif
-            
-            @if(auth()->user()->stripe_customer_id)
-                <div class="mt-4">
-                    <form action="{{ route('stripe.portal') }}" method="POST" class="inline">
-                        @csrf
-                        <button 
-                            type="submit"
-                            class="inline-flex items-center px-4 py-2 bg-blue-600 border border-transparent rounded-md font-semibold text-xs text-white uppercase tracking-widest hover:bg-blue-700 focus:bg-blue-700 active:bg-blue-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-offset-2 transition ease-in-out duration-150"
-                        >
-                            Zarządzaj subskrypcją
-                        </button>
-                    </form>
-                </div>
             @endif
             
         </div>

@@ -123,6 +123,48 @@ class User extends Authenticatable
     }
     
     /**
+     * Sprawdza czy subskrypcja jest w trakcie anulowania.
+     *
+     * @return bool
+     */
+    public function hasSubscriptionPendingCancellation(): bool
+    {
+        return $this->stripe_subscription_status === 'active' && $this->cancellation_requested;
+    }
+    
+    /**
+     * Sprawdza czy użytkownik ma określony typ planu.
+     *
+     * @param string $planType
+     * @return bool
+     */
+    public function hasPlanType(string $planType): bool
+    {
+        return $this->plan_type === $planType;
+    }
+    
+    /**
+     * Sprawdza czy użytkownik ma jeden z określonych typów planów.
+     *
+     * @param array $planTypes
+     * @return bool
+     */
+    public function hasAnyPlanType(array $planTypes): bool
+    {
+        return in_array($this->plan_type, $planTypes);
+    }
+    
+    /**
+     * Sprawdza czy użytkownik ma darmowy plan.
+     *
+     * @return bool
+     */
+    public function hasFreePlan(): bool
+    {
+        return $this->hasActiveSubscription() && $this->plan_type === 'free-investor';
+    }
+    
+    /**
      * Sprawdza czy użytkownik jest właścicielem projektu.
      *
      * @return bool

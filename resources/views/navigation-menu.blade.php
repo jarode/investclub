@@ -28,13 +28,31 @@
                         </x-nav-link>
                     @endif
                     
-                    <x-nav-link href="{{ route('projects.index') }}" :active="request()->routeIs('projects.*')">
-                        {{ __('Projekty') }}
-                    </x-nav-link>
-                    
-                    @if(Auth::check() && Auth::user()->hasRole('investor'))
-                        <x-nav-link href="{{ route('investments.index') }}" :active="request()->routeIs('investments.*')">
-                            {{ __('Moje inwestycje') }}
+                    @if(Auth::check() && Auth::user()->hasActiveSubscription())
+                        <x-nav-link href="{{ route('projects.index') }}" :active="request()->routeIs('projects.*')">
+                            {{ __('Projekty') }}
+                        </x-nav-link>
+                        
+                        @if(Auth::user()->hasRole('investor'))
+                            <x-nav-link href="{{ route('investments.index') }}" :active="request()->routeIs('investments.*')">
+                                {{ __('Moje inwestycje') }}
+                            </x-nav-link>
+                        @endif
+                        
+                        @if(Auth::user()->isPremiumInvestor() || Auth::user()->isProjectOwner())
+                            <x-nav-link href="{{ route('projects.exclusive') }}" :active="request()->routeIs('projects.exclusive')">
+                                {{ __('Projekty ekskluzywne') }}
+                            </x-nav-link>
+                        @endif
+                        
+                        @if(Auth::user()->isProjectOwner() || Auth::user()->isAdmin())
+                            <x-nav-link href="{{ route('project.dashboard') }}" :active="request()->routeIs('project.dashboard')">
+                                {{ __('Panel właściciela') }}
+                            </x-nav-link>
+                        @endif
+                    @else
+                        <x-nav-link href="{{ route('projects.index') }}" :active="request()->routeIs('projects.*')">
+                            {{ __('Projekty') }}
                         </x-nav-link>
                     @endif
                     
@@ -150,10 +168,15 @@
                             @endif
                             
                             <!-- Zarządzanie płatnościami -->
-                            @if(Auth::check() && Auth::user()->stripe_customer_id && Auth::user()->stripe_subscription_id)
-                                <x-dropdown-link href="{{ route('stripe.portal') }}">
+                            @if(Auth::check() && Auth::user()->stripe_customer_id)
+                                <x-dropdown-link href="#" 
+                                    onclick="event.preventDefault(); document.getElementById('stripe-portal-form').submit();">
                                     {{ __('Portal płatności') }}
                                 </x-dropdown-link>
+                                
+                                <form id="stripe-portal-form" action="{{ route('stripe.portal') }}" method="POST" class="hidden">
+                                    @csrf
+                                </form>
                             @endif
 
                             <div class="border-t border-gray-200"></div>
@@ -203,13 +226,31 @@
                 </x-responsive-nav-link>
             @endif
             
-            <x-responsive-nav-link href="{{ route('projects.index') }}" :active="request()->routeIs('projects.*')">
-                {{ __('Projekty') }}
-            </x-responsive-nav-link>
-            
-            @if(Auth::check() && Auth::user()->hasRole('investor'))
-                <x-responsive-nav-link href="{{ route('investments.index') }}" :active="request()->routeIs('investments.*')">
-                    {{ __('Moje inwestycje') }}
+            @if(Auth::check() && Auth::user()->hasActiveSubscription())
+                <x-responsive-nav-link href="{{ route('projects.index') }}" :active="request()->routeIs('projects.*')">
+                    {{ __('Projekty') }}
+                </x-responsive-nav-link>
+                
+                @if(Auth::user()->hasRole('investor'))
+                    <x-responsive-nav-link href="{{ route('investments.index') }}" :active="request()->routeIs('investments.*')">
+                        {{ __('Moje inwestycje') }}
+                    </x-responsive-nav-link>
+                @endif
+                
+                @if(Auth::user()->isPremiumInvestor() || Auth::user()->isProjectOwner())
+                    <x-responsive-nav-link href="{{ route('projects.exclusive') }}" :active="request()->routeIs('projects.exclusive')">
+                        {{ __('Projekty ekskluzywne') }}
+                    </x-responsive-nav-link>
+                @endif
+                
+                @if(Auth::user()->isProjectOwner() || Auth::user()->isAdmin())
+                    <x-responsive-nav-link href="{{ route('project.dashboard') }}" :active="request()->routeIs('project.dashboard')">
+                        {{ __('Panel właściciela') }}
+                    </x-responsive-nav-link>
+                @endif
+            @else
+                <x-responsive-nav-link href="{{ route('projects.index') }}" :active="request()->routeIs('projects.*')">
+                    {{ __('Projekty') }}
                 </x-responsive-nav-link>
             @endif
             
@@ -261,10 +302,15 @@
                 @endif
                 
                 <!-- Zarządzanie płatnościami (mobilne) -->
-                @if(Auth::check() && Auth::user()->stripe_customer_id && Auth::user()->stripe_subscription_id)
-                    <x-responsive-nav-link href="{{ route('stripe.portal') }}">
+                @if(Auth::check() && Auth::user()->stripe_customer_id)
+                    <x-responsive-nav-link href="#" 
+                        onclick="event.preventDefault(); document.getElementById('stripe-portal-form').submit();">
                         {{ __('Portal płatności') }}
                     </x-responsive-nav-link>
+                    
+                    <form id="stripe-portal-form" action="{{ route('stripe.portal') }}" method="POST" class="hidden">
+                        @csrf
+                    </form>
                 @endif
 
                 <!-- Authentication -->

@@ -27,7 +27,7 @@ class CheckActiveSubscription
         Log::info('Sprawdzanie aktywnej subskrypcji dla użytkownika: ' . $user->id);
         
         // Sprawdź czy użytkownik ma aktywną subskrypcję
-        if ($user->stripe_subscription_status !== 'active') {
+        if (!$user->hasActiveSubscription()) {
             Log::warning('Użytkownik nie ma aktywnej subskrypcji: ' . $user->id);
             return redirect()->route('subscription')
                 ->with('warning', 'Aby uzyskać dostęp do tej funkcji, potrzebujesz aktywnej subskrypcji.');

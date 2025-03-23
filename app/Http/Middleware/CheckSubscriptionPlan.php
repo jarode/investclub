@@ -28,23 +28,41 @@ class CheckSubscriptionPlan
         Log::info('Sprawdzanie planu subskrypcji dla użytkownika: ' . $user->id . ', wymagany plan: ' . $plan);
         
         // Sprawdź czy użytkownik ma aktywną subskrypcję
-        if ($user->stripe_subscription_status !== 'active') {
+        if (!$user->hasActiveSubscription()) {
             Log::warning('Użytkownik nie ma aktywnej subskrypcji: ' . $user->id);
             return redirect()->route('subscription')
                 ->with('warning', 'Aby uzyskać dostęp do tej funkcji, potrzebujesz aktywnej subskrypcji.');
         }
         
-        // Sprawdź czy użytkownik ma odpowiedni plan
-        if ($plan === 'owner' && $user->plan_type !== 'premium-owner') {
-            Log::warning('Użytkownik nie ma planu właściciela: ' . $user->id);
-            return redirect()->route('subscription')
-                ->with('warning', 'Ta funkcja wymaga planu O-Premium dla właścicieli projektów.');
-        }
-        
-        if ($plan === 'premium' && !in_array($user->plan_type, ['premium-investor', 'premium-owner'])) {
-            Log::warning('Użytkownik nie ma planu premium: ' . $user->id);
-            return redirect()->route('subscription')
-                ->with('warning', 'Ta funkcja wymaga planu premium.');
+        // Sprawdź odpowiedni plan dla różnych typów dostępu
+        switch ($plan) {
+            case 'owner':
+                if (!$user->hasPlanType('premium-owner')) {
+                    Log::warning('Użytkownik nie ma planu właściciela: ' . $user->id);
+                    return redirect()->route('subscription')
+                        ->with('warning', 'Ta funkcja wymaga planu O-Premium dla właścicieli projektów.');
+                }
+                break;
+                
+            case 'premium':
+                if (!$user->hasAnyPlanType(['premium-investor', 'premium-owner'])) {
+                    Log::warning('Użytkownik nie ma planu premium: ' . $user->id);
+                    return redirect()->route('subscription')
+                        ->with('warning', 'Ta funkcja wymaga planu premium.');
+                }
+                break;
+                
+            case 'any':
+                // Każdy aktywny plan jest ok
+                break;
+                
+            default:
+                // Nieznany typ planu - domyślnie wymagamy premium
+                if (!$user->hasAnyPlanType(['premium-investor', 'premium-owner'])) {
+                    Log::warning('Użytkownik nie ma wymaganego planu: ' . $user->id);
+                    return redirect()->route('subscription')
+                        ->with('warning', 'Ta funkcja wymaga planu premium.');
+                }
         }
         
         return $next($request);
