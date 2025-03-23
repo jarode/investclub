@@ -23,19 +23,30 @@
    - I-Free (darmowy plan dla inwestorów)
    - I-Premium (plan premium dla inwestorów)
    - O-Premium (plan premium dla właścicieli projektów)
-2. System tworzy sesję Stripe Checkout
+2. System tworzy sesję Stripe Checkout dla płatnych planów
 3. Po udanej płatności:
    - Użytkownik otrzymuje dostęp do Customer Portal
    - Subskrypcja jest aktywowana
    - Status jest aktualizowany w bazie danych
+4. Dla planu darmowego:
+   - System tworzy klienta Stripe (jeśli nie istnieje)
+   - Subskrypcja jest tworzona bezpośrednio bez przekierowania do Checkout
 
-### 2.2 Zarządzanie subskrypcją
-- Użytkownik może zarządzać subskrypcją przez portal
-- Dostępne opcje:
+### 2.2 Zarządzanie subskrypcją przez Portal Stripe
+- Użytkownik zarządza swoją subskrypcją bezpośrednio przez Stripe Customer Portal
+- Dostęp do portalu z poziomu dashboardu aplikacji, przycisk "Portal płatności Stripe"
+- Wszystkie operacje wykonywane są na infrastrukturze Stripe:
   - Zmiana planu
   - Aktualizacja danych płatności
   - Przeglądanie historii płatności
   - Pobieranie faktur
+  - Anulowanie subskrypcji
+- System otrzymuje aktualizacje o zmianach poprzez webhooki
+
+### 2.3 Weryfikacja zmian
+- Wszystkie zmiany dokonane w portalu Stripe są odzwierciedlane w aplikacji
+- Status subskrypcji jest aktualizowany automatycznie po otrzymaniu webhooka
+- Użytkownik od razu widzi zmiany uprawnień
 
 ## 3. Obsługa Webhooków
 
@@ -58,12 +69,12 @@
 Użytkownik ma dostęp do portalu gdy:
 - Jest zalogowany
 - Ma przypisane `stripe_customer_id`
-- Ma aktywną subskrypcję (`stripe_subscription_id`)
 
 ### 4.2 Przycisk zarządzania
-- Widoczny w interfejsie użytkownika
-- Przekierowuje do Stripe Customer Portal
-- Dostępny tylko dla uprawnionych użytkowników
+- Widoczny w interfejsie użytkownika (dashboard)
+- Inicjuje sesję Stripe Customer Portal i przekierowuje użytkownika
+- Formularz POST z CSRF zabezpieczeniem
+- Po zakończeniu zarządzania, użytkownik jest przekierowywany z powrotem do aplikacji
 
 ## 5. Obsługa Błędów
 

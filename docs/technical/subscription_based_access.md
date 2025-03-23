@@ -179,31 +179,93 @@ Widok subskrypcji powinien jasno informować, jakie funkcje są dostępne w każ
 
 ### 5. Aktualizacja kontrolera StripeController
 
-Logika zmiany pakietu powinna aktualizować uprawnienia:
+Logika zarządzania subskrypcjami została zaktualizowana o integrację z Portalem Stripe:
 
 ```php
 // app/Http/Controllers/StripeController.php
-public function handleCheckoutSuccess(Request $request)
+
+/**
+ * Tworzy sesję Stripe Customer Portal dla zarządzania subskrypcją.
+ *
+ * @param  \Illuminate\Http\Request  $request
+ * @return \Illuminate\Http\RedirectResponse
+ */
+public function createPortalSession(Request $request)
 {
-    // ... istniejący kod ...
+    $user = $request->user();
     
-    // Określenie typu planu i potencjalnej zmiany roli
-    if (stripos($session->subscription->plan->id, config('stripe.products.premium_owner.price_id')) !== false) {
-        $user->plan_type = 'premium-owner';
+    try {
+        if (!$user->stripe_customer_id) {
+            return redirect()->route('dashboard')
+                ->with('warning', 'Najpierw musisz aktywować subskrypcję.');
+        }
         
-        // Informowanie użytkownika o nowych możliwościach
-        $message = 'Subskrypcja została utworzona pomyślnie. Teraz możesz dodawać i zarządzać projektami.';
-    } elseif (stripos($session->subscription->plan->id, config('stripe.products.premium_investor.price_id')) !== false) {
-        $user->plan_type = 'premium-investor';
-        $message = 'Subskrypcja została utworzona pomyślnie. Masz teraz dostęp do premium funkcji dla inwestorów.';
-    } else {
-        $user->plan_type = 'premium';
-        $message = 'Subskrypcja została utworzona pomyślnie.';
+        // Tworzymy sesję portalu Stripe
+        $session = $this->stripe()->billingPortal->sessions->create([
+            'customer' => $user->stripe_customer_id,
+            'return_url' => route('dashboard'),
+        ]);
+        
+        // Przekierowanie do portalu Stripe
+        return redirect($session->url);
+    } catch (\Exception $e) {
+        Log::error('Błąd podczas tworzenia sesji portalu: ' . $e->getMessage());
+        return redirect()->route('dashboard')
+            ->with('error', 'Wystąpił błąd podczas tworzenia sesji portalu.');
+    }
+}
+```
+
+Wykorzystanie portalu Stripe upraszcza proces zarządzania subskrypcjami przez użytkowników. Wszystkie zmiany dokonane za pomocą portalu są przetwarzane przez webhook Stripe, który aktualizuje status subskrypcji w naszej aplikacji.
+
+```php
+/**
+ * Obsługuje webhook Stripe.
+ *
+ * @param  \Illuminate\Http\Request  $request
+ * @return \Illuminate\Http\Response
+ */
+public function handleWebhook(Request $request)
+{
+    $payload = $request->getContent();
+    $sigHeader = $request->header('Stripe-Signature');
+    $endpointSecret = config('stripe.webhook_secret');
+    
+    try {
+        $event = \Stripe\Webhook::constructEvent($payload, $sigHeader, $endpointSecret);
+        
+        // Obsługa zdarzeń subskrypcji
+        if ($event->type === 'customer.subscription.updated') {
+            $subscription = $event->data->object;
+            $user = User::where('stripe_customer_id', $subscription->customer)->first();
+            
+            if ($user) {
+                $user->stripe_subscription_status = $subscription->status;
+                
+                // Aktualizacja typu planu na podstawie produktu
+                if ($subscription->status === 'active') {
+                    $priceId = $subscription->items->data[0]->price->id;
+                    
+                    if ($priceId === config('stripe.products.premium_investor.price_id')) {
+                        $user->plan_type = 'premium-investor';
+                    } elseif ($priceId === config('stripe.products.premium_owner.price_id')) {
+                        $user->plan_type = 'premium-owner';
+                    } elseif ($priceId === config('stripe.products.free_investor.price_id')) {
+                        $user->plan_type = 'free-investor';
+                    }
+                }
+                
+                $user->save();
+            }
+        }
+        
+        // Inne zdarzenia...
+    } catch (\Exception $e) {
+        Log::error('Błąd podczas przetwarzania webhooka: ' . $e->getMessage());
+        return response()->json(['error' => $e->getMessage()], 400);
     }
     
-    $user->save();
-    
-    return redirect()->route('dashboard')->with('success', $message);
+    return response()->json(['status' => 'success']);
 }
 ```
 

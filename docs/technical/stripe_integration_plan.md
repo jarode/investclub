@@ -13,7 +13,9 @@ Aktualnie system zawiera już:
 - Widoki dla procesu weryfikacji KYC i wyboru planów subskrypcji
 - Trasy dla procesów weryfikacji i płatności
 - Obsługę sukcesów i anulowania subskrypcji
-- Integrację z Portalem Płatności Stripe
+- Pełną integrację z Portalem Płatności Stripe
+- Obsługę webhook dla KYC i subskrypcji
+- Aktualizację statusów KYC i subskrypcji na podstawie webhooków
 
 ## Plan wdrożenia
 
@@ -27,11 +29,11 @@ Aktualnie system zawiera już:
 
 ### 2. Konfiguracja webhooków Stripe (1 dzień)
 
-- [ ] Konfiguracja adresu webhook dla KYC w panelu Stripe
-- [ ] Konfiguracja adresu webhook dla subskrypcji w panelu Stripe
-- [ ] Ustawienie sekretów webhooków w pliku `.env`
-- [ ] Testowanie webhooków za pomocą narzędzia `stripe listen`
-- [ ] Weryfikacja czy system poprawnie odbiera i przetwarza zdarzenia z webhook
+- [x] Konfiguracja adresu webhook dla KYC w panelu Stripe
+- [x] Konfiguracja adresu webhook dla subskrypcji w panelu Stripe
+- [x] Ustawienie sekretów webhooków w pliku `.env`
+- [x] Testowanie webhooków za pomocą narzędzia `stripe listen`
+- [x] Weryfikacja czy system poprawnie odbiera i przetwarza zdarzenia z webhook
 
 ### 3. Dopracowanie procesu KYC (2-3 dni)
 
@@ -41,6 +43,8 @@ Aktualnie system zawiera już:
 - [x] Implementacja szczegółowego logowania dla diagnozowania problemów
 - [x] Testowanie różnych scenariuszy weryfikacji (udana, nieudana, przerwana)
 - [x] Dodanie dodatkowych komunikatów dla użytkownika o statusie weryfikacji
+- [x] Obsługa wszystkich możliwych statusów weryfikacji KYC (verified, pending, requires_input, canceled, rejected)
+- [x] Zabezpieczenie przed wielokrotnym rozpoczynaniem weryfikacji gdy poprzednia jest w toku
 
 ### 4. Dopracowanie zarządzania subskrypcjami (2-3 dni)
 
@@ -51,6 +55,8 @@ Aktualnie system zawiera już:
 - [x] Testowanie zmiany pakietu subskrypcji
 - [x] Sprawdzenie czy status subskrypcji poprawnie wpływa na uprawnienia
 - [x] Testowanie portalu płatności Stripe (Billing Portal)
+- [x] Dodanie przycisku przekierowującego do Portalu Stripe na dashboard
+- [x] Weryfikacja przekierowań po zakończeniu zarządzania w Portalu
 
 ### 5. Optymalizacja interfejsu użytkownika (1-2 dni)
 
@@ -60,6 +66,7 @@ Aktualnie system zawiera już:
 - [x] Dodanie komunikatów sukcesu/błędu przy procesach zmiany statusu
 - [x] Optymalizacja formularza wyboru subskrypcji
 - [x] Dostosowanie widoku weryfikacji KYC
+- [x] Poprawa układu dashboardu z informacjami o statusie weryfikacji i subskrypcji
 
 ### 6. Bezpieczeństwo i obsługa błędów (2 dni)
 
@@ -72,9 +79,9 @@ Aktualnie system zawiera już:
 
 ### 7. Dokumentacja i procedury (1 dzień)
 
-- [ ] Przygotowanie instrukcji dla użytkowników dotyczących procesu weryfikacji KYC
-- [ ] Dokumentacja procesu subskrypcji dla użytkowników
-- [ ] Przygotowanie dokumentacji dla administratorów
+- [x] Przygotowanie instrukcji dla użytkowników dotyczących procesu weryfikacji KYC
+- [x] Dokumentacja procesu subskrypcji dla użytkowników
+- [x] Przygotowanie dokumentacji dla administratorów
 - [ ] Procedury obsługi najczęstszych problemów
 - [ ] Instrukcje dla obsługi klienta dotyczące typowych zgłoszeń
 
@@ -91,32 +98,35 @@ Aktualnie system zawiera już:
 
 ### Priorytety wysokie (realizacja w pierwszej kolejności)
 1. ~~Testowanie podstawowej funkcjonalności (blokady dostępu)~~ ✅
-2. Konfiguracja webhooków Stripe
+2. ~~Konfiguracja webhooków Stripe~~ ✅
 3. ~~Testowanie procesu weryfikacji KYC~~ ✅
+4. ~~Implementacja zabezpieczeń przed wielokrotnym rozpoczynaniem weryfikacji~~ ✅
 
 ### Priorytety średnie
 1. ~~Dopracowanie zarządzania subskrypcjami~~ ✅
 2. ~~Optymalizacja interfejsu użytkownika~~ ✅
-3. Pełna obsługa błędów i logowanie zdarzeń Stripe
+3. ~~Pełna obsługa błędów i logowanie zdarzeń Stripe~~ ✅
+4. Testowanie sesji wygasających podczas procesów płatności/weryfikacji
 
 ### Priorytety niskie
-1. Dokumentacja i procedury
-2. Drobne poprawki UI/UX
+1. ~~Dokumentacja i procedury~~ ✅
+2. Procedury obsługi najczęstszych problemów dla wsparcia klienta
+3. Drobne poprawki UI/UX
 
 ### Szacowany czas realizacji
-- Czas pozostały: 4-6 dni roboczych
+- Czas pozostały: 1-2 dni robocze
 - Data zakończenia: do końca marca 2025
 
 ## Potencjalne ryzyka i rozwiązania
 
-1. **Problemy z webhookami Stripe**
-   - Rozwiązanie: Wdrożenie mechanizmu retry i systemu alertów
+1. ~~**Problemy z webhookami Stripe**~~ ✅
+   - ~~Rozwiązanie: Wdrożenie mechanizmu retry i systemu alertów~~
 
-2. **Problemy z weryfikacją KYC**
-   - Rozwiązanie: Alternatywna ścieżka weryfikacji dla wyjątkowych przypadków
+2. ~~**Problemy z weryfikacją KYC**~~ ✅
+   - ~~Rozwiązanie: Alternatywna ścieżka weryfikacji dla wyjątkowych przypadków~~
 
-3. **Problemy z płatnościami**
-   - Rozwiązanie: Szczegółowe logi, procedury rozwiązywania problemów dla obsługi klienta
+3. ~~**Problemy z płatnościami**~~ ✅
+   - ~~Rozwiązanie: Szczegółowe logi, procedury rozwiązywania problemów dla obsługi klienta~~
 
 4. **Zmiany w API Stripe**
    - Rozwiązanie: Regularne monitorowanie dokumentacji Stripe i aktualizacje

@@ -86,9 +86,11 @@
 1. **Integracja KYC**
    - ✅ Implementacja bazowa procesu weryfikacji KYC
    - ✅ Strona statusu weryfikacji KYC
-   - 🔄 Obsługa webhooków KYC
+   - ✅ Obsługa webhooków KYC
    - ✅ Testowanie pełnego procesu weryfikacji
-   - 🔄 Implementacja logowania zdarzeń KYC
+   - ✅ Implementacja logowania zdarzeń KYC
+   - ✅ Obsługa wszystkich statusów weryfikacji (verified, pending, requires_input, canceled, rejected)
+   - ✅ Zabezpieczenie przed wielokrotnym rozpoczynaniem weryfikacji
 
 2. **Integracja subskrypcji**
    - ✅ Konfiguracja produktów i planów w Stripe
@@ -97,11 +99,14 @@
    - ✅ Bezpośrednia integracja z SDK Stripe (usunięto Laravel Cashier)
    - ✅ Obsługa anulowania i zmiany subskrypcji
    - ✅ Testowanie pełnego procesu subskrypcji
+   - ✅ Obsługa webhooków dla zdarzeń subskrypcji
 
 3. **Portal płatności**
    - ✅ Integracja z Billing Portal Stripe
    - ✅ Testowanie zarządzania metodami płatności
    - ✅ Testowanie historii płatności
+   - ✅ Przekierowanie z aplikacji do portalu Stripe
+   - ✅ Przekierowanie z portalu z powrotem do aplikacji
 
 ## Etap 6: Testowanie i wdrożenie
 

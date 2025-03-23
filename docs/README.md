@@ -11,6 +11,9 @@
 - [Przewodnik implementacyjny](technical/implementation_guide.md) - Szczegóły implementacji zgodne z modelem biznesowym
 - [Plan wdrożenia POC](technical/poc_implementation_plan.md) - Plan wdrożenia minimalnego POC platformy
 - [Status wdrożenia POC](technical/poc_implementation_progress.md) - Bieżący status i postęp wdrożenia POC
+- [System subskrypcji](subscription-system.md) - Opis systemu subskrypcji
+- [Portal Stripe](stripe_portal.md) - Zarządzanie subskrypcją poprzez Stripe Customer Portal
+- [Plan integracji Stripe](technical/stripe_integration_plan.md) - Szczegółowy plan integracji ze Stripe
 - [Przewodnik instalacji](technical/installation.md) - Instrukcje instalacji i konfiguracji
 - [Deployment](technical/deployment.md) - Proces wdrażania aplikacji
 - [Akceleracja rozwoju](technical/acceleration.md) - Wskazówki i najlepsze praktyki
