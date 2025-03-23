@@ -4,6 +4,7 @@
 
 - [Procesy biznesowe](business/processes.md) - Ogólne procesy biznesowe platformy
 - [Model biznesowy: Marketplace + Private Club](business/marketplace_private_club.md) - Szczegółowy opis modelu biznesowego
+- [Zarządzanie projektami i inwestycjami](business/project_management.md) - Szczegółowy opis cyklu życia projektów i procesu inwestycyjnego
 
 ## Dokumentacja techniczna
 
