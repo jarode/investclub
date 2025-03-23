@@ -9,12 +9,12 @@ use App\Models\User;
 
 class StripeController extends Controller
 {
-    // Lista cenników produktów
-    protected $priceIds = [
-        'prod_RxFr1ajRyqgFqa' => 'price_1R3LLrBTxeaIpqRB1gppSxzK', // I-Free - darmowy plan dla inwestorów
-        'prod_RxFs58AVJVHqx2' => 'price_1R3LMKBTxeaIpqRBHDccX2U1', // I-Premium - plan dla inwestorów 500zł/m
-        'prod_RxG8yaXSS7WZoE' => 'price_1R3Lc4BTxeaIpqRBtNBnHwcH', // O-Premium - plan dla właścicieli projektów 1000zł/m
-    ];
+    protected $stripe;
+
+    public function __construct(\Stripe\StripeClient $stripe)
+    {
+        $this->stripe = $stripe;
+    }
 
     /**
      * Utwórz instancję klienta Stripe.
@@ -23,7 +23,7 @@ class StripeController extends Controller
      */
     protected function stripe()
     {
-        return new \Stripe\StripeClient(config('stripe.secret'));
+        return $this->stripe;
     }
 
     /**
@@ -48,82 +48,133 @@ class StripeController extends Controller
             $user = $request->user();
             $priceId = $request->input('price_id');
             
-            // Sprawdź, czy użytkownik ma już aktywną subskrypcję
-            if ($user->stripe_subscription_id) {
-                // Pobierz aktualną subskrypcję ze Stripe
-                $subscription = \Stripe\Subscription::retrieve($user->stripe_subscription_id);
-                
-                // Jeśli użytkownik ma już aktywną subskrypcję, utwórz sesję z parametrami do aktualizacji
-                $session = \Stripe\Checkout\Session::create([
-                    'customer' => $user->stripe_customer_id,
-                    'payment_method_types' => ['card'],
-                    'line_items' => [[
-                        'price' => $priceId,
-                        'quantity' => 1,
-                    ]],
-                    'mode' => 'subscription',
-                    'success_url' => route('subscription.success') . '?session_id={CHECKOUT_SESSION_ID}',
-                    'cancel_url' => route('subscription'),
-                    'subscription_data' => [
-                        'trial_settings' => [
-                            'end_behavior' => [
-                                'missing_payment_method' => 'cancel',
-                            ],
-                        ],
-                    ],
-                    'allow_promotion_codes' => true,
-                    'billing_address_collection' => 'required',
-                    'customer_update' => [
-                        'address' => 'auto',
-                        'shipping' => 'auto',
-                    ],
-                    'metadata' => [
-                        'user_id' => $user->id,
-                        'price_id' => $priceId,
-                    ],
-                    'subscription' => $user->stripe_subscription_id,
-                    'proration_behavior' => 'always_invoice',
+            Log::info('Rozpoczęcie tworzenia sesji checkout', [
+                'user_id' => $user->id,
+                'price_id' => $priceId
+            ]);
+            
+            // Walidacja price_id
+            $validPriceIds = [
+                config('stripe.products.free_investor.price_id'),
+                config('stripe.products.premium_investor.price_id'),
+                config('stripe.products.premium_owner.price_id')
+            ];
+            
+            if (!in_array($priceId, $validPriceIds)) {
+                Log::error('Nieprawidłowy price_id', [
+                    'provided_price_id' => $priceId,
+                    'valid_price_ids' => $validPriceIds
                 ]);
-            } else {
-                // Jeśli użytkownik nie ma subskrypcji, utwórz nową
-                $session = \Stripe\Checkout\Session::create([
-                    'customer' => $user->stripe_customer_id,
-                    'payment_method_types' => ['card'],
-                    'line_items' => [[
-                        'price' => $priceId,
-                        'quantity' => 1,
-                    ]],
-                    'mode' => 'subscription',
-                    'success_url' => route('subscription.success') . '?session_id={CHECKOUT_SESSION_ID}',
-                    'cancel_url' => route('subscription'),
-                    'subscription_data' => [
-                        'trial_settings' => [
-                            'end_behavior' => [
-                                'missing_payment_method' => 'cancel',
-                            ],
-                        ],
-                    ],
-                    'allow_promotion_codes' => true,
-                    'billing_address_collection' => 'required',
-                    'customer_update' => [
-                        'address' => 'auto',
-                        'shipping' => 'auto',
-                    ],
-                    'metadata' => [
-                        'user_id' => $user->id,
-                        'price_id' => $priceId,
-                    ],
-                ]);
+                return response()->json(['error' => 'Nieprawidłowy identyfikator planu'], 400);
             }
             
-            // Zapisz ID sesji w bazie danych
-            $user->checkout_session_id = $session->id;
-            $user->save();
+            // Sprawdź czy to darmowy plan
+            if ($priceId === config('stripe.products.free_investor.price_id')) {
+                Log::info('Aktywacja darmowego planu', ['user_id' => $user->id]);
+                
+                // Sprawdź czy użytkownik ma ID klienta Stripe
+                if (!$user->stripe_customer_id) {
+                    Log::info('Tworzenie nowego klienta Stripe dla darmowego planu', [
+                        'user_id' => $user->id,
+                        'email' => $user->email
+                    ]);
+                    
+                    $customer = $this->stripe()->customers->create([
+                        'email' => $user->email,
+                        'name' => $user->name,
+                        'metadata' => ['user_id' => $user->id]
+                    ]);
+                    
+                    Log::info('Utworzono klienta Stripe', [
+                        'user_id' => $user->id,
+                        'stripe_customer_id' => $customer->id
+                    ]);
+                    
+                    $user->stripe_customer_id = $customer->id;
+                }
+                
+                // Utwórz subskrypcję dla darmowego planu
+                $subscription = $this->stripe()->subscriptions->create([
+                    'customer' => $user->stripe_customer_id,
+                    'items' => [
+                        ['price' => $priceId],
+                    ],
+                    'metadata' => [
+                        'user_id' => $user->id,
+                        'subscription_type' => 'free-investor'
+                    ]
+                ]);
+                
+                $user->stripe_subscription_id = $subscription->id;
+                $user->stripe_subscription_status = 'active';
+                $user->plan_type = 'free-investor';
+                $user->save();
+                
+                return response()->json(['url' => route('dashboard')]);
+            }
             
+            // Sprawdź czy użytkownik ma ID klienta Stripe
+            if (!$user->stripe_customer_id) {
+                Log::info('Tworzenie nowego klienta Stripe', [
+                    'user_id' => $user->id,
+                    'email' => $user->email
+                ]);
+                
+                $customer = $this->stripe()->customers->create([
+                    'email' => $user->email,
+                    'name' => $user->name,
+                    'metadata' => ['user_id' => $user->id]
+                ]);
+                
+                Log::info('Utworzono klienta Stripe', [
+                    'user_id' => $user->id,
+                    'stripe_customer_id' => $customer->id
+                ]);
+                
+                $user->stripe_customer_id = $customer->id;
+                $user->save();
+            }
+            
+            // Określ typ subskrypcji na podstawie wybranego planu
+            $subscriptionType = $priceId === config('stripe.products.premium_investor.price_id') 
+                ? 'premium-investor' 
+                : 'premium-owner';
+            
+            // Podstawowe parametry sesji Checkout
+            $sessionParams = [
+                'success_url' => route('subscription.success') . '?session_id={CHECKOUT_SESSION_ID}',
+                'cancel_url' => route('subscription'),
+                'mode' => 'subscription',
+                'customer' => $user->stripe_customer_id,
+                'line_items' => [
+                    [
+                        'price' => $priceId,
+                        'quantity' => 1,
+                    ],
+                ],
+                'metadata' => [
+                    'user_id' => $user->id,
+                    'subscription_type' => $subscriptionType
+                ],
+                'locale' => 'pl'
+            ];
+            
+            Log::info('Parametry sesji checkout', ['params' => $sessionParams]);
+            
+            $session = $this->stripe()->checkout->sessions->create($sessionParams);
+            
+            Log::info('Utworzono sesję checkout', [
+                'session_id' => $session->id,
+                'url' => $session->url
+            ]);
+
             return response()->json(['url' => $session->url]);
         } catch (\Exception $e) {
-            \Log::error('Błąd podczas tworzenia sesji Stripe: ' . $e->getMessage());
-            return response()->json(['error' => 'Wystąpił błąd podczas tworzenia sesji płatności.'], 500);
+            Log::error('Błąd podczas tworzenia sesji checkout', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            return response()->json(['error' => 'Wystąpił błąd podczas tworzenia sesji płatności: ' . $e->getMessage()], 500);
         }
     }
 
@@ -136,178 +187,96 @@ class StripeController extends Controller
     public function cancelSubscription(Request $request)
     {
         $user = $request->user();
-        Log::info('Żądanie anulowania subskrypcji dla użytkownika: ' . $user->id);
 
-        // Sprawdź czy użytkownik ma aktywną subskrypcję w Stripe
-        if ($user->stripe_subscription_id) {
-            try {
-                // Anuluj subskrypcję na koniec okresu rozliczeniowego w Stripe
-                $stripe = $this->stripe();
-                $subscription = $stripe->subscriptions->retrieve($user->stripe_subscription_id);
-                
-                if ($subscription && $subscription->status !== 'canceled') {
-                    // Sprawdź czy to darmowa subskrypcja (cena 0 zł)
-                    $isDarmowaPlan = false;
-                    if (isset($subscription->items->data[0]->price) && 
-                        $subscription->items->data[0]->price->id === (config('stripe.products.free_investor.price_id') ?: 'price_1R3LLrBTxeaIpqRB1gppSxzK')) {
-                        $isDarmowaPlan = true;
-                    }
-                    
-                    if ($isDarmowaPlan) {
-                        // Dla darmowego planu anulujemy natychmiast
-                        $stripe->subscriptions->cancel($user->stripe_subscription_id);
-                        
-                        // Aktualizujemy dane użytkownika
-                        $user->stripe_subscription_status = 'inactive';
-                        $user->stripe_subscription_id = null;
-                        $user->plan_type = null;
-                        $user->cancellation_requested = false;
-                        $user->save();
-                        
-                        Log::info('Darmowa subskrypcja anulowana natychmiast dla użytkownika: ' . $user->id);
-                        return redirect()->route('dashboard')->with('success', 
-                            'Twój darmowy plan został anulowany. Aby ponownie korzystać z platformy, wybierz plan subskrypcji.');
-                    } else {
-                        // Dla płatnych planów anulujemy na koniec okresu rozliczeniowego
-                        $stripe->subscriptions->update($user->stripe_subscription_id, [
-                            'cancel_at_period_end' => true
-                        ]);
-                        
-                        // Zapisujemy informację o planowanym anulowaniu, ale zachowujemy status active i typ planu
-                        $user->cancellation_requested = true;
-                        $user->stripe_subscription_status = 'active'; // zachowujemy dostęp
-                        $user->save();
-                        
-                        // Określamy datę końca okresu rozliczeniowego
-                        $endDate = date('d.m.Y', $subscription->current_period_end);
-                        
-                        Log::info('Subskrypcja anulowana na koniec okresu dla użytkownika: ' . $user->id . ', data końca: ' . $endDate);
-                        return redirect()->route('dashboard')->with('success', 
-                            'Subskrypcja została anulowana. Pozostanie aktywna do końca okresu rozliczeniowego (' . $endDate . '). 
-                            Po tym terminie zostanie automatycznie przypisany plan darmowy.');
-                    }
-                }
-            } catch (\Exception $e) {
-                Log::error('Błąd anulowania subskrypcji: ' . $e->getMessage());
-                
-                // W przypadku błędu po stronie Stripe, i tak anulujemy subskrypcję lokalnie
-                $user->stripe_subscription_status = 'inactive';
-                $user->stripe_subscription_id = null;
-                $user->cancellation_requested = false;
-                $user->plan_type = null; // Usuwamy przypisanie planu
-                $user->save();
-                
-                return redirect()->route('dashboard')->with('warning', 
-                    'Wystąpił błąd komunikacji ze Stripe, ale subskrypcja została anulowana lokalnie.');
+        try {
+            if (!$user->stripe_subscription_id) {
+                return redirect()->route('dashboard')
+                    ->with('error', 'Nie znaleziono aktywnej subskrypcji.');
             }
-        }
 
-        // Dla przypadku gdy nie znaleziono subskrypcji w Stripe
-        $user->stripe_subscription_status = 'inactive';
-        $user->stripe_subscription_id = null;
-        $user->cancellation_requested = false;
-        $user->plan_type = null; // Usuwamy przypisanie planu zamiast ustawiać 'free'
-        $user->save();
-        
-        Log::info('Subskrypcja anulowana lokalnie dla użytkownika: ' . $user->id);
-        return redirect()->route('dashboard')->with('success', 'Twoja subskrypcja została anulowana.');
+            // Pobierz subskrypcję ze Stripe
+            $subscription = $this->stripe()->subscriptions->retrieve($user->stripe_subscription_id);
+            Log::info('Pobrano subskrypcję', ['subscription' => $subscription]);
+
+            // Anuluj subskrypcję na koniec okresu rozliczeniowego
+            $updatedSubscription = $this->stripe()->subscriptions->update($user->stripe_subscription_id, [
+                'cancel_at_period_end' => true
+            ]);
+            Log::info('Zaktualizowano subskrypcję', ['subscription' => $updatedSubscription]);
+
+            // Oznacz subskrypcję jako oczekującą na anulowanie
+            $user->cancellation_requested = true;
+            $user->save();
+            Log::info('Zaktualizowano użytkownika', ['user' => $user->toArray()]);
+
+            return redirect()->route('dashboard')
+                ->with('success', 'Twoja subskrypcja zostanie anulowana na koniec okresu rozliczeniowego.');
+
+        } catch (\Exception $e) {
+            Log::error('Błąd podczas anulowania subskrypcji: ' . $e->getMessage(), [
+                'exception' => $e,
+                'user' => $user->toArray()
+            ]);
+            return redirect()->route('dashboard')
+                ->with('error', 'Wystąpił błąd podczas anulowania subskrypcji.');
+        }
     }
 
     /**
-     * Przekierowuje użytkownika do portalu płatności Stripe.
+     * Przekierowuje użytkownika do portalu klienta Stripe.
      *
      * @param  \Illuminate\Http\Request  $request
      * @return \Illuminate\Http\RedirectResponse
      */
     public function billingPortal(Request $request)
     {
-        $user = $request->user();
-        
         try {
-            // Sprawdź czy użytkownik ma ID klienta Stripe
+            $user = $request->user();
+            
             if (!$user->stripe_customer_id) {
-                // Jeśli nie ma, utwórz klienta Stripe dla użytkownika
-                $stripe = $this->stripe();
-                $customer = $stripe->customers->create([
-                    'email' => $user->email,
-                    'name' => $user->name,
-                    'metadata' => [
-                        'user_id' => $user->id
-                    ],
-                ]);
-                
-                // Zapisz ID klienta
-                $user->stripe_customer_id = $customer->id;
-                $user->save();
-                
-                Log::info('Utworzono klienta Stripe dla użytkownika: ' . $user->id . ', stripe_customer_id: ' . $customer->id);
-                
-                // Jeśli użytkownik nie ma aktywnej subskrypcji płatnej, przekieruj na stronę subskrypcji
-                if (!$user->stripe_subscription_id) {
-                    return redirect()->route('subscription')
-                        ->with('warning', 'Nie masz aktywnej płatnej subskrypcji, którą można zarządzać.');
-                }
+                return response()->json(['error' => 'Nie znaleziono identyfikatora klienta Stripe.'], 400);
             }
             
-            // Przed użyciem portalu płatności, sprawdzamy czy subskrypcja istnieje
-            $stripe = $this->stripe();
+            // Podstawowe parametry sesji portalu
+            $portalParams = [
+                'customer' => $user->stripe_customer_id,
+                'return_url' => route('dashboard')
+            ];
             
-            try {
-                // Spróbuj pobrać subskrypcję z Stripe
-                if ($user->stripe_subscription_id) {
-                    $subscription = $stripe->subscriptions->retrieve($user->stripe_subscription_id);
-                    
-                    // Użyjemy portalu klienta Stripe, który pozwala na zarządzanie subskrypcją
-                    // Trwają problemy z konfiguracją, więc możemy użyć bezpośredniego zarządzania
-                    $host = $request->getHost();
-                    $port = $request->getPort();
-                    $scheme = $request->getScheme();
-                    
-                    $returnUrl = $port == 80 || $port == 443 
-                        ? "{$scheme}://{$host}/subscription" 
-                        : "{$scheme}://{$host}:{$port}/subscription";
-                    
-                    // Utwórz sesję portalu klienta
-                    try {
-                        // Najpierw spróbuj użyć portalu klienta Stripe
-                        $session = $stripe->billingPortal->sessions->create([
-                            'customer' => $user->stripe_customer_id,
-                            'return_url' => $returnUrl,
-                        ]);
-                        
-                        return redirect($session->url);
-                    } catch (\Exception $portalException) {
-                        // Jeśli portal klienta nie jest skonfigurowany, skorzystaj z Custom Flow
-                        Log::warning('Błąd podczas tworzenia sesji portalu: ' . $portalException->getMessage());
-                        
-                        // Przekieruj do strony subskrypcji z informacją jak zarządzać
-                        return redirect()->route('subscription')
-                            ->with('warning', 'Portal zarządzania płatnościami nie jest w pełni skonfigurowany. Możesz anulować subskrypcję używając przycisku "Anuluj subskrypcję".');
-                    }
-                }
-            } catch (\Exception $innerException) {
-                Log::error('Błąd podczas pobierania informacji o subskrypcji: ' . $innerException->getMessage());
-                // Kontynuuj do próby portalu płatności poniżej
+            // Sprawdź, czy istnieje konfiguracja portalu
+            $configurationId = config('stripe.customer_portal.configuration_id');
+            if ($configurationId) {
+                $portalParams['configuration'] = $configurationId;
+            } else {
+                // Jeśli nie ma konfiguracji, użyj domyślnych ustawień
+                $portalParams['features'] = [
+                    'payment_method_update' => ['enabled' => true],
+                    'subscription_cancel' => ['enabled' => true],
+                    'subscription_update' => ['enabled' => true],
+                    'invoice_history' => ['enabled' => true]
+                ];
             }
             
-            // Jeśli powyższe nie zadziałało, spróbuj tradycyjnego portalu płatności
             try {
-                $session = $stripe->billingPortal->sessions->create([
-                    'customer' => $user->stripe_customer_id,
-                    'return_url' => route('subscription'),
-                ]);
+                $session = $this->stripe()->billingPortal->sessions->create($portalParams);
+                return response()->json(['url' => $session->url]);
+            } catch (\Stripe\Exception\ApiErrorException $e) {
+                // Jeśli wystąpi błąd API, spróbuj utworzyć sesję bez konfiguracji
+                Log::warning('Błąd podczas tworzenia sesji portalu z konfiguracją: ' . $e->getMessage());
                 
-                return redirect($session->url);
-            } catch (\Exception $portalException) {
-                // Jeśli portal płatności nie jest dostępny, przekieruj użytkownika do opcji anulowania
-                Log::error('Błąd tworzenia sesji portalu płatności: ' . $portalException->getMessage());
-                return redirect()->route('subscription')
-                    ->with('warning', 'Portal płatności Stripe nie jest skonfigurowany. Możesz zarządzać subskrypcją za pomocą przycisku "Anuluj subskrypcję".');
+                // Spróbuj bez konfiguracji
+                unset($portalParams['configuration']);
+                $portalParams['features'] = [
+                    'payment_method_update' => ['enabled' => true],
+                    'subscription_cancel' => ['enabled' => true]
+                ];
+                
+                $session = $this->stripe()->billingPortal->sessions->create($portalParams);
+                return response()->json(['url' => $session->url]);
             }
         } catch (\Exception $e) {
-            Log::error('Błąd podczas przekierowywania do portalu płatności: ' . $e->getMessage());
-            return redirect()->route('subscription')
-                ->with('error', 'Wystąpił błąd podczas przekierowywania do portalu płatności: ' . $e->getMessage());
+            Log::error('Błąd podczas tworzenia sesji portalu: ' . $e->getMessage());
+            return response()->json(['error' => 'Nie udało się utworzyć sesji portalu.'], 500);
         }
     }
 
@@ -408,57 +377,81 @@ class StripeController extends Controller
      */
     public function handleCheckoutSuccess(Request $request)
     {
-        $sessionId = $request->session_id;
-        
-        if (!$sessionId) {
-            return redirect()->route('dashboard')->with('error', 'Brak identyfikatora sesji.');
-        }
-        
         try {
-            $stripe = $this->stripe();
-            $session = $stripe->checkout->sessions->retrieve($sessionId, [
-                'expand' => ['subscription'],
+            $sessionId = $request->get('session_id');
+            if (!$sessionId) {
+                return redirect()->route('dashboard')->with('error', 'Brak identyfikatora sesji.');
+            }
+
+            $session = $this->stripe()->checkout->sessions->retrieve($sessionId, [
+                'expand' => ['subscription', 'customer']
             ]);
+
+            if (!$session) {
+                return redirect()->route('dashboard')->with('error', 'Nie znaleziono sesji.');
+            }
+
+            $user = $request->user();
             
-            if (!$session || $session->payment_status !== 'paid') {
-                return redirect()->route('dashboard')->with('error', 'Płatność nie została zrealizowana.');
+            // Sprawdź czy sesja dotyczy tego użytkownika
+            if ($session->customer && $session->customer->id !== $user->stripe_customer_id) {
+                Log::error('Niezgodność klientów', [
+                    'session_customer_id' => $session->customer->id,
+                    'user_stripe_customer_id' => $user->stripe_customer_id
+                ]);
+                return redirect()->route('dashboard')->with('error', 'Nieprawidłowy identyfikator klienta.');
+            }
+
+            // Pobierz subskrypcję
+            $subscription = $session->subscription;
+            if (!$subscription) {
+                Log::error('Brak subskrypcji w sesji', [
+                    'session_id' => $session->id
+                ]);
+                return redirect()->route('dashboard')->with('error', 'Nie znaleziono subskrypcji.');
             }
             
-            // Znajdź użytkownika na podstawie ID z sesji
-            $user = User::findOrFail($session->metadata->user_id);
-            
-            // Zaktualizuj status subskrypcji
-            $user->stripe_subscription_status = 'active';
-            $user->cancellation_requested = false;
-            
-            // Określ typ planu
-            if (stripos($session->subscription->plan->id, config('stripe.products.premium_investor.price_id')) !== false) {
-                $user->plan_type = 'premium-investor';
-            } elseif (stripos($session->subscription->plan->id, config('stripe.products.premium_owner.price_id')) !== false) {
-                $user->plan_type = 'premium-owner';
-            } else {
-                $user->plan_type = 'premium';
+            // Pobierz typ subskrypcji z metadanych sesji
+            $subscriptionType = $session->metadata->subscription_type ?? null;
+            if (!$subscriptionType) {
+                // Jeśli brak w metadanych sesji, sprawdź metadane subskrypcji
+                $subscriptionType = $subscription->metadata->subscription_type ?? null;
             }
             
-            // Zapisz ID subskrypcji i klienta, jeśli istnieją
-            if (!empty($session->subscription)) {
-                $user->stripe_subscription_id = $session->subscription->id;
+            // Jeśli nadal brak typu, wywnioskuj na podstawie ceny
+            if (!$subscriptionType) {
+                $items = $subscription->items->data;
+                if (count($items) > 0) {
+                    $priceId = $items[0]->price->id;
+                    if ($priceId === config('stripe.products.premium_investor.price_id')) {
+                        $subscriptionType = 'premium-investor';
+                    } elseif ($priceId === config('stripe.products.premium_owner.price_id')) {
+                        $subscriptionType = 'premium-owner';
+                    } elseif ($priceId === config('stripe.products.free_investor.price_id')) {
+                        $subscriptionType = 'free-investor';
+                    }
+                }
             }
-            
-            if (!empty($session->customer)) {
-                $user->stripe_customer_id = $session->customer;
-            }
-            
+
+            // Aktualizuj status subskrypcji użytkownika
+            $user->stripe_subscription_id = $subscription->id;
+            $user->stripe_subscription_status = $subscription->status;
+            $user->plan_type = $subscriptionType;
             $user->save();
             
-            Log::info('Subskrypcja aktywowana dla użytkownika: ' . $user->id . 
-                     ', ID subskrypcji: ' . $user->stripe_subscription_id . 
-                     ', Typ planu: ' . $user->plan_type);
-            
-            return redirect()->route('dashboard')->with('success', 'Subskrypcja została utworzona pomyślnie.');
+            Log::info('Aktualizacja użytkownika po udanej płatności', [
+                'user_id' => $user->id,
+                'subscription_id' => $subscription->id,
+                'subscription_status' => $subscription->status,
+                'plan_type' => $subscriptionType
+            ]);
+
+            return redirect()->route('dashboard')->with('success', 'Subskrypcja została aktywowana. Teraz możesz korzystać z pełni funkcji.');
         } catch (\Exception $e) {
-            Log::error('Błąd przetwarzania sukcesu płatności: ' . $e->getMessage());
-            return redirect()->route('dashboard')->with('error', 'Wystąpił błąd podczas przetwarzania płatności: ' . $e->getMessage());
+            Log::error('Błąd podczas obsługi sukcesu checkoutu: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            return redirect()->route('dashboard')->with('error', 'Wystąpił błąd podczas aktywacji subskrypcji: ' . $e->getMessage());
         }
     }
 
@@ -474,109 +467,110 @@ class StripeController extends Controller
         $sig_header = $request->header('Stripe-Signature');
         $endpoint_secret = config('stripe.webhook.secret');
 
-        Log::info('Otrzymano webhook Stripe dla subskrypcji: ' . $request->getContent());
-
         try {
             $event = \Stripe\Webhook::constructEvent(
                 $payload, $sig_header, $endpoint_secret
             );
 
-            Log::info('Typ wydarzenia subskrypcji: ' . $event->type);
-
-            // Obsługa różnych typów wydarzeń
             switch ($event->type) {
                 case 'checkout.session.completed':
                     $session = $event->data->object;
-                    
-                    if ($session->mode === 'subscription' && isset($session->metadata->user_id)) {
+                    if ($session->mode === 'subscription') {
                         $user = User::findOrFail($session->metadata->user_id);
-                        $user->stripe_subscription_status = 'active';
-                        $user->stripe_customer_id = $session->customer;
+                        $user->subscription_status = 'active';
+                        $user->subscription_type = $session->metadata->subscription_type;
                         $user->stripe_subscription_id = $session->subscription;
                         $user->save();
-                        
-                        Log::info('Subskrypcja aktywowana dla użytkownika: ' . $user->id);
                     }
                     break;
-                    
+
                 case 'customer.subscription.updated':
                     $subscription = $event->data->object;
                     $user = User::where('stripe_subscription_id', $subscription->id)->first();
                     
                     if ($user) {
-                        // Aktualizacja statusu w zależności od statusu subskrypcji
-                        switch ($subscription->status) {
-                            case 'active':
-                                $user->stripe_subscription_status = 'active';
-                                $user->cancellation_requested = false;
+                        $user->stripe_subscription_status = $subscription->status;
+                        
+                        // Sprawdź, czy metadane zawierają typ subskrypcji
+                        if (isset($subscription->metadata->subscription_type)) {
+                            $user->plan_type = $subscription->metadata->subscription_type;
+                        } else {
+                            // Jeśli nie ma metadanych, określ typ planu na podstawie priceId
+                            $priceId = $subscription->items->data[0]->price->id;
+                            
+                            if ($priceId === config('stripe.products.free_investor.price_id')) {
+                                $user->plan_type = 'free-investor';
+                            } elseif ($priceId === config('stripe.products.premium_investor.price_id')) {
+                                $user->plan_type = 'premium-investor';
+                            } elseif ($priceId === config('stripe.products.premium_owner.price_id')) {
+                                $user->plan_type = 'premium-owner';
+                            }
+                            
+                            // Aktualizuj metadane w Stripe
+                            try {
+                                $this->stripe()->subscriptions->update($subscription->id, [
+                                    'metadata' => ['subscription_type' => $user->plan_type]
+                                ]);
                                 
-                                // Aktualizacja plan_type na podstawie ID produktu
-                                $priceId = $subscription->items->data[0]->price->id;
-                                $planType = '';
-                                if ($priceId === (config('stripe.products.premium_investor.price_id') ?: 'price_1R3LMKBTxeaIpqRBHDccX2U1')) {
-                                    $planType = 'premium-investor';
-                                } elseif ($priceId === (config('stripe.products.premium_owner.price_id') ?: 'price_1R3Lc4BTxeaIpqRBtNBnHwcH')) {
-                                    $planType = 'premium-owner';
-                                } elseif ($priceId === (config('stripe.products.free_investor.price_id') ?: 'price_1R3LLrBTxeaIpqRB1gppSxzK')) {
-                                    $planType = 'free-investor';
-                                } else {
-                                    Log::warning('Nieznane ID ceny w webhookach: ' . $priceId);
-                                }
-                                break;
-                            case 'past_due':
-                                $user->stripe_subscription_status = 'past_due';
-                                break;
-                            case 'canceled':
-                                $user->stripe_subscription_status = 'cancelled';
-                                
-                                // Jeśli subskrypcja została anulowana, nie zmieniaj planu od razu,
-                                // żeby użytkownik miał dostęp do końca okresu rozliczeniowego
-                                $user->cancellation_requested = true;
-                                break;
-                            default:
-                                $user->stripe_subscription_status = $subscription->status;
+                                Log::info('Zaktualizowano metadane subskrypcji w Stripe', [
+                                    'subscription_id' => $subscription->id,
+                                    'subscription_type' => $user->plan_type
+                                ]);
+                            } catch (\Exception $e) {
+                                Log::error('Błąd podczas aktualizacji metadanych subskrypcji', [
+                                    'error' => $e->getMessage()
+                                ]);
+                            }
                         }
                         
-                        $user->plan_type = $planType;
                         $user->save();
-                        Log::info('Status subskrypcji zaktualizowany dla użytkownika: ' . $user->id . ' na: ' . $user->stripe_subscription_status . ', plan: ' . $user->plan_type);
+                        
+                        Log::info('Subskrypcja zaktualizowana', [
+                            'user_id' => $user->id,
+                            'subscription_id' => $subscription->id,
+                            'status' => $subscription->status,
+                            'plan_type' => $user->plan_type
+                        ]);
                     }
                     break;
-                    
+
                 case 'customer.subscription.deleted':
                     $subscription = $event->data->object;
                     $user = User::where('stripe_subscription_id', $subscription->id)->first();
                     
                     if ($user) {
                         $user->stripe_subscription_status = 'cancelled';
-                        
-                        // Po całkowitym usunięciu subskrypcji, możemy zresetować plan na darmowy
-                        if (!$user->cancellation_requested) {
-                            $user->plan_type = 'free-investor';
-                        }
-                        
+                        $user->plan_type = null;
+                        $user->stripe_subscription_id = null;
                         $user->save();
-                        Log::info('Subskrypcja anulowana dla użytkownika: ' . $user->id);
+                        
+                        Log::info('Subskrypcja anulowana', [
+                            'user_id' => $user->id,
+                            'subscription_id' => $subscription->id
+                        ]);
                     }
                     break;
-                
-                case 'identity.verification_session.completed':
-                    $session = $event->data->object;
+
+                case 'invoice.payment_failed':
+                    $invoice = $event->data->object;
+                    $user = User::where('stripe_customer_id', $invoice->customer)->first();
                     
-                    if (isset($session->metadata->user_id)) {
-                        $user = User::findOrFail($session->metadata->user_id);
-                        $user->kyc_status = $session->status === 'verified' ? 'verified' : 'rejected';
+                    if ($user) {
+                        $user->subscription_status = 'past_due';
                         $user->save();
                         
-                        Log::info('Weryfikacja KYC zakończona dla użytkownika: ' . $user->id . ' ze statusem: ' . $user->kyc_status);
+                        Log::warning('Płatność nieudana', [
+                            'user_id' => $user->id,
+                            'invoice_id' => $invoice->id
+                        ]);
                     }
                     break;
             }
-
+            
             return response()->json(['status' => 'success']);
         } catch (\Exception $e) {
-            Log::error('Błąd podczas przetwarzania webhooka subskrypcji: ' . $e->getMessage());
-            return response()->json(['error' => $e->getMessage()], 400);
+            Log::error('Błąd podczas przetwarzania webhooka: ' . $e->getMessage());
+            return response()->json(['error' => $e->getMessage()], 200);
         }
     }
     
@@ -616,7 +610,457 @@ class StripeController extends Controller
             return response()->json(['status' => 'success']);
         } catch (\Exception $e) {
             Log::error('Błąd podczas przetwarzania webhooka KYC: ' . $e->getMessage());
-            return response()->json(['error' => $e->getMessage()], 400);
+            return response()->json(['error' => $e->getMessage()], 200);
+        }
+    }
+
+    /**
+     * Przekierowuje użytkownika do widoku aktualizacji subskrypcji w portalu klienta Stripe.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\JsonResponse
+     */
+    public function updateSubscriptionPortal(Request $request)
+    {
+        try {
+            $user = $request->user();
+            
+            if (!$user->stripe_customer_id || !$user->stripe_subscription_id) {
+                return response()->json(['error' => 'Nie znaleziono subskrypcji.'], 400);
+            }
+            
+            // Podstawowe parametry sesji portalu
+            $portalParams = [
+                'customer' => $user->stripe_customer_id,
+                'return_url' => route('subscription'),
+                'flow_data' => [
+                    'type' => 'subscription_update',
+                    'subscription_update' => [
+                        'subscription' => $user->stripe_subscription_id
+                    ]
+                ]
+            ];
+            
+            $session = $this->stripe()->billingPortal->sessions->create($portalParams);
+            
+            Log::info('Utworzono sesję aktualizacji subskrypcji', [
+                'session_id' => $session->id,
+                'url' => $session->url
+            ]);
+            
+            return response()->json(['url' => $session->url]);
+        } catch (\Exception $e) {
+            Log::error('Błąd podczas tworzenia sesji aktualizacji subskrypcji: ' . $e->getMessage());
+            return response()->json(['error' => 'Nie udało się utworzyć sesji aktualizacji subskrypcji.'], 500);
+        }
+    }
+
+    /**
+     * Aktualizuje subskrypcję użytkownika do wybranego planu.
+     *
+     * @param  \Illuminate\Http\Request  $request
+     * @return \Illuminate\Http\RedirectResponse
+     */
+    public function updateSubscription(Request $request)
+    {
+        $plan = $request->query('plan');
+        
+        if (!in_array($plan, ['free-investor', 'premium-investor', 'premium-owner'])) {
+            return redirect()->route('subscription')
+                ->with('error', 'Nieprawidłowy typ planu.');
+        }
+        
+        $user = $request->user();
+        
+        try {
+            if (!$user->stripe_customer_id) {
+                return redirect()->route('subscription')
+                    ->with('error', 'Nie znaleziono konta Stripe. Aktywuj najpierw dowolny plan.');
+            }
+            
+            // Pobierz odpowiedni identyfikator ceny
+            $priceId = null;
+            switch ($plan) {
+                case 'free-investor':
+                    $priceId = config('stripe.products.free_investor.price_id');
+                    break;
+                case 'premium-investor':
+                    $priceId = config('stripe.products.premium_investor.price_id');
+                    break;
+                case 'premium-owner':
+                    $priceId = config('stripe.products.premium_owner.price_id');
+                    break;
+            }
+            
+            if (!$priceId) {
+                return redirect()->route('subscription')
+                    ->with('error', 'Nie znaleziono ceny dla wybranego planu.');
+            }
+            
+            Log::info('Rozpoczęcie aktualizacji subskrypcji', [
+                'user_id' => $user->id,
+                'current_plan' => $user->plan_type,
+                'new_plan' => $plan,
+                'price_id' => $priceId
+            ]);
+            
+            // Jeśli użytkownik ma już subskrypcję, zaktualizuj ją
+            if ($user->stripe_subscription_id) {
+                $subscription = $this->stripe()->subscriptions->retrieve($user->stripe_subscription_id);
+                
+                // Pobierz ID pierwszego elementu subskrypcji
+                $itemId = $subscription->items->data[0]->id;
+                
+                // Zaktualizuj subskrypcję
+                $updatedSubscription = $this->stripe()->subscriptions->update($user->stripe_subscription_id, [
+                    'items' => [
+                        [
+                            'id' => $itemId,
+                            'price' => $priceId,
+                        ],
+                    ],
+                    'metadata' => [
+                        'user_id' => $user->id,
+                        'subscription_type' => $plan
+                    ]
+                ]);
+                
+                Log::info('Zaktualizowano subskrypcję', [
+                    'subscription_id' => $updatedSubscription->id,
+                    'status' => $updatedSubscription->status
+                ]);
+                
+                // Zaktualizuj dane użytkownika
+                $user->plan_type = $plan;
+                $user->stripe_subscription_status = $updatedSubscription->status;
+                $user->save();
+                
+                return redirect()->route('subscription')
+                    ->with('success', 'Subskrypcja została zaktualizowana pomyślnie.');
+            } else {
+                // Jeśli użytkownik nie ma subskrypcji, utwórz nową
+                $subscription = $this->stripe()->subscriptions->create([
+                    'customer' => $user->stripe_customer_id,
+                    'items' => [
+                        ['price' => $priceId],
+                    ],
+                    'metadata' => [
+                        'user_id' => $user->id,
+                        'subscription_type' => $plan
+                    ]
+                ]);
+                
+                Log::info('Utworzono nową subskrypcję', [
+                    'subscription_id' => $subscription->id,
+                    'status' => $subscription->status
+                ]);
+                
+                // Zaktualizuj dane użytkownika
+                $user->stripe_subscription_id = $subscription->id;
+                $user->stripe_subscription_status = $subscription->status;
+                $user->plan_type = $plan;
+                $user->save();
+                
+                return redirect()->route('subscription')
+                    ->with('success', 'Subskrypcja została utworzona pomyślnie.');
+            }
+        } catch (\Exception $e) {
+            Log::error('Błąd podczas aktualizacji subskrypcji: ' . $e->getMessage(), [
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return redirect()->route('subscription')
+                ->with('error', 'Wystąpił błąd podczas aktualizacji subskrypcji: ' . $e->getMessage());
+        }
+    }
+
+    /**
+     * Tworzy sesję portalu klienta Stripe.
+     *
+     * @param Request $request
+     * @return JsonResponse
+     */
+    public function createPortalSession(Request $request)
+    {
+        try {
+            $user = $request->user();
+            
+            Log::info('Tworzenie sesji portalu klienta', [
+                'user_id' => $user->id,
+                'email' => $user->email,
+                'plan_type' => $user->plan_type,
+                'stripe_customer_id' => $user->stripe_customer_id
+            ]);
+
+            // Jeśli użytkownik nie ma customer_id, utwórz go
+            if (!$user->stripe_customer_id) {
+                Log::info('Tworzenie nowego klienta Stripe', [
+                    'user_id' => $user->id,
+                    'email' => $user->email
+                ]);
+                
+                $customer = $this->stripe()->customers->create([
+                    'email' => $user->email,
+                    'name' => $user->name,
+                    'metadata' => ['user_id' => $user->id]
+                ]);
+                
+                $user->stripe_customer_id = $customer->id;
+                $user->save();
+                
+                Log::info('Utworzono klienta Stripe', [
+                    'user_id' => $user->id,
+                    'stripe_customer_id' => $customer->id
+                ]);
+                
+                // Jeśli użytkownik ma darmowy plan, dodaj subskrypcję do konta Stripe
+                if ($user->plan_type === 'free-investor') {
+                    $subscription = $this->stripe()->subscriptions->create([
+                        'customer' => $customer->id,
+                        'items' => [
+                            ['price' => config('stripe.products.free_investor.price_id')],
+                        ],
+                        'metadata' => [
+                            'user_id' => $user->id,
+                            'subscription_type' => 'free-investor'
+                        ]
+                    ]);
+                    
+                    $user->stripe_subscription_id = $subscription->id;
+                    $user->save();
+                    
+                    Log::info('Utworzono darmową subskrypcję', [
+                        'user_id' => $user->id,
+                        'subscription_id' => $subscription->id
+                    ]);
+                }
+            }
+
+            // Sprawdź, czy użytkownik ma subskrypcję
+            if (!$user->stripe_subscription_id && $user->plan_type === 'free-investor') {
+                // Dla darmowego planu bez subskrypcji, utwórz ją
+                $subscription = $this->stripe()->subscriptions->create([
+                    'customer' => $user->stripe_customer_id,
+                    'items' => [
+                        ['price' => config('stripe.products.free_investor.price_id')],
+                    ],
+                    'metadata' => [
+                        'user_id' => $user->id,
+                        'subscription_type' => 'free-investor'
+                    ]
+                ]);
+                
+                $user->stripe_subscription_id = $subscription->id;
+                $user->save();
+                
+                Log::info('Utworzono darmową subskrypcję przed portalem', [
+                    'user_id' => $user->id,
+                    'subscription_id' => $subscription->id
+                ]);
+            }
+
+            // Podstawowe parametry sesji portalu
+            $portalParams = [
+                'customer' => $user->stripe_customer_id,
+                'return_url' => route('subscription')
+            ];
+            
+            // Sprawdź, czy istnieje konfiguracja portalu
+            $configurationId = config('stripe.customer_portal.configuration_id');
+            if ($configurationId) {
+                $portalParams['configuration'] = $configurationId;
+            } else {
+                // Jeśli nie ma konfiguracji, użyj domyślnych ustawień
+                $portalParams['features'] = [
+                    'payment_method_update' => ['enabled' => true],
+                    'subscription_cancel' => ['enabled' => true],
+                    'subscription_update' => ['enabled' => true],
+                    'invoice_history' => ['enabled' => true]
+                ];
+            }
+            
+            Log::info('Parametry sesji portalu', ['params' => $portalParams]);
+
+            // Utwórz sesję portalu
+            try {
+                $session = $this->stripe()->billingPortal->sessions->create($portalParams);
+                
+                Log::info('Utworzono sesję portalu', [
+                    'session_id' => $session->id,
+                    'url' => $session->url
+                ]);
+                
+                return response()->json(['url' => $session->url]);
+            } catch (\Stripe\Exception\ApiErrorException $e) {
+                // Jeśli wystąpi błąd API, spróbuj utworzyć sesję bez konfiguracji
+                Log::warning('Błąd podczas tworzenia sesji portalu z konfiguracją: ' . $e->getMessage());
+                
+                // Spróbuj bez konfiguracji
+                unset($portalParams['configuration']);
+                $portalParams['features'] = [
+                    'payment_method_update' => ['enabled' => true],
+                    'subscription_cancel' => ['enabled' => true]
+                ];
+                
+                $session = $this->stripe()->billingPortal->sessions->create($portalParams);
+                
+                Log::info('Utworzono sesję portalu bez konfiguracji', [
+                    'session_id' => $session->id,
+                    'url' => $session->url
+                ]);
+                
+                return response()->json(['url' => $session->url]);
+            }
+        } catch (\Exception $e) {
+            Log::error('Błąd podczas tworzenia sesji portalu', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            return response()->json([
+                'error' => 'Wystąpił błąd podczas tworzenia sesji portalu: ' . $e->getMessage()
+            ], 500);
+        }
+    }
+
+    /**
+     * Obsługuje webhooki od Stripe.
+     */
+    public function handleWebhook(Request $request)
+    {
+        $payload = $request->getContent();
+        $sig_header = $request->header('Stripe-Signature');
+        $endpoint_secret = config('stripe.webhook.secret');
+
+        try {
+            $event = \Stripe\Webhook::constructEvent(
+                $payload, $sig_header, $endpoint_secret
+            );
+
+            Log::info('Otrzymano webhook Stripe', ['type' => $event->type]);
+
+            switch ($event->type) {
+                case 'checkout.session.completed':
+                    $session = $event->data->object;
+                    if ($session->mode === 'subscription') {
+                        $user = User::findOrFail($session->metadata->user_id);
+                        $subscription = $this->stripe()->subscriptions->retrieve($session->subscription);
+                        
+                        $user->stripe_subscription_id = $subscription->id;
+                        $user->stripe_subscription_status = $subscription->status;
+                        $user->plan_type = $subscription->metadata->subscription_type;
+                        $user->stripe_customer_id = $session->customer;
+                        $user->save();
+                        
+                        Log::info('Subskrypcja utworzona', [
+                            'user_id' => $user->id,
+                            'subscription_id' => $subscription->id
+                        ]);
+                    }
+                    break;
+
+                case 'customer.subscription.updated':
+                    $subscription = $event->data->object;
+                    $user = User::where('stripe_subscription_id', $subscription->id)->first();
+                    
+                    if ($user) {
+                        $user->stripe_subscription_status = $subscription->status;
+                        
+                        // Sprawdź, czy metadane zawierają typ subskrypcji
+                        if (isset($subscription->metadata->subscription_type)) {
+                            $user->plan_type = $subscription->metadata->subscription_type;
+                        } else {
+                            // Jeśli nie ma metadanych, określ typ planu na podstawie priceId
+                            $priceId = $subscription->items->data[0]->price->id;
+                            
+                            if ($priceId === config('stripe.products.free_investor.price_id')) {
+                                $user->plan_type = 'free-investor';
+                            } elseif ($priceId === config('stripe.products.premium_investor.price_id')) {
+                                $user->plan_type = 'premium-investor';
+                            } elseif ($priceId === config('stripe.products.premium_owner.price_id')) {
+                                $user->plan_type = 'premium-owner';
+                            }
+                            
+                            // Aktualizuj metadane w Stripe
+                            try {
+                                $this->stripe()->subscriptions->update($subscription->id, [
+                                    'metadata' => ['subscription_type' => $user->plan_type]
+                                ]);
+                                
+                                Log::info('Zaktualizowano metadane subskrypcji w Stripe', [
+                                    'subscription_id' => $subscription->id,
+                                    'subscription_type' => $user->plan_type
+                                ]);
+                            } catch (\Exception $e) {
+                                Log::error('Błąd podczas aktualizacji metadanych subskrypcji', [
+                                    'error' => $e->getMessage()
+                                ]);
+                            }
+                        }
+                        
+                        $user->save();
+                        
+                        Log::info('Subskrypcja zaktualizowana', [
+                            'user_id' => $user->id,
+                            'subscription_id' => $subscription->id,
+                            'status' => $subscription->status,
+                            'plan_type' => $user->plan_type
+                        ]);
+                    }
+                    break;
+
+                case 'customer.subscription.deleted':
+                    $subscription = $event->data->object;
+                    $user = User::where('stripe_subscription_id', $subscription->id)->first();
+                    
+                    if ($user) {
+                        $user->stripe_subscription_status = 'cancelled';
+                        $user->plan_type = null;
+                        $user->stripe_subscription_id = null;
+                        $user->save();
+                        
+                        Log::info('Subskrypcja anulowana', [
+                            'user_id' => $user->id,
+                            'subscription_id' => $subscription->id
+                        ]);
+                    }
+                    break;
+
+                case 'invoice.payment_failed':
+                    $invoice = $event->data->object;
+                    $user = User::where('stripe_customer_id', $invoice->customer)->first();
+                    
+                    if ($user) {
+                        $user->stripe_subscription_status = 'past_due';
+                        $user->save();
+                        
+                        Log::warning('Płatność nieudana', [
+                            'user_id' => $user->id,
+                            'invoice_id' => $invoice->id
+                        ]);
+                    }
+                    break;
+
+                case 'invoice.payment_succeeded':
+                    $invoice = $event->data->object;
+                    $user = User::where('stripe_customer_id', $invoice->customer)->first();
+                    
+                    if ($user) {
+                        $user->stripe_subscription_status = 'active';
+                        $user->save();
+                        
+                        Log::info('Płatność zakończona sukcesem', [
+                            'user_id' => $user->id,
+                            'invoice_id' => $invoice->id
+                        ]);
+                    }
+                    break;
+            }
+
+            return response()->json(['status' => 'success']);
+        } catch (\Exception $e) {
+            Log::error('Błąd podczas przetwarzania webhooka: ' . $e->getMessage());
+            return response()->json(['error' => $e->getMessage()], 200);
         }
     }
 }
