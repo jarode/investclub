@@ -9,18 +9,18 @@
                     {{ __('Powrót do listy') }}
                 </a>
                 
-                @if ($investment->status === 'declared')
+                @if (in_array($investment->status, ['interested', 'in_talks']))
                     <a href="{{ route('investments.edit', $investment) }}" class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded text-sm">
                         {{ __('Edytuj') }}
                     </a>
                 @endif
                 
-                @if (in_array($investment->status, ['declared', 'paid']))
+                @if (in_array($investment->status, ['interested', 'in_talks']))
                     <form method="POST" action="{{ route('investments.destroy', $investment) }}" class="inline">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded text-sm" onclick="return confirm('Czy na pewno chcesz anulować tę inwestycję?')">
-                            {{ __('Anuluj inwestycję') }}
+                        <button type="submit" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded text-sm" onclick="return confirm('Czy na pewno chcesz anulować to zainteresowanie?')">
+                            {{ __('Anuluj') }}
                         </button>
                     </form>
                 @endif
@@ -35,19 +35,19 @@
                     <!-- Status inwestycji -->
                     <div class="mb-6">
                         <span class="px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full 
-                            @if($investment->status === 'declared') bg-yellow-100 text-yellow-800
-                            @elseif($investment->status === 'paid') bg-blue-100 text-blue-800
-                            @elseif($investment->status === 'confirmed') bg-green-100 text-green-800
+                            @if($investment->status === 'interested') bg-yellow-100 text-yellow-800
+                            @elseif($investment->status === 'in_talks') bg-blue-100 text-blue-800
+                            @elseif($investment->status === 'contract_signed') bg-green-100 text-green-800
                             @elseif($investment->status === 'cancelled') bg-red-100 text-red-800
                             @endif">
-                            @if($investment->status === 'declared') {{ __('Zadeklarowana') }}
-                            @elseif($investment->status === 'paid') {{ __('Opłacona') }}
-                            @elseif($investment->status === 'confirmed') {{ __('Potwierdzona') }}
-                            @elseif($investment->status === 'cancelled') {{ __('Anulowana') }}
+                            @if($investment->status === 'interested') {{ __('Zainteresowany') }}
+                            @elseif($investment->status === 'in_talks') {{ __('W trakcie rozmów') }}
+                            @elseif($investment->status === 'contract_signed') {{ __('Umowa podpisana') }}
+                            @elseif($investment->status === 'cancelled') {{ __('Anulowano') }}
                             @endif
                         </span>
                         
-                        <!-- Zmiana statusu dla admina i managera -->
+                        <!-- Zmiana statusu dla właściciela projektu lub admina -->
                         @can('changeStatus', $investment)
                             <div class="mt-4 p-4 border border-gray-200 rounded-md">
                                 <h3 class="text-lg font-medium mb-2">{{ __('Zmień status inwestycji') }}</h3>
@@ -55,17 +55,17 @@
                                     @csrf
                                     @method('PATCH')
                                     <select name="status" class="rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                                        <option value="declared" {{ $investment->status === 'declared' ? 'selected' : '' }}>{{ __('Zadeklarowana') }}</option>
-                                        <option value="paid" {{ $investment->status === 'paid' ? 'selected' : '' }}>{{ __('Opłacona') }}</option>
-                                        <option value="confirmed" {{ $investment->status === 'confirmed' ? 'selected' : '' }}>{{ __('Potwierdzona') }}</option>
-                                        <option value="cancelled" {{ $investment->status === 'cancelled' ? 'selected' : '' }}>{{ __('Anulowana') }}</option>
+                                        <option value="interested" {{ $investment->status === 'interested' ? 'selected' : '' }}>{{ __('Zainteresowany') }}</option>
+                                        <option value="in_talks" {{ $investment->status === 'in_talks' ? 'selected' : '' }}>{{ __('W trakcie rozmów') }}</option>
+                                        <option value="contract_signed" {{ $investment->status === 'contract_signed' ? 'selected' : '' }}>{{ __('Umowa podpisana') }}</option>
+                                        <option value="cancelled" {{ $investment->status === 'cancelled' ? 'selected' : '' }}>{{ __('Anulowano') }}</option>
                                     </select>
                                     <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
                                         {{ __('Zapisz zmianę') }}
                                     </button>
                                 </form>
                                 <p class="mt-2 text-sm text-gray-600">
-                                    <strong>Uwaga:</strong> Zmiana statusu może wpłynąć na saldo projektu i portfel inwestora.
+                                    <strong>Uwaga:</strong> Aktualizuj status w miarę postępu rozmów z inwestorem.
                                 </p>
                             </div>
                         @endcan
@@ -87,7 +87,25 @@
                                         <td class="py-2 text-sm text-gray-900">{{ $investment->user->name }}</td>
                                     </tr>
                                     <tr>
-                                        <td class="py-2 text-sm font-medium text-gray-500">{{ __('Kwota inwestycji') }}</td>
+                                        <td class="py-2 text-sm font-medium text-gray-500">{{ __('Preferowana metoda kontaktu') }}</td>
+                                        <td class="py-2 text-sm text-gray-900">
+                                            @if($investment->contact_preference === 'email')
+                                                {{ __('Email') }}
+                                            @elseif($investment->contact_preference === 'phone')
+                                                {{ __('Telefon') }}
+                                            @elseif($investment->contact_preference === 'meeting')
+                                                {{ __('Spotkanie osobiste') }}
+                                            @else
+                                                {{ $investment->contact_preference }}
+                                            @endif
+                                        </td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-2 text-sm font-medium text-gray-500">{{ __('Dane kontaktowe') }}</td>
+                                        <td class="py-2 text-sm text-gray-900">{{ $investment->contact_details ?: 'Brak' }}</td>
+                                    </tr>
+                                    <tr>
+                                        <td class="py-2 text-sm font-medium text-gray-500">{{ __('Deklarowana kwota') }}</td>
                                         <td class="py-2 text-sm text-gray-900">{{ number_format($investment->amount, 2, ',', ' ') }} zł</td>
                                     </tr>
                                     <tr>
@@ -97,10 +115,6 @@
                                     <tr>
                                         <td class="py-2 text-sm font-medium text-gray-500">{{ __('Potencjalny zysk') }}</td>
                                         <td class="py-2 text-sm text-gray-900">{{ number_format($investment->calculateProfit(), 2, ',', ' ') }} zł</td>
-                                    </tr>
-                                    <tr>
-                                        <td class="py-2 text-sm font-medium text-gray-500">{{ __('Referencja transakcji') }}</td>
-                                        <td class="py-2 text-sm text-gray-900">{{ $investment->transaction_reference ?: 'Brak' }}</td>
                                     </tr>
                                     <tr>
                                         <td class="py-2 text-sm font-medium text-gray-500">{{ __('Data utworzenia') }}</td>
@@ -131,8 +145,8 @@
                                         <p class="text-sm text-gray-900">{{ number_format($investment->project->target_amount, 2, ',', ' ') }} zł</p>
                                     </div>
                                     <div>
-                                        <p class="text-sm font-medium text-gray-500">{{ __('Aktualnie zebrane') }}</p>
-                                        <p class="text-sm text-gray-900">{{ number_format($investment->project->current_amount, 2, ',', ' ') }} zł</p>
+                                        <p class="text-sm font-medium text-gray-500">{{ __('Minimalna inwestycja') }}</p>
+                                        <p class="text-sm text-gray-900">{{ number_format($investment->project->min_investment, 2, ',', ' ') }} zł</p>
                                     </div>
                                     <div>
                                         <p class="text-sm font-medium text-gray-500">{{ __('Poziom ryzyka') }}</p>
@@ -152,22 +166,9 @@
                                     </div>
                                 </div>
                                 
-                                <div class="relative pt-1">
-                                    <div class="flex mb-2 items-center justify-between">
-                                        <div>
-                                            <span class="text-xs font-semibold inline-block py-1 px-2 uppercase rounded-full text-blue-600 bg-blue-200">
-                                                {{ __('Postęp finansowania') }}
-                                            </span>
-                                        </div>
-                                        <div class="text-right">
-                                            <span class="text-xs font-semibold inline-block text-blue-600">
-                                                {{ $investment->project->fundingPercentage() }}%
-                                            </span>
-                                        </div>
-                                    </div>
-                                    <div class="overflow-hidden h-2 mb-4 text-xs flex rounded bg-blue-200">
-                                        <div style="width:{{ $investment->project->fundingPercentage() }}%" class="shadow-none flex flex-col text-center whitespace-nowrap text-white justify-center bg-blue-500"></div>
-                                    </div>
+                                <div class="mt-4">
+                                    <p class="text-sm font-medium text-gray-500">{{ __('Okres trwania projektu') }}</p>
+                                    <p class="text-sm text-gray-900">{{ \Carbon\Carbon::parse($investment->project->start_date)->format('d.m.Y') }} - {{ \Carbon\Carbon::parse($investment->project->end_date)->format('d.m.Y') }}</p>
                                 </div>
                             </div>
                         </div>

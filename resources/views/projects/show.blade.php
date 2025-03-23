@@ -134,14 +134,14 @@
                     @if($project->status === 'active')
                         <!-- Panel inwestycyjny (tylko dla aktywnych projektów) -->
                         <div class="mt-8 p-6 bg-green-50 rounded-lg border border-green-200">
-                            <h3 class="text-xl font-bold text-green-800 mb-4">Zainwestuj w ten projekt</h3>
+                            <h3 class="text-xl font-bold text-green-800 mb-4">Wyraź zainteresowanie tym projektem</h3>
                             
-                            @if(auth()->user()->wallet_balance >= $project->min_investment && auth()->user()->kyc_verified)
+                            @if(auth()->user()->kyc_status === 'verified' && auth()->user()->hasActiveSubscription())
                                 <form action="{{ route('investments.store') }}" method="POST" class="space-y-4">
                                     @csrf
                                     <input type="hidden" name="project_id" value="{{ $project->id }}">
                                     <div>
-                                        <label for="amount" class="block text-sm font-medium text-gray-700">Kwota inwestycji (min. {{ number_format($project->min_investment, 2, ',', ' ') }} zł)</label>
+                                        <label for="amount" class="block text-sm font-medium text-gray-700">Kwota potencjalnej inwestycji (min. {{ number_format($project->min_investment, 2, ',', ' ') }} zł)</label>
                                         <div class="mt-1 flex rounded-md shadow-sm">
                                             <input type="number" name="amount" id="amount" min="{{ $project->min_investment }}" step="100" value="{{ $project->min_investment }}"
                                                 class="focus:ring-indigo-500 focus:border-indigo-500 flex-1 block w-full rounded-md sm:text-sm border-gray-300">
@@ -152,6 +152,21 @@
                                     </div>
                                     
                                     <div>
+                                        <label for="contact_preference" class="block text-sm font-medium text-gray-700">Preferowana metoda kontaktu</label>
+                                        <select name="contact_preference" id="contact_preference" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
+                                            <option value="email">Email</option>
+                                            <option value="phone">Telefon</option>
+                                            <option value="meeting">Spotkanie osobiste</option>
+                                        </select>
+                                    </div>
+                                    
+                                    <div>
+                                        <label for="contact_details" class="block text-sm font-medium text-gray-700">Dane kontaktowe</label>
+                                        <input type="text" name="contact_details" id="contact_details" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
+                                               placeholder="Adres email lub numer telefonu">
+                                    </div>
+                                    
+                                    <div>
                                         <label for="notes" class="block text-sm font-medium text-gray-700">Uwagi (opcjonalnie)</label>
                                         <textarea id="notes" name="notes" rows="3" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 mt-1 block w-full sm:text-sm border border-gray-300 rounded-md"></textarea>
                                     </div>
@@ -159,17 +174,17 @@
                                     <div class="flex items-center">
                                         <input id="agreement" name="agreement" type="checkbox" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded" required>
                                         <label for="agreement" class="ml-2 block text-sm text-gray-900">
-                                            Potwierdzam, że zapoznałem się z warunkami inwestycji i akceptuję ryzyko związane z tym projektem.
+                                            Wyrażam zgodę na kontakt ze strony właściciela projektu i akceptuję regulamin platformy.
                                         </label>
                                     </div>
                                     
                                     <div>
                                         <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                                            Zadeklaruj inwestycję
+                                            Wyślij zgłoszenie
                                         </button>
                                     </div>
                                 </form>
-                            @elseif(!auth()->user()->kyc_verified)
+                            @elseif(auth()->user()->kyc_status !== 'verified')
                                 <div class="bg-yellow-100 p-4 rounded-md mb-4">
                                     <div class="flex">
                                         <div class="flex-shrink-0">
@@ -180,11 +195,11 @@
                                         <div class="ml-3">
                                             <h3 class="text-sm font-medium text-yellow-800">Weryfikacja KYC wymagana</h3>
                                             <div class="mt-2 text-sm text-yellow-700">
-                                                <p>Aby inwestować, musisz najpierw zweryfikować swoją tożsamość. Przejdź do ustawień profilu, aby ukończyć proces weryfikacji KYC.</p>
+                                                <p>Aby wyrazić zainteresowanie projektem, musisz najpierw zweryfikować swoją tożsamość. Przejdź do ustawień profilu, aby ukończyć proces weryfikacji KYC.</p>
                                             </div>
                                             <div class="mt-4">
                                                 <div class="-mx-2 -my-1.5 flex">
-                                                    <a href="{{ route('profile.show') }}" class="bg-yellow-200 px-2 py-1.5 rounded-md text-sm font-medium text-yellow-800 hover:bg-yellow-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-yellow-50 focus:ring-yellow-600">
+                                                    <a href="{{ route('kyc.verify') }}" class="bg-yellow-200 px-2 py-1.5 rounded-md text-sm font-medium text-yellow-800 hover:bg-yellow-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-yellow-50 focus:ring-yellow-600">
                                                         Przejdź do weryfikacji
                                                     </a>
                                                 </div>
@@ -192,7 +207,7 @@
                                         </div>
                                     </div>
                                 </div>
-                            @elseif(auth()->user()->wallet_balance < $project->min_investment)
+                            @elseif(!auth()->user()->hasActiveSubscription())
                                 <div class="bg-yellow-100 p-4 rounded-md">
                                     <div class="flex">
                                         <div class="flex-shrink-0">
@@ -201,14 +216,14 @@
                                             </svg>
                                         </div>
                                         <div class="ml-3">
-                                            <h3 class="text-sm font-medium text-yellow-800">Niewystarczające środki</h3>
+                                            <h3 class="text-sm font-medium text-yellow-800">Aktywna subskrypcja wymagana</h3>
                                             <div class="mt-2 text-sm text-yellow-700">
-                                                <p>Twój aktualny stan portfela ({{ number_format(auth()->user()->wallet_balance, 2, ',', ' ') }} zł) jest niewystarczający do minimalnej inwestycji w ten projekt ({{ number_format($project->min_investment, 2, ',', ' ') }} zł). Doładuj swój portfel, aby kontynuować.</p>
+                                                <p>Aby wyrazić zainteresowanie projektami, musisz posiadać aktywną subskrypcję. Przejdź do ustawień subskrypcji, aby wybrać odpowiedni plan.</p>
                                             </div>
                                             <div class="mt-4">
                                                 <div class="-mx-2 -my-1.5 flex">
-                                                    <a href="#" class="bg-yellow-200 px-2 py-1.5 rounded-md text-sm font-medium text-yellow-800 hover:bg-yellow-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-yellow-50 focus:ring-yellow-600">
-                                                        Doładuj portfel
+                                                    <a href="{{ route('subscription') }}" class="bg-yellow-200 px-2 py-1.5 rounded-md text-sm font-medium text-yellow-800 hover:bg-yellow-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-yellow-50 focus:ring-yellow-600">
+                                                        Wybierz plan subskrypcji
                                                     </a>
                                                 </div>
                                             </div>
