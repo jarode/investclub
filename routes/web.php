@@ -21,7 +21,16 @@ use App\Http\Controllers\Admin\ProjectVerificationController;
 
 Route::get('/', function () {
     return view('welcome');
-});
+})->name('welcome');
+
+// Nowe trasy dla logowania i rejestracji z naszym layoutem
+Route::get('/login', function () {
+    return view('auth.front-login');
+})->middleware('guest')->name('login');
+
+Route::get('/register', function () {
+    return view('auth.front-register');
+})->middleware('guest')->name('register');
 
 // Dodajemy tymczasową trasę bez middleware do debugowania
 Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified'])->get('/projects/create-debug', [ProjectController::class, 'create'])->name('projects.create.debug');
