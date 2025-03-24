@@ -6,6 +6,7 @@ use App\Models\Investment;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
 use Illuminate\Auth\Access\HandlesAuthorization;
+use Illuminate\Support\Facades\Log;
 
 class InvestmentPolicy
 {
@@ -18,6 +19,10 @@ class InvestmentPolicy
     public function before(User $user, string $ability): bool|null
     {
         if ($user->isAdmin()) {
+            Log::info("InvestmentPolicy@before - dostęp przyznany dla administratora", [
+                'user_id' => $user->id,
+                'ability' => $ability
+            ]);
             return true;
         }
         
@@ -38,13 +43,36 @@ class InvestmentPolicy
      */
     public function view(User $user, Investment $investment): bool
     {
+        Log::info('InvestmentPolicy@view - sprawdzanie uprawnień', [
+            'user_id' => $user->id,
+            'user_email' => $user->email,
+            'user_role' => $user->role,
+            'investment_id' => $investment->id,
+            'investment_user_id' => $investment->user_id,
+            'project_id' => $investment->project_id,
+            'project_owner_id' => $investment->project->owner_id,
+            'is_admin' => $user->isAdmin() ? 'TAK' : 'NIE',
+            'is_manager' => $user->isManager() ? 'TAK' : 'NIE',
+            'is_investment_owner' => ($user->id === $investment->user_id) ? 'TAK' : 'NIE',
+            'is_project_owner' => ($user->id === $investment->project->owner_id) ? 'TAK' : 'NIE'
+        ]);
+
         // Administrator i manager mogą przeglądać wszystkie inwestycje
         if ($user->isAdmin() || $user->isManager()) {
+            Log::info('InvestmentPolicy@view - dostęp przyznany (admin/manager)');
+            return true;
+        }
+
+        // Właściciel projektu może przeglądać inwestycje w swoim projekcie
+        if ($user->id === $investment->project->owner_id) {
+            Log::info('InvestmentPolicy@view - dostęp przyznany (właściciel projektu)');
             return true;
         }
 
         // Użytkownik może przeglądać tylko swoje inwestycje
-        return $user->id === $investment->user_id;
+        $result = $user->id === $investment->user_id;
+        Log::info('InvestmentPolicy@view - wynik dla inwestora: ' . ($result ? 'TAK' : 'NIE'));
+        return $result;
     }
     
     /**
@@ -108,8 +136,25 @@ class InvestmentPolicy
      */
     public function changeStatus(User $user, Investment $investment): bool
     {
-        // Tylko administrator i manager mogą zmieniać status inwestycji
-        return $user->isAdmin() || $user->isManager();
+        Log::info('InvestmentPolicy@changeStatus - sprawdzanie uprawnień', [
+            'user_id' => $user->id,
+            'user_email' => $user->email,
+            'user_role' => $user->role,
+            'investment_id' => $investment->id,
+            'project_id' => $investment->project_id,
+            'project_owner_id' => $investment->project->owner_id,
+            'is_admin' => $user->isAdmin() ? 'TAK' : 'NIE',
+            'is_manager' => $user->isManager() ? 'TAK' : 'NIE',
+            'is_project_owner' => ($user->id === $investment->project->owner_id) ? 'TAK' : 'NIE'
+        ]);
+
+        // Administrator, manager i właściciel projektu mogą zmieniać status inwestycji
+        $result = $user->isAdmin() || 
+                $user->isManager() || 
+                $user->id === $investment->project->owner_id;
+        
+        Log::info('InvestmentPolicy@changeStatus - wynik: ' . ($result ? 'TAK' : 'NIE'));
+        return $result;
     }
     
     /**

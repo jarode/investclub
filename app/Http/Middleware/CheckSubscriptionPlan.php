@@ -17,55 +17,66 @@ class CheckSubscriptionPlan
      * @param  string  $plan
      * @return mixed
      */
-    public function handle(Request $request, Closure $next, $plan): Response
+    public function handle(Request $request, Closure $next, $planType): Response
     {
         $user = $request->user();
         
-        if (!$user) {
-            return redirect()->route('login');
-        }
-
-        Log::info('Sprawdzanie planu subskrypcji dla użytkownika: ' . $user->id . ', wymagany plan: ' . $plan);
+        // Logowanie pełnych danych użytkownika
+        \Illuminate\Support\Facades\Log::info('Middleware CheckSubscriptionPlan - dane użytkownika', [
+            'user_id' => $user->id,
+            'name' => $user->name,
+            'plan_type' => $user->plan_type ?? 'brak',
+            'subscription_type' => $user->subscription_type ?? 'brak',
+            'stripe_subscription_status' => $user->stripe_subscription_status ?? 'brak',
+            'wymagany_plan' => $planType,
+            'aktywna_subskrypcja' => $user->hasActiveSubscription() ? 'TAK' : 'NIE',
+            'może_zarządzać_projektami' => $user->canManageProjects() ? 'TAK' : 'NIE',
+            'uri' => $request->getRequestUri()
+        ]);
         
-        // Sprawdź czy użytkownik ma aktywną subskrypcję
+        // Jeśli użytkownik nie ma aktywnej subskrypcji, przekieruj do strony subskrypcji
         if (!$user->hasActiveSubscription()) {
-            Log::warning('Użytkownik nie ma aktywnej subskrypcji: ' . $user->id);
+            \Illuminate\Support\Facades\Log::info('Brak aktywnej subskrypcji - przekierowanie', ['user_id' => $user->id]);
             return redirect()->route('subscription')
-                ->with('warning', 'Aby uzyskać dostęp do tej funkcji, potrzebujesz aktywnej subskrypcji.');
+                ->with('warning', 'Potrzebujesz aktywnej subskrypcji, aby uzyskać dostęp do tej funkcji.');
         }
         
-        // Sprawdź odpowiedni plan dla różnych typów dostępu
-        switch ($plan) {
+        // Administratorzy zawsze mają dostęp
+        if ($user->isAdmin()) {
+            \Illuminate\Support\Facades\Log::info('Dostęp przyznany dla administratora', ['user_id' => $user->id]);
+            return $next($request);
+        }
+        
+        // Sprawdź typ planu
+        switch ($planType) {
             case 'owner':
-                if (!$user->hasPlanType('premium-owner')) {
-                    Log::warning('Użytkownik nie ma planu właściciela: ' . $user->id);
-                    return redirect()->route('subscription')
-                        ->with('warning', 'Ta funkcja wymaga planu O-Premium dla właścicieli projektów.');
+                if ($user->hasPlanType('premium-owner') || $user->hasPlanType('owner')) {
+                    \Illuminate\Support\Facades\Log::info('Dostęp do funkcji właściciela przyznany', ['user_id' => $user->id]);
+                    return $next($request);
                 }
                 break;
                 
             case 'premium':
-                if (!$user->hasAnyPlanType(['premium-investor', 'premium-owner'])) {
-                    Log::warning('Użytkownik nie ma planu premium: ' . $user->id);
-                    return redirect()->route('subscription')
-                        ->with('warning', 'Ta funkcja wymaga planu premium.');
+                if ($user->hasPlanType('premium-investor') || $user->hasPlanType('premium-owner')) {
+                    \Illuminate\Support\Facades\Log::info('Dostęp do funkcji premium przyznany', ['user_id' => $user->id]);
+                    return $next($request);
                 }
                 break;
                 
             case 'any':
-                // Każdy aktywny plan jest ok
-                break;
+                \Illuminate\Support\Facades\Log::info('Dostęp do podstawowych funkcji przyznany', ['user_id' => $user->id]);
+                return $next($request);
                 
             default:
-                // Nieznany typ planu - domyślnie wymagamy premium
-                if (!$user->hasAnyPlanType(['premium-investor', 'premium-owner'])) {
-                    Log::warning('Użytkownik nie ma wymaganego planu: ' . $user->id);
-                    return redirect()->route('subscription')
-                        ->with('warning', 'Ta funkcja wymaga planu premium.');
-                }
+                \Illuminate\Support\Facades\Log::warning('Nieznany typ planu wymagany', ['plan' => $planType, 'user_id' => $user->id]);
+                break;
         }
         
-        return $next($request);
+        \Illuminate\Support\Facades\Log::info('Odmowa dostępu - nieprawidłowy plan', ['user_id' => $user->id, 'wymagany_plan' => $planType]);
+        
+        // Jeśli użytkownik nie ma wymaganego planu, przekieruj do strony subskrypcji
+        return redirect()->route('subscription')
+            ->with('warning', 'Potrzebujesz subskrypcji ' . $this->getPlanName($planType) . ', aby uzyskać dostęp do tej funkcji.');
     }
     
     /**
@@ -78,5 +89,18 @@ class CheckSubscriptionPlan
     {
         return $user->hasActiveSubscription() && 
                ($user->plan_type === 'premium-owner');
+    }
+
+    /**
+     * Zwraca czytelną nazwę planu na podstawie kodu
+     */
+    private function getPlanName(string $planType): string
+    {
+        return match($planType) {
+            'owner' => 'Premium dla właścicieli projektów (O-Premium)',
+            'premium' => 'Premium dla inwestorów (I-Premium)',
+            'any' => 'Dowolnej',
+            default => $planType
+        };
     }
 }

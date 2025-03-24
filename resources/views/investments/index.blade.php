@@ -142,12 +142,11 @@
                                                     @elseif($investment->status === 'paid') bg-blue-100 text-blue-800
                                                     @elseif($investment->status === 'confirmed') bg-green-100 text-green-800
                                                     @elseif($investment->status === 'cancelled') bg-red-100 text-red-800
+                                                    @elseif($investment->status === 'interested') bg-purple-100 text-purple-800
+                                                    @elseif($investment->status === 'in_talks') bg-indigo-100 text-indigo-800
+                                                    @elseif($investment->status === 'contract_signed') bg-green-100 text-green-800
                                                     @endif">
-                                                    @if($investment->status === 'declared') {{ __('Zadeklarowana') }}
-                                                    @elseif($investment->status === 'paid') {{ __('Opłacona') }}
-                                                    @elseif($investment->status === 'confirmed') {{ __('Potwierdzona') }}
-                                                    @elseif($investment->status === 'cancelled') {{ __('Anulowana') }}
-                                                    @endif
+                                                    {{ $investment->getStatusLabel() }}
                                                 </span>
                                             </td>
                                             <td class="px-6 py-4 whitespace-nowrap">

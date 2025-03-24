@@ -17,7 +17,7 @@ class EnsureSubscriptionIsActive
      */
     public function handle(Request $request, Closure $next): Response
     {
-        if ($request->user() && $request->user()->stripe_subscription_status !== 'active') {
+        if ($request->user() && !$request->user()->hasActiveSubscription()) {
             return redirect()->route('subscription')
                 ->with('warning', 'Wymagana aktywna subskrypcja przed dostępem do tej funkcji.');
         }

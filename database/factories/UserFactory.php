@@ -37,7 +37,6 @@ class UserFactory extends Factory
             'profile_photo_path' => null,
             'current_team_id' => null,
             'role' => 'investor',
-            'verification_status' => 'unverified',
             'kyc_status' => 'pending',
             'stripe_id' => null,
             'stripe_subscription_status' => 'inactive',

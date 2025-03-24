@@ -139,6 +139,9 @@
                                     <th scope="col" class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                                         {{ __('Data') }}
                                     </th>
+                                    <th scope="col" class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+                                        {{ __('Akcje') }}
+                                    </th>
                                 </tr>
                             </thead>
                             <tbody class="bg-white divide-y divide-gray-200">
@@ -175,6 +178,26 @@
                                         </td>
                                         <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
                                             {{ $investment->created_at->format('d.m.Y H:i') }}
+                                        </td>
+                                        <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                            <div class="flex space-x-2 justify-end">
+                                                <a href="{{ route('investments.show', $investment) }}" class="text-indigo-600 hover:text-indigo-900">
+                                                    Szczegóły
+                                                </a>
+                                                @if($investment->status !== 'cancelled')
+                                                    <form method="POST" action="{{ route('investments.changeStatus', $investment) }}" class="inline">
+                                                        @csrf
+                                                        @method('PATCH')
+                                                        <select name="status" class="text-sm border-gray-300 rounded-md" onchange="this.form.submit()">
+                                                            @foreach(\App\Models\Investment::getStatusList() as $value => $label)
+                                                                <option value="{{ $value }}" {{ $investment->status === $value ? 'selected' : '' }}>
+                                                                    {{ $label }}
+                                                                </option>
+                                                            @endforeach
+                                                        </select>
+                                                    </form>
+                                                @endif
+                                            </div>
                                         </td>
                                     </tr>
                                 @endforeach

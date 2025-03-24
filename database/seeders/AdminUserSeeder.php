@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Database\Console\Seeds\WithoutModelEvents;
 use Illuminate\Database\Seeder;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 
 class AdminUserSeeder extends Seeder
 {
@@ -15,15 +16,15 @@ class AdminUserSeeder extends Seeder
     public function run(): void
     {
         // Tworzenie konta administratora
-        User::factory()->withPersonalTeam()->create([
-            'name' => 'Administrator',
-            'email' => 'admin@investclub.pl',
-            'password' => Hash::make('Test1234!'),
-            'role' => 'admin',
-            'verification_status' => 'verified',
-            'kyc_status' => 'verified',
-            'stripe_subscription_status' => 'active',
-        ]);
+        $admin = new User();
+        $admin->name = 'Administrator';
+        $admin->email = 'admin@investclub.pl';
+        $admin->email_verified_at = now();
+        $admin->password = Hash::make('Test1234!');
+        $admin->remember_token = Str::random(10);
+        $admin->role = 'Administrator';
+        $admin->kyc_status = 'verified';
+        $admin->save();
         
         $this->command->info('Pomyślnie utworzono konto administratora:');
         $this->command->info('Email: admin@investclub.pl');

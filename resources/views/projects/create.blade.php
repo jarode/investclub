@@ -92,6 +92,25 @@
                             </div>
                         </div>
                         
+                        <!-- Kategoria i lokalizacja -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <x-label for="category" value="{{ __('Kategoria') }}" />
+                                <x-input id="category" class="block mt-1 w-full" type="text" name="category" :value="old('category')" required />
+                                @error('category')
+                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            
+                            <div>
+                                <x-label for="location" value="{{ __('Lokalizacja') }}" />
+                                <x-input id="location" class="block mt-1 w-full" type="text" name="location" :value="old('location')" required />
+                                @error('location')
+                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        </div>
+                        
                         <!-- Przyciski akcji -->
                         <div class="flex items-center justify-end mt-4">
                             <a href="{{ route('projects.index') }}" class="inline-flex items-center px-4 py-2 bg-gray-300 border border-transparent rounded-md font-semibold text-xs text-gray-800 uppercase tracking-widest hover:bg-gray-400 active:bg-gray-500 focus:outline-none focus:border-gray-500 focus:ring focus:ring-gray-300 disabled:opacity-25 transition mr-2">

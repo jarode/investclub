@@ -44,6 +44,17 @@ class DashboardController extends Controller
             }
         }
         
+        if ($user->role === 'owner') {
+            $recentInvestments = Investment::whereHas('project', function ($query) use ($user) {
+                $query->where('user_id', $user->id);
+            })
+            ->with(['project', 'user'])
+            ->latest()
+            ->get();
+        } else {
+            $recentInvestments = collect();
+        }
+        
         // Przekazujemy dane o statusie użytkownika do widoku
         return view('dashboard', [
             'user' => $user,
@@ -52,6 +63,7 @@ class DashboardController extends Controller
             'subscriptionDetails' => $subscriptionDetails,
             'planName' => $this->getPlanName($user->plan_type),
             'nextPaymentDate' => $subscriptionDetails ? date('Y-m-d', $subscriptionDetails->current_period_end) : null,
+            'recentInvestments' => $recentInvestments,
         ]);
     }
     

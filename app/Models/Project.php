@@ -31,6 +31,7 @@ class Project extends Model
         'category',
         'location',
         'owner_id',
+        'current_amount',
     ];
     
     /**
@@ -42,6 +43,7 @@ class Project extends Model
         'target_amount' => 'decimal:2',
         'min_investment' => 'decimal:2',
         'returns_projection' => 'decimal:2',
+        'current_amount' => 'decimal:2',
         'start_date' => 'date',
         'end_date' => 'date',
     ];

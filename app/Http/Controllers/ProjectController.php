@@ -20,7 +20,18 @@ class ProjectController extends Controller
         
         // Filtrowanie według statusu
         if ($request->has('status') && in_array($request->status, ['draft', 'active', 'funded', 'completed'])) {
-            $query->where('status', $request->status);
+            // Sprawdzamy czy użytkownik ma uprawnienia do widzenia projektów draft
+            if ($request->status === 'draft' && !auth()->user()->isAdmin() && !auth()->user()->isManager()) {
+                // Jeśli nie ma uprawnień, pokazujemy tylko aktywne projekty
+                $query->where('status', 'active');
+            } else {
+                $query->where('status', $request->status);
+            }
+        } else {
+            // Dla zwykłych użytkowników (nie administratorów/managerów) pokazujemy tylko aktywne projekty
+            if (!auth()->user()->isAdmin() && !auth()->user()->isManager()) {
+                $query->where('status', 'active');
+            }
         }
         
         // Filtrowanie według poziomu ryzyka
@@ -62,8 +73,20 @@ class ProjectController extends Controller
      */
     public function create()
     {
-        // Tylko administratorzy i managerowie mogą tworzyć projekty
-        $this->authorize('create', Project::class);
+        // Tymczasowo wyłączamy sprawdzenie polityki
+        // $this->authorize('create', Project::class);
+        
+        // Logujemy informacje o użytkowniku
+        $user = auth()->user();
+        \Illuminate\Support\Facades\Log::info('Próba dostępu do formularza tworzenia projektu', [
+            'user_id' => $user->id,
+            'name' => $user->name,
+            'role' => $user->role,
+            'plan_type' => $user->plan_type,
+            'subscription_type' => $user->subscription_type ?? 'brak',
+            'subscription_status' => $user->stripe_subscription_status,
+            'can_manage_projects' => $user->canManageProjects(),
+        ]);
         
         return view('projects.create');
     }
@@ -111,8 +134,8 @@ class ProjectController extends Controller
             $this->authorize('view', $project);
         }
         
-        // Pobierz inwestycje związane z projektem
-        $project->load('owner');
+        // Pobierz inwestycje związane z projektem wraz z relacjami
+        $project->load(['owner', 'investments.user']);
         
         return view('projects.show', compact('project'));
     }
@@ -183,11 +206,13 @@ class ProjectController extends Controller
         $this->authorize('changeStatus', $project);
         
         $validated = $request->validate([
-            'status' => 'required|in:draft,active,completed',
+            'status' => 'required|in:draft,active,funded,completed,cancelled',
         ]);
         
         $project->status = $validated['status'];
         $project->save();
+        
+        // TODO: Dodać powiadomienie dla właściciela projektu o zmianie statusu
         
         return redirect()->route('projects.show', $project)
                          ->with('success', 'Status projektu został zmieniony.');

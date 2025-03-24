@@ -14,6 +14,7 @@ class ProjectPolicy
     public function viewAny(User $user): bool
     {
         // Każdy zalogowany użytkownik może przeglądać listę projektów
+        // Projekty draft są widoczne tylko dla właścicieli, administratorów i managerów
         return true;
     }
 

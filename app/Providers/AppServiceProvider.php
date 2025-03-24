@@ -21,6 +21,22 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
-        //
+        // Logowanie zapytań SQL
+        if (app()->environment('local')) {
+            \Illuminate\Support\Facades\DB::listen(function($query) {
+                $sql = $query->sql;
+                $bindings = $query->bindings;
+                $time = $query->time;
+                
+                // Wykluczamy niektóre zapytania, aby nie zaśmiecać logów
+                if (strpos($sql, 'migrations') === false && strpos($sql, 'sessions') === false) {
+                    \Illuminate\Support\Facades\Log::debug('Query', [
+                        'sql' => $sql,
+                        'bindings' => $bindings,
+                        'time' => $time
+                    ]);
+                }
+            });
+        }
     }
 }

@@ -93,6 +93,25 @@
                             </div>
                         </div>
                         
+                        <!-- Kategoria i lokalizacja -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <x-label for="category" value="{{ __('Kategoria') }}" />
+                                <x-input id="category" class="block mt-1 w-full" type="text" name="category" :value="old('category', $project->category)" required />
+                                @error('category')
+                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                            
+                            <div>
+                                <x-label for="location" value="{{ __('Lokalizacja') }}" />
+                                <x-input id="location" class="block mt-1 w-full" type="text" name="location" :value="old('location', $project->location)" required />
+                                @error('location')
+                                    <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                                @enderror
+                            </div>
+                        </div>
+                        
                         <!-- Status projektu (tylko dla administratorów) -->
                         @if(auth()->user()->hasRole('Administrator'))
                             <div>

@@ -272,6 +272,79 @@
             </div>
             @endif
             
+            @if($user->role === 'owner')
+                <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg p-6">
+                    <h2 class="text-2xl font-bold mb-4">{{ __('Ostatnie inwestycje w Twoich projektach') }}</h2>
+                    @if($recentInvestments->isEmpty())
+                        <p class="text-gray-500">{{ __('Brak inwestycji w Twoich projektach.') }}</p>
+                    @else
+                        <div class="overflow-x-auto">
+                            <table class="min-w-full divide-y divide-gray-200">
+                                <thead class="bg-gray-50">
+                                    <tr>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('Inwestor') }}</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('Projekt') }}</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('Kwota') }}</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('Status') }}</th>
+                                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('Data') }}</th>
+                                        <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('Akcje') }}</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="bg-white divide-y divide-gray-200">
+                                    @foreach($recentInvestments as $investment)
+                                        <tr>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="text-sm font-medium text-gray-900">{{ $investment->user->name }}</div>
+                                                <div class="text-sm text-gray-500">{{ $investment->user->email }}</div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="text-sm font-medium text-gray-900">{{ $investment->project->name }}</div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="text-sm text-gray-900">{{ number_format($investment->amount, 2, ',', ' ') }} zł</div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                                    @if($investment->status === 'interested') bg-yellow-100 text-yellow-800
+                                                    @elseif($investment->status === 'in_talks') bg-blue-100 text-blue-800
+                                                    @elseif($investment->status === 'contract_signed') bg-green-100 text-green-800
+                                                    @elseif($investment->status === 'cancelled') bg-red-100 text-red-800
+                                                    @endif">
+                                                    {{ $investment->getStatusLabel() }}
+                                                </span>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap">
+                                                <div class="text-sm text-gray-900">{{ $investment->created_at->format('d.m.Y H:i') }}</div>
+                                            </td>
+                                            <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                <div class="flex space-x-2 justify-end">
+                                                    <a href="{{ route('investments.show', $investment) }}" class="text-indigo-600 hover:text-indigo-900">
+                                                        {{ __('Szczegóły') }}
+                                                    </a>
+                                                    @if($investment->status !== 'cancelled')
+                                                        <form method="POST" action="{{ route('investments.changeStatus', $investment) }}" class="inline">
+                                                            @csrf
+                                                            @method('PATCH')
+                                                            <select name="status" class="text-sm border-gray-300 rounded-md" onchange="this.form.submit()">
+                                                                @foreach(\App\Models\Investment::getStatusList() as $value => $label)
+                                                                    <option value="{{ $value }}" {{ $investment->status === $value ? 'selected' : '' }}>
+                                                                        {{ $label }}
+                                                                    </option>
+                                                                @endforeach
+                                                            </select>
+                                                        </form>
+                                                    @endif
+                                                </div>
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @endif
+                </div>
+            @endif
+            
         </div>
     </div>
 </x-app-layout>

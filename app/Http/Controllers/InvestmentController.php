@@ -7,6 +7,7 @@ use App\Models\Project;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Foundation\Auth\Access\AuthorizesRequests;
+use App\Notifications\NewInvestmentNotification;
 
 class InvestmentController extends Controller
 {
@@ -103,9 +104,9 @@ class InvestmentController extends Controller
         $validated = $request->validate([
             'project_id' => 'required|exists:projects,id',
             'amount' => 'required|numeric|min:0',
-            'contact_preference' => 'required|string|in:email,phone',
-            'contact_details' => 'required|string|max:255',
-            'notes' => 'nullable|string|max:500',
+            'contact_preference' => 'required|string|in:email,phone,meeting',
+            'contact_details' => 'required|string',
+            'notes' => 'nullable|string|max:1000',
         ]);
         
         // Pobierz projekt
@@ -134,6 +135,11 @@ class InvestmentController extends Controller
             'contact_details' => $validated['contact_details'],
             'notes' => $validated['notes'] ?? null,
         ]);
+
+        // Wysyłamy powiadomienie do właściciela projektu, o ile istnieje
+        if ($project->owner) {
+            $project->owner->notify(new NewInvestmentNotification($investment));
+        }
         
         return redirect()->route('investments.show', $investment)
                          ->with('success', 'Twoje zainteresowanie zostało zarejestrowane.');
@@ -144,13 +150,36 @@ class InvestmentController extends Controller
      */
     public function show(Investment $investment)
     {
-        // Sprawdź czy użytkownik może oglądać szczegóły inwestycji
-        $this->authorize('view', $investment);
+        \Illuminate\Support\Facades\Log::info('InvestmentController@show - rozpoczęcie', [
+            'user_id' => auth()->id(),
+            'user_email' => auth()->user()->email,
+            'user_role' => auth()->user()->role,
+            'investment_id' => $investment->id,
+            'investment_status' => $investment->status,
+            'project_id' => $investment->project_id,
+            'project_owner_id' => $investment->project->owner_id,
+            'is_project_owner' => (auth()->id() === $investment->project->owner_id) ? 'TAK' : 'NIE',
+            'is_admin' => auth()->user()->isAdmin() ? 'TAK' : 'NIE'
+        ]);
         
-        // Pobierz inwestycję z relacjami
-        $investment->load(['project', 'user']);
-        
-        return view('investments.show', compact('investment'));
+        try {
+            // Sprawdź czy użytkownik może oglądać szczegóły inwestycji
+            $this->authorize('view', $investment);
+            
+            \Illuminate\Support\Facades\Log::info('InvestmentController@show - autoryzacja pomyślna');
+            
+            // Pobierz inwestycję z relacjami
+            $investment->load(['project', 'user']);
+            
+            return view('investments.show', compact('investment'));
+        } catch (\Exception $e) {
+            \Illuminate\Support\Facades\Log::error('InvestmentController@show - błąd autoryzacji', [
+                'error' => $e->getMessage(),
+                'trace' => $e->getTraceAsString()
+            ]);
+            
+            throw $e;
+        }
     }
 
     /**
@@ -217,68 +246,53 @@ class InvestmentController extends Controller
      */
     public function changeStatus(Request $request, Investment $investment)
     {
-        // Sprawdź czy użytkownik może zmieniać status inwestycji
+        // Sprawdź uprawnienia na podstawie polityki dostępu
         $this->authorize('changeStatus', $investment);
-        
-        // Walidacja danych
+
         $validated = $request->validate([
-            'status' => 'required|in:declared,paid,confirmed,cancelled',
+            'status' => 'required|in:' . implode(',', array_keys(Investment::getStatusList())),
+        ]);
+
+        // Pobieramy obecny status przed aktualizacją
+        $previousStatus = $investment->status;
+        
+        // Aktualizujemy status inwestycji
+        $investment->update([
+            'status' => $validated['status']
         ]);
         
-        // Stary status
-        $oldStatus = $investment->status;
+        // Pobieramy projekt
+        $project = $investment->project;
         
-        // Nowy status
-        $newStatus = $validated['status'];
-        
-        // Jeśli status się nie zmienił, nic nie rób
-        if ($oldStatus === $newStatus) {
-            return redirect()->route('investments.show', $investment)
-                ->with('info', 'Status inwestycji nie został zmieniony.');
-        }
-        
-        // Przeprowadź odpowiednie operacje zależnie od zmiany statusu
-        
-        // Jeśli zmiana na potwierdzoną
-        if ($newStatus === 'confirmed' && $oldStatus !== 'confirmed') {
-            // Dodaj kwotę do projektu
-            $project = $investment->project;
-            $project->current_amount += $investment->amount;
-            
-            // Jeśli projekt został w pełni sfinansowany, zmień jego status
-            if ($project->current_amount >= $project->target_amount) {
-                $project->status = 'funded';
-            }
-            
+        // Jeśli status zmienił się na "contract_signed" (umowa podpisana), zwiększamy kwotę zebraną w projekcie
+        if ($validated['status'] === 'contract_signed' && $previousStatus !== 'contract_signed') {
+            $project->current_amount = $project->current_amount + $investment->amount;
             $project->save();
+            
+            \Illuminate\Support\Facades\Log::info('Zwiększono kwotę zebraną projektu', [
+                'project_id' => $project->id,
+                'project_name' => $project->name,
+                'previous_amount' => $project->current_amount - $investment->amount,
+                'new_amount' => $project->current_amount,
+                'investment_amount' => $investment->amount,
+                'investment_id' => $investment->id
+            ]);
         }
-        
-        // Jeśli zmiana z potwierdzonej na inny status
-        if ($oldStatus === 'confirmed' && $newStatus !== 'confirmed') {
-            // Odejmij kwotę od projektu
-            $project = $investment->project;
-            $project->current_amount -= $investment->amount;
-            
-            // Jeśli projekt był w pełni sfinansowany, a teraz już nie jest, zmień jego status z powrotem na aktywny
-            if ($project->status === 'funded' && $project->current_amount < $project->target_amount) {
-                $project->status = 'active';
-            }
-            
+        // Jeśli status zmienił się z "contract_signed" na inny, zmniejszamy kwotę zebraną w projekcie
+        elseif ($previousStatus === 'contract_signed' && $validated['status'] !== 'contract_signed') {
+            $project->current_amount = max(0, $project->current_amount - $investment->amount);
             $project->save();
+            
+            \Illuminate\Support\Facades\Log::info('Zmniejszono kwotę zebraną projektu', [
+                'project_id' => $project->id,
+                'project_name' => $project->name,
+                'previous_amount' => $project->current_amount + $investment->amount,
+                'new_amount' => $project->current_amount,
+                'investment_amount' => $investment->amount,
+                'investment_id' => $investment->id
+            ]);
         }
-        
-        // Jeśli zmiana na anulowaną i była płatność, zwróć środki
-        if ($newStatus === 'cancelled' && $oldStatus === 'paid') {
-            $user = $investment->user;
-            $user->wallet_balance += $investment->amount;
-            $user->save();
-        }
-        
-        // Aktualizuj status inwestycji
-        $investment->status = $newStatus;
-        $investment->save();
-        
-        return redirect()->route('investments.show', $investment)
-                         ->with('success', 'Status inwestycji został zmieniony.');
+
+        return back()->with('success', 'Status inwestycji został zaktualizowany.');
     }
 }

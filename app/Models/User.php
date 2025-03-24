@@ -79,7 +79,7 @@ class User extends Authenticatable
      */
     public function isAdmin(): bool
     {
-        return $this->role === 'admin';
+        return $this->role === 'Administrator' || $this->role === 'admin';
     }
 
     /**
@@ -119,7 +119,16 @@ class User extends Authenticatable
      */
     public function hasActiveSubscription(): bool
     {
-        return $this->stripe_subscription_status === 'active';
+        // Sprawdzamy czy używamy nowego pola subscription_status czy starszego stripe_subscription_status
+        if (isset($this->attributes['subscription_status'])) {
+            return $this->subscription_status === 'active';
+        }
+        
+        if (isset($this->attributes['stripe_subscription_status'])) {
+            return $this->stripe_subscription_status === 'active';
+        }
+        
+        return false;
     }
     
     /**
@@ -140,7 +149,16 @@ class User extends Authenticatable
      */
     public function hasPlanType(string $planType): bool
     {
-        return $this->plan_type === $planType;
+        // Sprawdzamy czy używamy nowego pola subscription_type czy starszego plan_type
+        if (isset($this->attributes['subscription_type'])) {
+            return $this->subscription_type === $planType;
+        }
+        
+        if (isset($this->attributes['plan_type'])) {
+            return $this->plan_type === $planType;
+        }
+        
+        return false;
     }
     
     /**
@@ -151,7 +169,16 @@ class User extends Authenticatable
      */
     public function hasAnyPlanType(array $planTypes): bool
     {
-        return in_array($this->plan_type, $planTypes);
+        // Sprawdzamy czy używamy nowego pola subscription_type czy starszego plan_type
+        if (isset($this->attributes['subscription_type'])) {
+            return in_array($this->subscription_type, $planTypes);
+        }
+        
+        if (isset($this->attributes['plan_type'])) {
+            return in_array($this->plan_type, $planTypes);
+        }
+        
+        return false;
     }
     
     /**
@@ -161,6 +188,10 @@ class User extends Authenticatable
      */
     public function hasFreePlan(): bool
     {
+        if (isset($this->attributes['subscription_type'])) {
+            return $this->hasActiveSubscription() && $this->subscription_type === 'free-investor';
+        }
+        
         return $this->hasActiveSubscription() && $this->plan_type === 'free-investor';
     }
     
@@ -171,6 +202,10 @@ class User extends Authenticatable
      */
     public function isProjectOwner(): bool
     {
+        if (isset($this->attributes['subscription_type'])) {
+            return $this->hasActiveSubscription() && $this->subscription_type === 'premium-owner';
+        }
+        
         return $this->hasActiveSubscription() && $this->plan_type === 'premium-owner';
     }
     
@@ -181,6 +216,10 @@ class User extends Authenticatable
      */
     public function isPremiumInvestor(): bool
     {
+        if (isset($this->attributes['subscription_type'])) {
+            return $this->hasActiveSubscription() && $this->subscription_type === 'premium-investor';
+        }
+        
         return $this->hasActiveSubscription() && $this->plan_type === 'premium-investor';
     }
     
@@ -207,8 +246,17 @@ class User extends Authenticatable
      */
     public function canManageProjects(): bool
     {
-        return $this->plan_type === 'premium-owner' ||
-               $this->role === 'admin';
+        // Dla administratora zawsze true
+        if ($this->role === 'Administrator' || $this->role === 'admin') {
+            return true;
+        }
+        
+        // Sprawdzamy czy używamy nowego pola subscription_type czy starszego plan_type
+        if (isset($this->attributes['subscription_type'])) {
+            return $this->subscription_type === 'premium-owner';
+        }
+        
+        return $this->plan_type === 'premium-owner';
     }
 
     /**

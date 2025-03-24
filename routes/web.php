@@ -6,6 +6,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\InvestmentController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\StripeController;
+use App\Http\Controllers\Admin\ProjectVerificationController;
 
 /*
 |--------------------------------------------------------------------------
@@ -22,8 +23,21 @@ Route::get('/', function () {
     return view('welcome');
 });
 
+// Dodajemy tymczasową trasę bez middleware do debugowania
+Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified'])->get('/projects/create-debug', [ProjectController::class, 'create'])->name('projects.create.debug');
+
+// Dodajemy jawną trasę dla tworzenia projektów, aby naprawić problem z dostępem
+Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified', 'verified.kyc'])->get('/projects/create', [ProjectController::class, 'create'])->name('projects.create');
+
 Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // Trasy dla weryfikacji projektów przez administratora
+    Route::middleware(['role:Administrator'])->prefix('admin')->name('admin.')->group(function () {
+        Route::get('/projects/verification', [ProjectVerificationController::class, 'index'])->name('projects.verification');
+        Route::patch('/projects/{project}/accept', [ProjectVerificationController::class, 'accept'])->name('projects.accept');
+        Route::patch('/projects/{project}/reject', [ProjectVerificationController::class, 'reject'])->name('projects.reject');
+    });
 
     // Role-specific dashboards
     Route::get('/admin/dashboard', function() {
@@ -45,14 +59,23 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
         // Podstawowe projekty dostępne dla wszystkich użytkowników z aktywną subskrypcją
         Route::resource('projects', ProjectController::class, ['only' => ['index', 'show']]);
         
-        // Trasy dla inwestycji - podstawowe operacje dostępne dla wszystkich użytkowników
-        Route::resource('investments', InvestmentController::class, ['only' => ['index', 'show']]);
+        // Trasy dla inwestycji - tylko dla tworzenia nowych inwestycji (wymaga subskrypcji)
+        Route::resource('investments', InvestmentController::class, ['only' => ['create', 'store', 'index', 'edit', 'update', 'destroy']]);
     });
+    
+    // Trasy dla inwestycji - dostępne dla wszystkich zalogowanych użytkowników (właścicieli projektów i inwestorów)
+    Route::get('investments/{investment}', [InvestmentController::class, 'show'])->name('investments.show');
+    Route::patch('investments/{investment}/change-status', [InvestmentController::class, 'changeStatus'])->name('investments.changeStatus');
     
     // Trasy dla właścicieli projektów z planem O-Premium
     Route::middleware(['verified.kyc', 'subscription.plan:owner'])->group(function () {
-        // Zarządzanie projektami
-        Route::resource('projects', ProjectController::class, ['except' => ['index', 'show']]);
+        // Jawne definicje tras dla projektów zamiast resource (bez create, które jest zdefiniowane powyżej)
+        Route::post('/projects', [ProjectController::class, 'store'])->name('projects.store');
+        Route::get('/projects/{project}/edit', [ProjectController::class, 'edit'])->name('projects.edit');
+        Route::put('/projects/{project}', [ProjectController::class, 'update'])->name('projects.update');
+        Route::delete('/projects/{project}', [ProjectController::class, 'destroy'])->name('projects.destroy');
+        
+        // Inne trasy pozostają bez zmian
         Route::patch('/projects/{project}/change-status', [ProjectController::class, 'changeStatus'])
             ->name('projects.changeStatus');
         
@@ -66,11 +89,6 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
         // Ekskluzywne projekty
         Route::get('/exclusive-projects', [ProjectController::class, 'exclusive'])
             ->name('projects.exclusive');
-        
-        // Zaawansowane operacje inwestycyjne
-        Route::resource('investments', InvestmentController::class, ['except' => ['index', 'show']]);
-        Route::patch('/investments/{investment}/change-status', [InvestmentController::class, 'changeStatus'])
-            ->name('investments.changeStatus');
     });
     
     // Trasy dotyczące Stripe

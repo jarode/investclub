@@ -111,6 +111,18 @@
                         </div>
                     </div>
                     
+                    <!-- Kategoria i lokalizacja -->
+                    <div class="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
+                        <div class="p-4 bg-gray-50 rounded-lg">
+                            <h4 class="text-sm font-medium text-gray-500">Kategoria</h4>
+                            <p class="text-lg font-semibold">{{ $project->category }}</p>
+                        </div>
+                        <div class="p-4 bg-gray-50 rounded-lg">
+                            <h4 class="text-sm font-medium text-gray-500">Lokalizacja</h4>
+                            <p class="text-lg font-semibold">{{ $project->location }}</p>
+                        </div>
+                    </div>
+                    
                     <!-- Prognoza zwrotu -->
                     <div class="mb-6 p-4 bg-indigo-50 rounded-lg">
                         <h3 class="text-lg font-medium text-indigo-900 mb-2">Prognozowany zwrot</h3>
@@ -231,6 +243,101 @@
                                     </div>
                                 </div>
                             @endif
+                        </div>
+                    @endif
+                    
+                    <!-- Lista inwestycji w projekcie -->
+                    @php
+                        $isAdmin = auth()->user()->isAdmin();
+                        $isProjectOwner = auth()->user()->id === $project->owner_id;
+                        $userInvestments = $project->investments->where('user_id', auth()->id());
+                        
+                        // Ustal, które inwestycje pokazać
+                        $investmentsToShow = $isAdmin || $isProjectOwner 
+                            ? $project->investments 
+                            : $userInvestments;
+                    @endphp
+                    
+                    @if($investmentsToShow->isNotEmpty())
+                        <div class="mt-8">
+                            <h3 class="text-lg font-medium text-gray-900 mb-4">
+                                @if($isAdmin || $isProjectOwner)
+                                    Inwestycje w projekcie
+                                @else
+                                    Twoje inwestycje w tym projekcie
+                                @endif
+                            </h3>
+                            <div class="overflow-x-auto">
+                                <table class="min-w-full divide-y divide-gray-200">
+                                    <thead class="bg-gray-50">
+                                        <tr>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Inwestor</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kwota</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
+                                            @if(auth()->user()->id === $project->owner_id)
+                                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Akcje</th>
+                                            @endif
+                                        </tr>
+                                    </thead>
+                                    <tbody class="bg-white divide-y divide-gray-200">
+                                        @foreach($investmentsToShow as $investment)
+                                            <tr>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <div class="text-sm font-medium text-gray-900">{{ $investment->user->name }}</div>
+                                                    <div class="text-sm text-gray-500">{{ $investment->user->email }}</div>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <div class="text-sm text-gray-900">{{ number_format($investment->amount, 2, ',', ' ') }} zł</div>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full 
+                                                        @if($investment->status === 'interested') bg-yellow-100 text-yellow-800
+                                                        @elseif($investment->status === 'in_talks') bg-blue-100 text-blue-800
+                                                        @elseif($investment->status === 'contract_signed') bg-green-100 text-green-800
+                                                        @elseif($investment->status === 'cancelled') bg-red-100 text-red-800
+                                                        @endif">
+                                                        {{ $investment->getStatusLabel() }}
+                                                    </span>
+                                                </td>
+                                                <td class="px-6 py-4 whitespace-nowrap">
+                                                    <div class="text-sm text-gray-900">{{ $investment->created_at->format('d.m.Y H:i') }}</div>
+                                                </td>
+                                                @if(auth()->user()->id === $project->owner_id)
+                                                    <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                                        <div class="flex space-x-2 justify-end">
+                                                            <a href="{{ route('investments.show', $investment) }}" class="text-indigo-600 hover:text-indigo-900">
+                                                                Szczegóły
+                                                            </a>
+                                                            @if($investment->status !== 'cancelled')
+                                                                <form method="POST" action="{{ route('investments.changeStatus', $investment) }}" class="inline">
+                                                                    @csrf
+                                                                    @method('PATCH')
+                                                                    <select name="status" class="text-sm border-gray-300 rounded-md" onchange="this.form.submit()">
+                                                                        @foreach(\App\Models\Investment::getStatusList() as $value => $label)
+                                                                            <option value="{{ $value }}" {{ $investment->status === $value ? 'selected' : '' }}>
+                                                                                {{ $label }}
+                                                                            </option>
+                                                                        @endforeach
+                                                                    </select>
+                                                                </form>
+                                                            @endif
+                                                        </div>
+                                                    </td>
+                                                @endif
+                                            </tr>
+                                        @endforeach
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                    @elseif(auth()->user()->id === $project->owner_id && $project->investments->isEmpty())
+                        <div class="mt-8 p-4 bg-gray-50 rounded-lg">
+                            <p class="text-gray-600 text-center">Ten projekt nie ma jeszcze żadnych inwestycji.</p>
+                        </div>
+                    @elseif(!$isAdmin && !$isProjectOwner && $userInvestments->isEmpty())
+                        <div class="mt-8 p-4 bg-gray-50 rounded-lg">
+                            <p class="text-gray-600 text-center">Nie masz jeszcze żadnych inwestycji w tym projekcie.</p>
                         </div>
                     @endif
                     

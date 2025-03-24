@@ -48,27 +48,39 @@
                         </span>
                         
                         <!-- Zmiana statusu dla właściciela projektu lub admina -->
-                        @can('changeStatus', $investment)
-                            <div class="mt-4 p-4 border border-gray-200 rounded-md">
-                                <h3 class="text-lg font-medium mb-2">{{ __('Zmień status inwestycji') }}</h3>
-                                <form method="POST" action="{{ route('investments.changeStatus', $investment) }}" class="flex items-center space-x-4">
-                                    @csrf
-                                    @method('PATCH')
-                                    <select name="status" class="rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
-                                        <option value="interested" {{ $investment->status === 'interested' ? 'selected' : '' }}>{{ __('Zainteresowany') }}</option>
-                                        <option value="in_talks" {{ $investment->status === 'in_talks' ? 'selected' : '' }}>{{ __('W trakcie rozmów') }}</option>
-                                        <option value="contract_signed" {{ $investment->status === 'contract_signed' ? 'selected' : '' }}>{{ __('Umowa podpisana') }}</option>
-                                        <option value="cancelled" {{ $investment->status === 'cancelled' ? 'selected' : '' }}>{{ __('Anulowano') }}</option>
-                                    </select>
-                                    <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
-                                        {{ __('Zapisz zmianę') }}
-                                    </button>
-                                </form>
-                                <p class="mt-2 text-sm text-gray-600">
-                                    <strong>Uwaga:</strong> Aktualizuj status w miarę postępu rozmów z inwestorem.
-                                </p>
+                        @if($investment->project->user_id === auth()->id() || auth()->user()->isAdmin())
+                            <div class="mt-6 bg-white shadow sm:rounded-lg">
+                                <div class="px-4 py-5 sm:p-6">
+                                    <h3 class="text-lg font-medium leading-6 text-gray-900">
+                                        {{ __('Zarządzanie inwestycją') }}
+                                    </h3>
+                                    <div class="mt-2 max-w-xl text-sm text-gray-500">
+                                        <p>{{ __('Aktualizuj status inwestycji w miarę postępu rozmów z inwestorem.') }}</p>
+                                    </div>
+                                    <form method="POST" action="{{ route('investments.changeStatus', $investment) }}" class="mt-5">
+                                        @csrf
+                                        @method('PATCH')
+                                        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+                                            <div>
+                                                <label for="status" class="block text-sm font-medium text-gray-700">{{ __('Status inwestycji') }}</label>
+                                                <select id="status" name="status" class="mt-1 block w-full pl-3 pr-10 py-2 text-base border-gray-300 focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 sm:text-sm rounded-md">
+                                                    @foreach(\App\Models\Investment::getStatusList() as $value => $label)
+                                                        <option value="{{ $value }}" {{ $investment->status === $value ? 'selected' : '' }}>
+                                                            {{ $label }}
+                                                        </option>
+                                                    @endforeach
+                                                </select>
+                                            </div>
+                                            <div class="flex items-end">
+                                                <button type="submit" class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
+                                                    {{ __('Aktualizuj status') }}
+                                                </button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
                             </div>
-                        @endcan
+                        @endif
                     </div>
                     
                     <!-- Dane inwestycji -->

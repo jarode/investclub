@@ -57,6 +57,31 @@
                             </p>
                         </div>
 
+                        <!-- Preferowana metoda kontaktu -->
+                        <div class="mb-6">
+                            <label for="contact_preference" class="block text-sm font-medium text-gray-700 mb-1">{{ __('Preferowana metoda kontaktu') }}</label>
+                            <select id="contact_preference" name="contact_preference" class="rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 w-full" required>
+                                <option value="">{{ __('Wybierz metodę kontaktu') }}</option>
+                                <option value="email" {{ old('contact_preference') == 'email' ? 'selected' : '' }}>{{ __('Email') }}</option>
+                                <option value="phone" {{ old('contact_preference') == 'phone' ? 'selected' : '' }}>{{ __('Telefon') }}</option>
+                            </select>
+                            @error('contact_preference')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <!-- Dane kontaktowe -->
+                        <div class="mb-6">
+                            <label for="contact_details" class="block text-sm font-medium text-gray-700 mb-1">{{ __('Dane kontaktowe') }}</label>
+                            <input type="text" id="contact_details" name="contact_details" value="{{ old('contact_details') }}" class="rounded-md shadow-sm border-gray-300 focus:border-indigo-300 focus:ring focus:ring-indigo-200 focus:ring-opacity-50 w-full" required>
+                            @error('contact_details')
+                                <p class="text-red-500 text-xs mt-1">{{ $message }}</p>
+                            @enderror
+                            <p class="text-sm text-gray-500 mt-1">
+                                {{ __('Podaj swój adres email lub numer telefonu w zależności od wybranej metody kontaktu') }}
+                            </p>
+                        </div>
+
                         <!-- Referencja transakcji -->
                         <div class="mb-6">
                             <label for="transaction_reference" class="block text-sm font-medium text-gray-700 mb-1">{{ __('Referencja transakcji (opcjonalnie)') }}</label>

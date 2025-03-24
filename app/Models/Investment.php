@@ -129,4 +129,15 @@ class Investment extends Model
             self::STATUS_CANCELLED => 'Anulowana',
         ];
     }
+
+    public function getStatusLabel()
+    {
+        return match($this->status) {
+            self::STATUS_INTERESTED => __('Zainteresowany'),
+            self::STATUS_IN_TALKS => __('W trakcie rozmów'),
+            self::STATUS_CONTRACT_SIGNED => __('Umowa podpisana'),
+            self::STATUS_CANCELLED => __('Anulowana'),
+            default => $this->status,
+        };
+    }
 }
