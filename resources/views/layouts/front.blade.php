@@ -35,14 +35,14 @@
                                 <x-nav-link :href="route('welcome')" :active="request()->routeIs('welcome')">
                                     {{ __('Strona główna') }}
                                 </x-nav-link>
-                                <x-nav-link href="#projects">
-                                    {{ __('Projekty') }}
+                                <x-nav-link href="#jak-to-dziala">
+                                    {{ __('Jak to działa') }}
                                 </x-nav-link>
-                                <x-nav-link href="#about">
-                                    {{ __('O nas') }}
+                                <x-nav-link href="#korzyści">
+                                    {{ __('Korzyści') }}
                                 </x-nav-link>
-                                <x-nav-link href="#contact">
-                                    {{ __('Kontakt') }}
+                                <x-nav-link href="#inwestycje">
+                                    {{ __('Inwestycje') }}
                                 </x-nav-link>
                             </div>
                         </div>
@@ -106,14 +106,14 @@
                         <x-responsive-nav-link :href="route('welcome')" :active="request()->routeIs('welcome')">
                             {{ __('Strona główna') }}
                         </x-responsive-nav-link>
-                        <x-responsive-nav-link href="#projects">
-                            {{ __('Projekty') }}
+                        <x-responsive-nav-link href="#jak-to-dziala">
+                            {{ __('Jak to działa') }}
                         </x-responsive-nav-link>
-                        <x-responsive-nav-link href="#about">
-                            {{ __('O nas') }}
+                        <x-responsive-nav-link href="#korzyści">
+                            {{ __('Korzyści') }}
                         </x-responsive-nav-link>
-                        <x-responsive-nav-link href="#contact">
-                            {{ __('Kontakt') }}
+                        <x-responsive-nav-link href="#inwestycje">
+                            {{ __('Inwestycje') }}
                         </x-responsive-nav-link>
                     </div>
 

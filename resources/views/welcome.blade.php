@@ -1,35 +1,48 @@
 <x-front-layout>
     <!-- Hero Section -->
-    <div class="relative overflow-hidden bg-gradient-to-r from-indigo-500 to-purple-600">
+    <div class="relative overflow-hidden bg-gradient-to-r from-indigo-700 to-purple-800">
         <!-- Dekoracyjne elementy tła -->
         <div class="absolute inset-0">
-            <div class="absolute inset-0 bg-gradient-to-r from-indigo-500/30 to-purple-600/30"></div>
+            <div class="absolute inset-0 bg-gradient-to-b from-indigo-900/40 to-purple-900/40"></div>
             <div class="absolute inset-0 bg-[url('data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNjAiIGhlaWdodD0iNjAiIHZpZXdCb3g9IjAgMCA2MCA2MCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48ZyBzdHJva2U9IiNmZmYiIHN0cm9rZS13aWR0aD0iMS41IiBmaWxsPSJub25lIiBmaWxsLXJ1bGU9ImV2ZW5vZGQiIG9wYWNpdHk9Ii4yIiBzdHJva2UtbGluZWNhcD0icm91bmQiPjxwYXRoIGQ9Ik0wIDBoNjBtLTYwIDEyaDYwbS02MCAyNGg2MG0tNjAgMTJoNjBtLTYwIDEyaDYwTTAgMHY2MG0xMi02MHY2MG0yNC02MHY2MG0xMi02MHY2MG0xMi02MHY2MCIvPjwvZz48L3N2Zz4=')]"></div>
         </div>
         
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative">
-            <div class="py-16 md:py-24">
-                <div class="text-center">
-                    <div class="inline-flex items-center px-4 py-2 rounded-full bg-white/10 backdrop-blur-sm mb-8">
-                        <span class="text-white text-sm font-medium">Ekskluzywny Klub Inwestorów</span>
+            <div class="py-24 md:py-36">
+                <div class="text-center max-w-3xl mx-auto">
+                    <!-- Badge -->
+                    <div class="inline-flex items-center px-5 py-2.5 rounded-full bg-white/20 backdrop-blur-sm mb-10">
+                        <span class="text-white text-sm font-medium tracking-wide">Ekskluzywny Klub Inwestorów</span>
                     </div>
-                    <h1 class="text-3xl font-extrabold tracking-tight text-white sm:text-4xl md:text-5xl">
+                    
+                    <!-- Główne hasło -->
+                    <h1 class="text-4xl font-extrabold tracking-tight text-white sm:text-5xl md:text-6xl">
                         Elitarna społeczność <span class="text-indigo-200">inwestorów</span>
                     </h1>
-                    <p class="mt-6 max-w-lg mx-auto text-lg text-indigo-100 sm:max-w-2xl">
-                        Dołącz do ekskluzywnego grona inwestorów i uzyskaj dostęp do wyselekcjonowanych projektów inwestycyjnych. Tylko dla zweryfikowanych członków.
+                    
+                    <!-- Motto z wyraźnym kontrastem -->
+                    <div class="mt-8 bg-indigo-800/70 backdrop-blur-sm py-5 px-8 rounded-xl border border-indigo-400/30 mx-auto max-w-md">
+                        <p class="text-2xl md:text-3xl font-bold text-white tracking-wide">
+                            <span class="text-indigo-300">LINK</span> + <span class="text-indigo-300">INVEST</span> = <span class="text-white">LINV</span>
+                        </p>
+                    </div>
+                    
+                    <!-- Dodatkowy opis -->
+                    <p class="mt-8 text-lg text-indigo-100 sm:text-xl">
+                        Dołącz do ekskluzywnego grona inwestorów i uzyskaj dostęp do wyselekcjonowanych projektów inwestycyjnych. 
                     </p>
-                    <div class="mt-8 max-w-md mx-auto sm:flex sm:justify-center">
-                        <div class="rounded-md shadow">
-                            <a href="{{ route('register') }}" class="w-full flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-indigo-700 bg-white hover:bg-gray-50 md:text-lg">
-                                Aplikuj o członkostwo
-                            </a>
-                        </div>
-                        <div class="mt-3 rounded-md shadow sm:mt-0 sm:ml-3">
-                            <a href="#jak-to-dziala" class="w-full flex items-center justify-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-800 hover:bg-indigo-700 md:text-lg">
-                                Poznaj zasady
-                            </a>
-                        </div>
+                    <p class="mt-2 text-lg text-indigo-200 sm:text-xl">
+                        Tylko dla zweryfikowanych członków.
+                    </p>
+                    
+                    <!-- Przyciski CTA -->
+                    <div class="mt-12 flex flex-col sm:flex-row justify-center gap-5 sm:gap-6">
+                        <a href="{{ route('register') }}" class="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 border border-transparent text-base font-medium rounded-lg text-indigo-700 bg-white hover:bg-indigo-50 shadow-lg md:text-lg transition duration-300">
+                            Aplikuj o członkostwo
+                        </a>
+                        <a href="#jak-to-dziala" class="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 border border-indigo-400 text-base font-medium rounded-lg text-white hover:bg-indigo-800 md:text-lg transition duration-300">
+                            Poznaj zasady
+                        </a>
                     </div>
                 </div>
             </div>
@@ -37,17 +50,17 @@
     </div>
 
     <!-- Investments Preview Section -->
-    <div class="py-12 bg-white">
+    <div id="inwestycje" class="py-20 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center">
                 <h2 class="text-base text-indigo-600 font-semibold tracking-wide uppercase">Aktualne inwestycje</h2>
-                <p class="mt-2 text-2xl leading-8 font-bold tracking-tight text-gray-900 sm:text-3xl">
+                <p class="mt-3 text-3xl leading-8 font-bold tracking-tight text-gray-900 sm:text-4xl">
                     Najlepsze projekty inwestycyjne
                 </p>
             </div>
 
-            <div class="mt-10">
-                <div class="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div class="mt-14">
+                <div class="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3">
                     <!-- Inwestycja 1 -->
                     <div class="bg-white shadow-lg rounded-lg overflow-hidden transform transition-all duration-300 hover:scale-105 hover:shadow-xl">
                         <div class="relative h-48">
@@ -173,9 +186,9 @@
     </div>
 
     <!-- Stats Section -->
-    <div class="bg-indigo-900 py-12">
+    <div class="bg-indigo-900 py-20">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
+            <div class="grid grid-cols-2 md:grid-cols-4 gap-10">
                 <div class="text-center">
                     <div class="text-3xl font-extrabold text-white md:text-4xl">250+</div>
                     <div class="mt-2 text-sm text-indigo-300">Zweryfikowanych członków</div>
@@ -197,20 +210,20 @@
     </div>
 
     <!-- How it Works Section -->
-    <div id="jak-to-dziala" class="py-16 bg-gray-50">
+    <div id="jak-to-dziala" class="py-24 bg-gray-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-12">
+            <div class="text-center mb-16">
                 <h2 class="text-base text-indigo-600 font-semibold tracking-wide uppercase">Jak to działa</h2>
-                <p class="mt-2 text-2xl leading-8 font-bold tracking-tight text-gray-900 sm:text-3xl">
+                <p class="mt-3 text-3xl leading-8 font-bold tracking-tight text-gray-900 sm:text-4xl">
                     LINK + INVEST = LINV
                 </p>
-                <p class="mt-4 max-w-2xl text-xl text-gray-500 mx-auto">
+                <p class="mt-5 max-w-2xl text-xl text-gray-500 mx-auto">
                     Łączymy inwestorów z wyselekcjonowanymi projektami w ramach ekskluzywnego klubu inwestycyjnego
                 </p>
             </div>
 
-            <div class="mt-10">
-                <div class="grid grid-cols-1 gap-10 md:grid-cols-2 lg:grid-cols-4">
+            <div class="mt-14">
+                <div class="grid grid-cols-1 gap-12 md:grid-cols-2 lg:grid-cols-4">
                     <!-- Step 1 -->
                     <div class="relative">
                         <div class="absolute flex items-center justify-center h-12 w-12 rounded-md bg-indigo-600 text-white">
@@ -265,8 +278,8 @@
                 </div>
             </div>
             
-            <div class="mt-16 text-center">
-                <div class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700">
+            <div class="mt-20 text-center">
+                <div class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition duration-300">
                     <a href="{{ route('register') }}">Dołącz do elitarnego grona</a>
                 </div>
             </div>
@@ -274,17 +287,17 @@
     </div>
 
     <!-- Benefits Section -->
-    <div class="py-16 bg-white">
+    <div id="korzyści" class="py-24 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div class="text-center mb-12">
+            <div class="text-center mb-16">
                 <h2 class="text-base text-indigo-600 font-semibold tracking-wide uppercase">Dlaczego LINV?</h2>
-                <p class="mt-2 text-2xl leading-8 font-bold tracking-tight text-gray-900 sm:text-3xl">
+                <p class="mt-3 text-3xl leading-8 font-bold tracking-tight text-gray-900 sm:text-4xl">
                     Korzyści członkostwa
                 </p>
             </div>
 
-            <div class="mt-10">
-                <div class="grid grid-cols-1 gap-8 md:grid-cols-3">
+            <div class="mt-14">
+                <div class="grid grid-cols-1 gap-10 md:grid-cols-3">
                     <!-- Benefit 1 -->
                     <div class="bg-gray-50 p-8 rounded-lg shadow-sm">
                         <div class="flex items-center justify-center h-12 w-12 rounded-md bg-indigo-600 text-white mb-5">
@@ -330,19 +343,19 @@
 
     <!-- CTA Section -->
     <div class="bg-indigo-700">
-        <div class="max-w-7xl mx-auto py-12 px-4 sm:px-6 lg:py-16 lg:px-8 lg:flex lg:items-center lg:justify-between">
-            <h2 class="text-2xl font-extrabold tracking-tight text-white sm:text-3xl">
+        <div class="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:py-24 lg:px-8 lg:flex lg:items-center lg:justify-between">
+            <h2 class="text-2xl font-extrabold tracking-tight text-white sm:text-3xl lg:text-4xl">
                 <span class="block">Gotowy na nowe możliwości inwestycyjne?</span>
-                <span class="block text-indigo-200">Dołącz do LINV i zacznij budować swój portfel.</span>
+                <span class="block text-indigo-200 mt-2">Dołącz do LINV i zacznij budować swój portfel.</span>
             </h2>
-            <div class="mt-8 flex lg:mt-0 lg:flex-shrink-0">
+            <div class="mt-10 flex flex-col sm:flex-row gap-4 lg:mt-0 lg:flex-shrink-0">
                 <div class="inline-flex rounded-md shadow">
-                    <a href="{{ route('register') }}" class="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-indigo-600 bg-white hover:bg-indigo-50">
+                    <a href="{{ route('register') }}" class="inline-flex items-center justify-center px-6 py-4 border border-transparent text-base font-medium rounded-md text-indigo-600 bg-white hover:bg-indigo-50 transition duration-300">
                         Aplikuj teraz
                     </a>
                 </div>
-                <div class="ml-3 inline-flex rounded-md shadow">
-                    <a href="{{ route('login') }}" class="inline-flex items-center justify-center px-5 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-800">
+                <div class="inline-flex rounded-md shadow">
+                    <a href="{{ route('login') }}" class="inline-flex items-center justify-center px-6 py-4 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-800 transition duration-300">
                         Zaloguj się
                     </a>
                 </div>
