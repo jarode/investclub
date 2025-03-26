@@ -12,12 +12,12 @@
                 <div class="text-center max-w-3xl mx-auto">
                     <!-- Badge -->
                     <div class="inline-flex items-center px-5 py-2.5 rounded-full bg-white/20 backdrop-blur-sm mb-10">
-                        <span class="text-white text-sm font-medium tracking-wide">Ekskluzywny Klub Inwestorów</span>
+                        <span class="text-white text-sm font-medium tracking-wide">{{ __('Exclusive Investors Club') }}</span>
                     </div>
                     
                     <!-- Główne hasło -->
                     <h1 class="text-4xl font-extrabold tracking-tight text-white sm:text-5xl md:text-6xl">
-                        Elitarna społeczność <span class="text-indigo-200">inwestorów</span>
+                        {{ __('Elite community of') }} <span class="text-indigo-200">{{ __('investors') }}</span>
                     </h1>
                     
                     <!-- Motto z wyraźnym kontrastem -->
@@ -29,19 +29,19 @@
                     
                     <!-- Dodatkowy opis -->
                     <p class="mt-8 text-lg text-indigo-100 sm:text-xl">
-                        Dołącz do ekskluzywnego grona inwestorów i uzyskaj dostęp do wyselekcjonowanych projektów inwestycyjnych. 
+                        {{ __('Join an exclusive group of investors and gain access to selected investment projects.') }}
                     </p>
                     <p class="mt-2 text-lg text-indigo-200 sm:text-xl">
-                        Tylko dla zweryfikowanych członków.
+                        {{ __('For verified members only.') }}
                     </p>
                     
                     <!-- Przyciski CTA -->
                     <div class="mt-12 flex flex-col sm:flex-row justify-center gap-5 sm:gap-6">
                         <a href="{{ route('register') }}" class="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 border border-transparent text-base font-medium rounded-lg text-indigo-700 bg-white hover:bg-indigo-50 shadow-lg md:text-lg transition duration-300">
-                            Aplikuj o członkostwo
+                            {{ __('Apply for membership') }}
                         </a>
                         <a href="#jak-to-dziala" class="w-full sm:w-auto inline-flex items-center justify-center px-8 py-4 border border-indigo-400 text-base font-medium rounded-lg text-white hover:bg-indigo-800 md:text-lg transition duration-300">
-                            Poznaj zasady
+                            {{ __('Learn the rules') }}
                         </a>
                     </div>
                 </div>
@@ -107,7 +107,7 @@
                             <div class="w-full h-full bg-gradient-to-r from-purple-500 to-pink-600 flex items-center justify-center">
                                 <svg class="h-16 w-16 text-white opacity-75" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M8 14v3m4-3v3m4-3v3M3 21h18M3 10h18M3 7l9-4 9 4M4 10h16v11H4V10z"/>
-                                </svg>
+                                    </svg>
                             </div>
                             <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                             <div class="absolute top-4 left-4 bg-white px-2 py-1 rounded text-xs font-semibold text-purple-600">
@@ -147,7 +147,7 @@
                             <div class="w-full h-full bg-gradient-to-r from-green-500 to-teal-600 flex items-center justify-center">
                                 <svg class="h-16 w-16 text-white opacity-75" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"/>
-                                </svg>
+                                    </svg>
                             </div>
                             <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                             <div class="absolute top-4 left-4 bg-white px-2 py-1 rounded text-xs font-semibold text-green-600">
@@ -303,7 +303,7 @@
                         <div class="flex items-center justify-center h-12 w-12 rounded-md bg-indigo-600 text-white mb-5">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-                            </svg>
+                    </svg>
                         </div>
                         <h3 class="text-lg leading-6 font-medium text-gray-900">Bezpieczeństwo</h3>
                         <p class="mt-2 text-base text-gray-500">
@@ -316,7 +316,7 @@
                         <div class="flex items-center justify-center h-12 w-12 rounded-md bg-indigo-600 text-white mb-5">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-                            </svg>
+                    </svg>
                         </div>
                         <h3 class="text-lg leading-6 font-medium text-gray-900">Ekskluzywna społeczność</h3>
                         <p class="mt-2 text-base text-gray-500">
@@ -329,7 +329,7 @@
                         <div class="flex items-center justify-center h-12 w-12 rounded-md bg-indigo-600 text-white mb-5">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
-                            </svg>
+                    </svg>
                         </div>
                         <h3 class="text-lg leading-6 font-medium text-gray-900">Unikalne projekty</h3>
                         <p class="mt-2 text-base text-gray-500">
@@ -339,7 +339,7 @@
                 </div>
             </div>
         </div>
-    </div>
+        </div>
 
     <!-- CTA Section -->
     <div class="bg-indigo-700">

@@ -21,6 +21,14 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot(): void
     {
+        // Upewnij się, że język jest poprawnie ustawiony przy starcie aplikacji
+        $locale = session('locale', config('app.locale'));
+        app()->setLocale($locale);
+        
+        if ($locale) {
+            config(['app.locale' => $locale]);
+        }
+
         // Logowanie zapytań SQL
         if (app()->environment('local')) {
             \Illuminate\Support\Facades\DB::listen(function($query) {

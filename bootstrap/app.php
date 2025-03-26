@@ -12,6 +12,9 @@ return Application::configure(basePath: dirname(__DIR__))
         health: '/up',
     )
     ->withMiddleware(function (Middleware $middleware) {
+        // Middleware dla obsługi języka musi być w grupie web, NIE jako globalne middleware
+        $middleware->web(append: [\App\Http\Middleware\SetLocale::class]);
+        
         // Rejestracja middleware dla ról i weryfikacji
         $middleware->alias([
             'role' => \App\Http\Middleware\CheckRole::class,

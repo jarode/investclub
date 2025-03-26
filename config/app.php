@@ -73,14 +73,36 @@ return [
     |--------------------------------------------------------------------------
     |
     | The application locale determines the default locale that will be used
-    | by Laravel's translation / localization methods. This option can be
-    | set to any locale for which you plan to have translation strings.
+    | by the translation service provider. You are free to set this value
+    | to any of the locales which will be supported by the application.
     |
     */
 
     'locale' => env('APP_LOCALE', 'en'),
 
-    'fallback_locale' => env('APP_FALLBACK_LOCALE', 'en'),
+    /*
+    |--------------------------------------------------------------------------
+    | Available Application Locales
+    |--------------------------------------------------------------------------
+    |
+    | This value determines which languages are available for the application.
+    | These languages will be usable by the language switcher.
+    |
+    */
+    'available_locales' => ['en', 'pl', 'de'],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Application Fallback Locale
+    |--------------------------------------------------------------------------
+    |
+    | The fallback locale determines the locale to use when the current one
+    | is not available. You may change the value to correspond to any of
+    | the language folders that are provided through your application.
+    |
+    */
+
+    'fallback_locale' => 'en',
 
     'faker_locale' => env('APP_FAKER_LOCALE', 'en_US'),
 
