@@ -7,6 +7,9 @@ use App\Http\Controllers\InvestmentController;
 use App\Http\Controllers\UserController;
 use App\Http\Controllers\StripeController;
 use App\Http\Controllers\Admin\ProjectVerificationController;
+use App\Http\Controllers\TestLocaleController;
+use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\App;
 
 /*
 |--------------------------------------------------------------------------
@@ -22,6 +25,46 @@ use App\Http\Controllers\Admin\ProjectVerificationController;
 Route::get('/', function () {
     return view('welcome');
 })->name('welcome');
+
+// Trasa do zmiany języka dostępna dla wszystkich
+Route::get('/language/{locale}', function ($locale) {
+    // Dodajemy rozszerzone logowanie
+    Log::info('====== ROUTE LANGUAGE SWITCH START ======');
+    Log::info('Żądana zmiana języka na: ' . $locale);
+    Log::info('Obecny język App::getLocale(): ' . App::getLocale());
+    Log::info('Obecny język w sesji: ' . session()->get('locale', 'brak'));
+    Log::info('Session ID: ' . session()->getId());
+    Log::info('Dostępne języki: ' . implode(', ', config('app.available_locales', ['en', 'pl', 'de'])));
+    
+    // Sprawdź czy język jest obsługiwany
+    if (in_array($locale, config('app.available_locales', ['en', 'pl', 'de']))) {
+        // Ustaw język w sesji
+        session()->put('locale', $locale);
+        
+        // Ustaw język aplikacji
+        app()->setLocale($locale);
+        
+        Log::info('Język został zmieniony na: ' . $locale);
+        Log::info('App::getLocale() po zmianie: ' . App::getLocale());
+        Log::info('Język w sesji po zmianie: ' . session()->get('locale', 'brak'));
+    } else {
+        Log::warning('Próba ustawienia nieobsługiwanego języka: ' . $locale);
+    }
+    
+    Log::info('Poprzedni URL: ' . url()->previous());
+    Log::info('Obecny URL: ' . url()->current());
+    
+    // Przekieruj do poprzedniej strony
+    $redirectUrl = url()->previous() == url()->current() ? '/' : url()->previous();
+    Log::info('Przekierowuję do: ' . $redirectUrl);
+    Log::info('====== ROUTE LANGUAGE SWITCH END ======');
+    
+    if (url()->previous() == url()->current()) {
+        return redirect('/');
+    }
+    
+    return redirect()->back();
+})->name('language.switch');
 
 // Nowe trasy dla logowania i rejestracji z naszym layoutem
 Route::get('/login', function () {
@@ -40,7 +83,7 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified',
 
 Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified'])->group(function () {
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
-
+    
     // Trasy dla weryfikacji projektów przez administratora
     Route::middleware(['role:Administrator'])->prefix('admin')->name('admin.')->group(function () {
         Route::get('/projects/verification', [ProjectVerificationController::class, 'index'])->name('projects.verification');
@@ -123,3 +166,7 @@ Route::middleware(['auth:sanctum', config('jetstream.auth_session'), 'verified']
         Route::get('/completed', [StripeController::class, 'kycCompleted'])->name('kyc.completed');
     });
 });
+
+// Trasy testowe dla lokalizacji
+Route::get('/test/locale', [TestLocaleController::class, 'index'])->name('test.locale');
+Route::get('/test/locale/{locale}', [TestLocaleController::class, 'setLocale'])->name('test.locale.set');

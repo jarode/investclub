@@ -4,6 +4,9 @@
         <meta charset="utf-8">
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
+        <meta http-equiv="Cache-Control" content="no-store, no-cache, must-revalidate, max-age=0">
+        <meta http-equiv="Pragma" content="no-cache">
+        <meta http-equiv="Expires" content="0">
 
         <title>{{ config('app.name', 'Laravel') }}</title>
 
@@ -16,6 +19,26 @@
         
         <!-- Alpine.js -->
         <script src="//unpkg.com/alpinejs" defer></script>
+
+        <!-- Skrypt do obsługi zmiany języka -->
+        <script>
+            document.addEventListener('DOMContentLoaded', function() {
+                // Sprawdzamy, czy URL zawiera parametr _nocache (oznacza to zmianę języka)
+                if (window.location.href.includes('_nocache=')) {
+                    console.log('Wykryto zmianę języka, odświeżam stronę...');
+                    
+                    // Usuwamy parametr _nocache z URL bez przeładowania strony
+                    const url = new URL(window.location.href);
+                    url.searchParams.delete('_nocache');
+                    window.history.replaceState({}, document.title, url.toString());
+                    
+                    // Wymuszamy pełne odświeżenie strony po małym opóźnieniu
+                    setTimeout(function() {
+                        window.location.reload(true);
+                    }, 100);
+                }
+            });
+        </script>
     </head>
     <body class="font-sans antialiased">
         <div class="min-h-screen bg-gray-100">
@@ -33,22 +56,27 @@
                             <!-- Navigation Links -->
                             <div class="hidden space-x-8 sm:-my-px sm:ml-10 sm:flex">
                                 <x-nav-link :href="route('welcome')" :active="request()->routeIs('welcome')">
-                                    {{ __('Strona główna') }}
+                                    {{ __('Home') }}
                                 </x-nav-link>
                                 <x-nav-link href="#jak-to-dziala">
-                                    {{ __('Jak to działa') }}
+                                    {{ __('How it works') }}
                                 </x-nav-link>
                                 <x-nav-link href="#korzyści">
-                                    {{ __('Korzyści') }}
+                                    {{ __('Benefits') }}
                                 </x-nav-link>
                                 <x-nav-link href="#inwestycje">
-                                    {{ __('Inwestycje') }}
+                                    {{ __('Investments') }}
                                 </x-nav-link>
                             </div>
                         </div>
 
                         <!-- Settings Dropdown -->
                         <div class="hidden sm:flex sm:items-center sm:ml-6">
+                            <!-- Language Switcher -->
+                            <div class="mr-4">
+                                @include('partials.language_switcher')
+                            </div>
+                            
                             @auth
                                 <x-dropdown align="right" width="48">
                                     <x-slot name="trigger">
@@ -65,7 +93,7 @@
 
                                     <x-slot name="content">
                                         <x-dropdown-link :href="route('dashboard')">
-                                            {{ __('Panel') }}
+                                            {{ __('Dashboard') }}
                                         </x-dropdown-link>
 
                                         <!-- Authentication -->
@@ -75,15 +103,15 @@
                                             <x-dropdown-link :href="route('logout')"
                                                     onclick="event.preventDefault();
                                                                 this.closest('form').submit();">
-                                                {{ __('Wyloguj') }}
+                                                {{ __('Log Out') }}
                                             </x-dropdown-link>
                                         </form>
                                     </x-slot>
                                 </x-dropdown>
                             @else
                                 <div class="space-x-4">
-                                    <a href="{{ route('login') }}" class="text-sm text-gray-700 hover:text-gray-900">Logowanie</a>
-                                    <a href="{{ route('register') }}" class="text-sm text-gray-700 hover:text-gray-900">Rejestracja</a>
+                                    <a href="{{ route('login') }}" class="text-sm text-gray-700 hover:text-gray-900">{{ __('Login') }}</a>
+                                    <a href="{{ route('register') }}" class="text-sm text-gray-700 hover:text-gray-900">{{ __('Register') }}</a>
                                 </div>
                             @endauth
                         </div>
@@ -102,18 +130,37 @@
 
                 <!-- Responsive Navigation Menu -->
                 <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
+                    <!-- Language Switcher - Mobile -->
+                    <div class="pt-2 pb-1 px-4">
+                        <div class="text-xs text-gray-400 mb-1">{{ __('Select language') }}</div>
+                        <div class="flex space-x-2">
+                            <a href="{{ route('language.switch', 'pl') }}" class="flex items-center px-2 py-1 rounded @if(app()->getLocale() == 'pl') bg-gray-200 @endif">
+                                <img src="{{ asset('img/flags/pl.png') }}" alt="🇵🇱" class="h-4 w-5 mr-1" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;20&quot; height=&quot;12&quot;><rect width=&quot;20&quot; height=&quot;6&quot; fill=&quot;white&quot;/><rect width=&quot;20&quot; height=&quot;6&quot; y=&quot;6&quot; fill=&quot;red&quot;/></svg>';" />
+                                <span class="text-sm">PL</span>
+                            </a>
+                            <a href="{{ route('language.switch', 'en') }}" class="flex items-center px-2 py-1 rounded @if(app()->getLocale() == 'en') bg-gray-200 @endif">
+                                <img src="{{ asset('img/flags/gb.png') }}" alt="🇬🇧" class="h-4 w-5 mr-1" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;20&quot; height=&quot;12&quot; viewBox=&quot;0 0 60 30&quot;><clipPath id=&quot;s&quot;><path d=&quot;M0,0 v30 h60 v-30 z&quot;/></clipPath><clipPath id=&quot;t&quot;><path d=&quot;M30,15 h30 v15 z v15 h-30 z h-30 v-15 z v-15 h30 z&quot;/></clipPath><g clip-path=&quot;url(#s)&quot;><path d=&quot;M0,0 v30 h60 v-30 z&quot; fill=&quot;#012169&quot;/><path d=&quot;M0,0 L60,30 M60,0 L0,30&quot; stroke=&quot;#fff&quot; stroke-width=&quot;6&quot;/><path d=&quot;M0,0 L60,30 M60,0 L0,30&quot; clip-path=&quot;url(#t)&quot; stroke=&quot;#C8102E&quot; stroke-width=&quot;4&quot;/><path d=&quot;M30,0 v30 M0,15 h60&quot; stroke=&quot;#fff&quot; stroke-width=&quot;10&quot;/><path d=&quot;M30,0 v30 M0,15 h60&quot; stroke=&quot;#C8102E&quot; stroke-width=&quot;6&quot;/></g></svg>';" />
+                                <span class="text-sm">EN</span>
+                            </a>
+                            <a href="{{ route('language.switch', 'de') }}" class="flex items-center px-2 py-1 rounded @if(app()->getLocale() == 'de') bg-gray-200 @endif">
+                                <img src="{{ asset('img/flags/de.png') }}" alt="🇩🇪" class="h-4 w-5 mr-1" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;20&quot; height=&quot;12&quot;><rect width=&quot;20&quot; height=&quot;4&quot; fill=&quot;black&quot;/><rect width=&quot;20&quot; height=&quot;4&quot; y=&quot;4&quot; fill=&quot;red&quot;/><rect width=&quot;20&quot; height=&quot;4&quot; y=&quot;8&quot; fill=&quot;gold&quot;/></svg>';" />
+                                <span class="text-sm">DE</span>
+                            </a>
+                        </div>
+                    </div>
+                    
                     <div class="pt-2 pb-3 space-y-1">
                         <x-responsive-nav-link :href="route('welcome')" :active="request()->routeIs('welcome')">
-                            {{ __('Strona główna') }}
+                            {{ __('Home') }}
                         </x-responsive-nav-link>
                         <x-responsive-nav-link href="#jak-to-dziala">
-                            {{ __('Jak to działa') }}
+                            {{ __('How it works') }}
                         </x-responsive-nav-link>
                         <x-responsive-nav-link href="#korzyści">
-                            {{ __('Korzyści') }}
+                            {{ __('Benefits') }}
                         </x-responsive-nav-link>
                         <x-responsive-nav-link href="#inwestycje">
-                            {{ __('Inwestycje') }}
+                            {{ __('Investments') }}
                         </x-responsive-nav-link>
                     </div>
 
@@ -127,7 +174,7 @@
 
                             <div class="mt-3 space-y-1">
                                 <x-responsive-nav-link :href="route('dashboard')">
-                                    {{ __('Panel') }}
+                                    {{ __('Dashboard') }}
                                 </x-responsive-nav-link>
 
                                 <!-- Authentication -->
@@ -137,7 +184,7 @@
                                     <x-responsive-nav-link :href="route('logout')"
                                             onclick="event.preventDefault();
                                                         this.closest('form').submit();">
-                                        {{ __('Wyloguj') }}
+                                        {{ __('Log Out') }}
                                     </x-responsive-nav-link>
                                 </form>
                             </div>
@@ -146,10 +193,10 @@
                         <div class="pt-4 pb-1 border-t border-gray-200">
                             <div class="space-y-1">
                                 <x-responsive-nav-link :href="route('login')">
-                                    {{ __('Logowanie') }}
+                                    {{ __('Login') }}
                                 </x-responsive-nav-link>
                                 <x-responsive-nav-link :href="route('register')">
-                                    {{ __('Rejestracja') }}
+                                    {{ __('Register') }}
                                 </x-responsive-nav-link>
                             </div>
                         </div>

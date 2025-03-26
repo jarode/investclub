@@ -132,6 +132,11 @@
 
                 <!-- Settings Dropdown -->
                 <div class="ms-3 relative">
+                    <!-- Language Switcher -->
+                    <div class="mr-3">
+                        @include('partials.language_switcher')
+                    </div>
+                    
                     <x-dropdown align="right" width="48">
                         <x-slot name="trigger">
                             @if (Laravel\Jetstream\Jetstream::managesProfilePhotos())
@@ -209,6 +214,25 @@
 
     <!-- Responsive Navigation Menu -->
     <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
+        <!-- Language Switcher - Mobile -->
+        <div class="pt-2 pb-1 px-4">
+            <div class="text-xs text-gray-400 mb-1">{{ __('Select language') }}</div>
+            <div class="flex space-x-2">
+                <a href="{{ route('language.switch', 'pl') }}" class="flex items-center px-2 py-1 rounded @if(app()->getLocale() == 'pl') bg-gray-200 @endif">
+                    <img src="{{ asset('img/flags/pl.png') }}" alt="🇵🇱" class="h-4 w-5 mr-1" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;20&quot; height=&quot;12&quot;><rect width=&quot;20&quot; height=&quot;6&quot; fill=&quot;white&quot;/><rect width=&quot;20&quot; height=&quot;6&quot; y=&quot;6&quot; fill=&quot;red&quot;/></svg>';" />
+                    <span class="text-sm">PL</span>
+                </a>
+                <a href="{{ route('language.switch', 'en') }}" class="flex items-center px-2 py-1 rounded @if(app()->getLocale() == 'en') bg-gray-200 @endif">
+                    <img src="{{ asset('img/flags/gb.png') }}" alt="🇬🇧" class="h-4 w-5 mr-1" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;20&quot; height=&quot;12&quot; viewBox=&quot;0 0 60 30&quot;><clipPath id=&quot;s&quot;><path d=&quot;M0,0 v30 h60 v-30 z&quot;/></clipPath><clipPath id=&quot;t&quot;><path d=&quot;M30,15 h30 v15 z v15 h-30 z h-30 v-15 z v-15 h30 z&quot;/></clipPath><g clip-path=&quot;url(#s)&quot;><path d=&quot;M0,0 v30 h60 v-30 z&quot; fill=&quot;#012169&quot;/><path d=&quot;M0,0 L60,30 M60,0 L0,30&quot; stroke=&quot;#fff&quot; stroke-width=&quot;6&quot;/><path d=&quot;M0,0 L60,30 M60,0 L0,30&quot; clip-path=&quot;url(#t)&quot; stroke=&quot;#C8102E&quot; stroke-width=&quot;4&quot;/><path d=&quot;M30,0 v30 M0,15 h60&quot; stroke=&quot;#fff&quot; stroke-width=&quot;10&quot;/><path d=&quot;M30,0 v30 M0,15 h60&quot; stroke=&quot;#C8102E&quot; stroke-width=&quot;6&quot;/></g></svg>';" />
+                    <span class="text-sm">EN</span>
+                </a>
+                <a href="{{ route('language.switch', 'de') }}" class="flex items-center px-2 py-1 rounded @if(app()->getLocale() == 'de') bg-gray-200 @endif">
+                    <img src="{{ asset('img/flags/de.png') }}" alt="🇩🇪" class="h-4 w-5 mr-1" onerror="this.onerror=null; this.src='data:image/svg+xml;utf8,<svg xmlns=&quot;http://www.w3.org/2000/svg&quot; width=&quot;20&quot; height=&quot;12&quot;><rect width=&quot;20&quot; height=&quot;4&quot; fill=&quot;black&quot;/><rect width=&quot;20&quot; height=&quot;4&quot; y=&quot;4&quot; fill=&quot;red&quot;/><rect width=&quot;20&quot; height=&quot;4&quot; y=&quot;8&quot; fill=&quot;gold&quot;/></svg>';" />
+                    <span class="text-sm">DE</span>
+                </a>
+            </div>
+        </div>
+        
         <div class="pt-2 pb-3 space-y-1">
             <x-responsive-nav-link href="{{ route('dashboard') }}" :active="request()->routeIs('dashboard')">
                 {{ __('Dashboard') }}
