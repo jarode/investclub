@@ -53,7 +53,7 @@
     <div id="inwestycje" class="py-20 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center">
-                <h2 class="text-base text-indigo-600 font-semibold tracking-wide uppercase">Aktualne inwestycje</h2>
+                <h2 class="text-base text-indigo-600 font-semibold tracking-wide uppercase">{{ __('Current investments') }}</h2>
                 <p class="mt-3 text-3xl leading-8 font-bold tracking-tight text-gray-900 sm:text-4xl">
                     Najlepsze projekty inwestycyjne
                 </p>
@@ -74,19 +74,19 @@
                                 Premium
                             </div>
                             <div class="absolute bottom-4 left-4 right-4">
-                                <h3 class="text-xl font-bold text-white">Apartamenty Centrum</h3>
-                                <p class="text-sm text-white/90">Warszawa, Śródmieście</p>
+                                <h3 class="text-xl font-bold text-white">{{ __('Apartamenty Centrum') }}</h3>
+                                <p class="text-sm text-white/90">{{ __('Warsaw, Downtown') }}</p>
                             </div>
                         </div>
                         <div class="p-5">
                             <div class="flex justify-between items-center">
                                 <div>
-                                    <p class="text-sm text-gray-500">Zwrot roczny</p>
+                                    <p class="text-sm text-gray-500">{{ __('Annual return') }}</p>
                                     <p class="font-semibold text-gray-900">8.3%</p>
                                 </div>
                                 <div>
-                                    <p class="text-sm text-gray-500">Status</p>
-                                    <p class="font-semibold text-gray-900">Wynajęty</p>
+                                    <p class="text-sm text-gray-500">{{ __('Status') }}</p>
+                                    <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded">{{ __('In progress') }}</span>
                                 </div>
                             </div>
                             <div class="mt-4">
@@ -114,19 +114,19 @@
                                 Popularny
                             </div>
                             <div class="absolute bottom-4 left-4 right-4">
-                                <h3 class="text-xl font-bold text-white">Marina Mokotów</h3>
-                                <p class="text-sm text-white/90">Warszawa, Mokotów</p>
+                                <h3 class="text-xl font-bold text-white">{{ __('Marina Mokotów') }}</h3>
+                                <p class="text-sm text-white/90">{{ __('Warsaw, Mokotow') }}</p>
                             </div>
                         </div>
                         <div class="p-5">
                             <div class="flex justify-between items-center">
                                 <div>
-                                    <p class="text-sm text-gray-500">Zwrot roczny</p>
+                                    <p class="text-sm text-gray-500">{{ __('Annual return') }}</p>
                                     <p class="font-semibold text-gray-900">7.5%</p>
                                 </div>
                                 <div>
-                                    <p class="text-sm text-gray-500">Status</p>
-                                    <p class="font-semibold text-gray-900">Wynajęty</p>
+                                    <p class="text-sm text-gray-500">{{ __('Status') }}</p>
+                                    <span class="bg-blue-100 text-blue-800 text-xs font-semibold px-2.5 py-0.5 rounded">{{ __('In progress') }}</span>
                                 </div>
                             </div>
                             <div class="mt-4">
@@ -154,19 +154,19 @@
                                 Nowy
                             </div>
                             <div class="absolute bottom-4 left-4 right-4">
-                                <h3 class="text-xl font-bold text-white">Apartamenty Nadmorskie</h3>
-                                <p class="text-sm text-white/90">Gdańsk, Brzeźno</p>
+                                <h3 class="text-xl font-bold text-white">{{ __('Apartamenty Nadmorskie') }}</h3>
+                                <p class="text-sm text-white/90">{{ __('Gdansk, Brzezno') }}</p>
                             </div>
                         </div>
                         <div class="p-5">
                             <div class="flex justify-between items-center">
                                 <div>
-                                    <p class="text-sm text-gray-500">Zwrot roczny</p>
+                                    <p class="text-sm text-gray-500">{{ __('Annual return') }}</p>
                                     <p class="font-semibold text-gray-900">8.1%</p>
                                 </div>
                                 <div>
-                                    <p class="text-sm text-gray-500">Status</p>
-                                    <p class="font-semibold text-green-600">Dostępny</p>
+                                    <p class="text-sm text-gray-500">{{ __('Status') }}</p>
+                                    <span class="bg-green-100 text-green-800 text-xs font-semibold px-2.5 py-0.5 rounded">{{ __('Available') }}</span>
                                 </div>
                             </div>
                             <div class="mt-4">
@@ -213,7 +213,7 @@
     <div id="jak-to-dziala" class="py-24 bg-gray-50">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
-                <h2 class="text-base text-indigo-600 font-semibold tracking-wide uppercase">Jak to działa</h2>
+                <h2 class="text-base text-indigo-600 font-semibold tracking-wide uppercase">{{ __('How it works') }}</h2>
                 <p class="mt-3 text-3xl leading-8 font-bold tracking-tight text-gray-900 sm:text-4xl">
                     LINK + INVEST = LINV
                 </p>
@@ -230,7 +230,7 @@
                             <span class="text-xl font-bold">1</span>
                         </div>
                         <div class="ml-16">
-                            <h3 class="text-lg leading-6 font-medium text-gray-900">Weryfikacja KYC</h3>
+                            <h3 class="text-lg leading-6 font-medium text-gray-900">{{ __('KYC Verification') }}</h3>
                             <p class="mt-2 text-base text-gray-500">
                                 Przejdź weryfikację tożsamości i uzyskaj dostęp do ekskluzywnego klubu inwestorów.
                             </p>
@@ -243,7 +243,7 @@
                             <span class="text-xl font-bold">2</span>
                         </div>
                         <div class="ml-16">
-                            <h3 class="text-lg leading-6 font-medium text-gray-900">Przeglądaj wyselekcjonowane projekty</h3>
+                            <h3 class="text-lg leading-6 font-medium text-gray-900">{{ __('Browse selected projects') }}</h3>
                             <p class="mt-2 text-base text-gray-500">
                                 Poznaj szczegóły starannie wybranych projektów inwestycyjnych o wysokim potencjale.
                             </p>
@@ -256,7 +256,7 @@
                             <span class="text-xl font-bold">3</span>
                         </div>
                         <div class="ml-16">
-                            <h3 class="text-lg leading-6 font-medium text-gray-900">Bezpośredni kontakt</h3>
+                            <h3 class="text-lg leading-6 font-medium text-gray-900">{{ __('Direct contact') }}</h3>
                             <p class="mt-2 text-base text-gray-500">
                                 Skontaktuj się bezpośrednio z właścicielami projektów i negocjuj warunki inwestycji.
                             </p>
@@ -269,7 +269,7 @@
                             <span class="text-xl font-bold">4</span>
                         </div>
                         <div class="ml-16">
-                            <h3 class="text-lg leading-6 font-medium text-gray-900">Osiągaj zyski</h3>
+                            <h3 class="text-lg leading-6 font-medium text-gray-900">{{ __('Achieve profits') }}</h3>
                             <p class="mt-2 text-base text-gray-500">
                                 Ciesz się regularnym zwrotem z inwestycji i buduj długoterminowe bogactwo.
                             </p>
@@ -290,7 +290,7 @@
     <div id="korzyści" class="py-24 bg-white">
         <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
             <div class="text-center mb-16">
-                <h2 class="text-base text-indigo-600 font-semibold tracking-wide uppercase">Dlaczego LINV?</h2>
+                <h2 class="text-base text-indigo-600 font-semibold tracking-wide uppercase">{{ __('Why LINV?') }}</h2>
                 <p class="mt-3 text-3xl leading-8 font-bold tracking-tight text-gray-900 sm:text-4xl">
                     Korzyści członkostwa
                 </p>
@@ -305,7 +305,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
                     </svg>
                         </div>
-                        <h3 class="text-lg leading-6 font-medium text-gray-900">Bezpieczeństwo</h3>
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">{{ __('Security') }}</h3>
                         <p class="mt-2 text-base text-gray-500">
                             Wszyscy członkowie platformy przechodzą weryfikację KYC. Projekty są sprawdzane pod kątem legalności i potencjału.
                         </p>
@@ -318,7 +318,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
                     </svg>
                         </div>
-                        <h3 class="text-lg leading-6 font-medium text-gray-900">Ekskluzywna społeczność</h3>
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">{{ __('Exclusive community') }}</h3>
                         <p class="mt-2 text-base text-gray-500">
                             Dołącz do grupy doświadczonych inwestorów. Wymieniaj się wiedzą i doświadczeniami z innymi członkami klubu.
                         </p>
@@ -331,7 +331,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
                     </svg>
                         </div>
-                        <h3 class="text-lg leading-6 font-medium text-gray-900">Unikalne projekty</h3>
+                        <h3 class="text-lg leading-6 font-medium text-gray-900">{{ __('Unique projects') }}</h3>
                         <p class="mt-2 text-base text-gray-500">
                             Dostęp do starannie wyselekcjonowanych projektów o wysokim potencjale zwrotu, niedostępnych dla szerokiej publiczności.
                         </p>
