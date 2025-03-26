@@ -305,7 +305,7 @@ class StripeController extends Controller
         // Sprawdź, czy użytkownik już ma weryfikację w toku
         if ($user->kyc_status === 'pending' || $user->kyc_status === 'requires_input') {
             return redirect()->route('kyc.verify')
-                ->with('warning', 'Masz już trwającą weryfikację KYC. Poczekaj na zakończenie procesu lub skontaktuj się z obsługą klienta.');
+                ->with('warning', __('Your verification is currently being processed. Please be patient.'));
         }
 
         try {
@@ -339,7 +339,7 @@ class StripeController extends Controller
             return redirect($session->url);
         } catch (ApiErrorException $e) {
             Log::error('Błąd podczas inicjowania weryfikacji KYC: ' . $e->getMessage());
-            return back()->withErrors(['error' => 'Nie udało się rozpocząć weryfikacji KYC. Spróbuj ponownie później.']);
+            return back()->withErrors(['error' => __('The KYC verification could not be started. Please try again later.')]);
         }
     }
 
@@ -363,31 +363,31 @@ class StripeController extends Controller
                 if ($session->status === 'verified') {
                     $user->kyc_status = 'verified';
                     $user->save();
-                    return redirect()->route('dashboard')->with('success', 'Weryfikacja KYC zakończona pomyślnie.');
+                    return redirect()->route('dashboard')->with('success', __('KYC verification completed successfully.'));
                 } elseif ($session->status === 'requires_input') {
-                    return redirect()->route('kyc.verify')->with('warning', 'Weryfikacja KYC wymaga dodatkowych informacji.');
+                    return redirect()->route('kyc.verify')->with('warning', __('KYC verification requires additional information.'));
                 } elseif ($session->status === 'processing') {
                     $user->kyc_status = 'pending';
                     $user->save();
-                    return redirect()->route('kyc.verify')->with('warning', 'Weryfikacja KYC jest w trakcie przetwarzania. Proszę sprawdzić status później.');
+                    return redirect()->route('kyc.verify')->with('warning', __('Your verification is being processed. The process may take up to 24 hours.'));
                 } elseif ($session->status === 'requires_action') {
-                    return redirect()->route('kyc.verify')->with('warning', 'Weryfikacja KYC wymaga dodatkowych działań. Proszę spróbować ponownie.');
+                    return redirect()->route('kyc.verify')->with('warning', __('KYC verification requires additional information. Please try again.'));
                 } elseif ($session->status === 'canceled') {
                     $user->kyc_status = 'canceled';
                     $user->save();
-                    return redirect()->route('kyc.verify')->with('error', 'Weryfikacja KYC została anulowana. Proszę spróbować ponownie.');
+                    return redirect()->route('kyc.verify')->with('error', __('KYC verification has been canceled.'));
                 } else {
                     // Obsługa innych statusów, w tym 'rejected'
                     $user->kyc_status = 'rejected';
                     $user->save();
-                    return redirect()->route('kyc.verify')->with('error', 'Weryfikacja KYC została odrzucona. Proszę skontaktować się z obsługą klienta.');
+                    return redirect()->route('kyc.verify')->with('error', __('Unfortunately, your verification has been rejected. Please contact customer support for more information.'));
                 }
             }
             
-            return redirect()->route('kyc.verify')->with('warning', 'Status weryfikacji KYC nie może być określony. Spróbuj ponownie.');
+            return redirect()->route('kyc.verify')->with('warning', __('KYC verification status cannot be determined. Please try again.'));
         } catch (\Exception $e) {
             Log::error('Błąd podczas sprawdzania statusu weryfikacji KYC: ' . $e->getMessage());
-            return redirect()->route('kyc.verify')->with('error', 'Wystąpił błąd podczas sprawdzania statusu weryfikacji KYC.');
+            return redirect()->route('kyc.verify')->with('error', __('An error occurred while checking the KYC verification status.'));
         }
     }
 

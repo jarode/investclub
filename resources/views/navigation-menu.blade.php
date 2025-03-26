@@ -18,59 +18,59 @@
                     
                     @if(Auth::check() && Auth::user()->hasRole('admin'))
                         <x-nav-link href="{{ route('admin.dashboard') }}" :active="request()->routeIs('admin.dashboard')">
-                            {{ __('Panel administratora') }}
+                            {{ __('Administrator panel') }}
                         </x-nav-link>
                     @endif
                     
                     @if(Auth::check() && Auth::user()->hasRole('manager'))
                         <x-nav-link href="{{ route('manager.dashboard') }}" :active="request()->routeIs('manager.dashboard')">
-                            {{ __('Panel managera') }}
+                            {{ __('Manager panel') }}
                         </x-nav-link>
                     @endif
                     
                     @if(Auth::check() && Auth::user()->hasActiveSubscription())
                         <x-nav-link href="{{ route('projects.index') }}" :active="request()->routeIs('projects.*')">
-                            {{ __('Projekty') }}
+                            {{ __('Projects') }}
                         </x-nav-link>
                         
                         @if(Auth::user()->hasRole('investor'))
                             <x-nav-link href="{{ route('investments.index') }}" :active="request()->routeIs('investments.*')">
-                                {{ __('Moje inwestycje') }}
+                                {{ __('My investments') }}
                             </x-nav-link>
                         @endif
                         
                         @if(Auth::user()->isPremiumInvestor() || Auth::user()->isProjectOwner())
                             <x-nav-link href="{{ route('projects.exclusive') }}" :active="request()->routeIs('projects.exclusive')">
-                                {{ __('Projekty ekskluzywne') }}
+                                {{ __('Exclusive projects') }}
                             </x-nav-link>
                         @endif
                         
                         @if(Auth::user()->isProjectOwner() || Auth::user()->isAdmin())
                             <x-nav-link href="{{ route('project.dashboard') }}" :active="request()->routeIs('project.dashboard')">
-                                {{ __('Panel właściciela') }}
+                                {{ __('Owner panel') }}
                             </x-nav-link>
                         @endif
                     @else
                         <x-nav-link href="{{ route('projects.index') }}" :active="request()->routeIs('projects.*')">
-                            {{ __('Projekty') }}
+                            {{ __('Projects') }}
                         </x-nav-link>
                     @endif
                     
                     @if(Auth::check() && Auth::user()->hasAnyRole(['admin', 'manager']))
                         <x-nav-link href="{{ route('users.index') }}" :active="request()->routeIs('users.*')">
-                            {{ __('Użytkownicy') }}
+                            {{ __('Users') }}
                         </x-nav-link>
                     @endif
                     
                     <!-- Weryfikacja KYC i Subskrypcja -->
                     @if(Auth::check())
                         <x-nav-link href="{{ route('subscription') }}" :active="request()->routeIs('subscription.*')">
-                            {{ __('Subskrypcja') }}
+                            {{ __('Subscription') }}
                         </x-nav-link>
                         
                         @if(Auth::user()->kyc_status !== 'verified')
                             <x-nav-link href="{{ route('kyc.verify') }}" :active="request()->routeIs('kyc.*')">
-                                {{ __('Weryfikacja KYC') }}
+                                {{ __('KYC Verification') }}
                             </x-nav-link>
                         @endif
                     @endif
@@ -176,7 +176,7 @@
                             @if(Auth::check() && Auth::user()->stripe_customer_id)
                                 <x-dropdown-link href="#" 
                                     onclick="event.preventDefault(); document.getElementById('stripe-portal-form').submit();">
-                                    {{ __('Portal płatności') }}
+                                    {{ __('Payment portal') }}
                                 </x-dropdown-link>
                                 
                                 <form id="stripe-portal-form" action="{{ route('stripe.portal') }}" method="POST" class="hidden">
@@ -240,59 +240,59 @@
             
             @if(Auth::check() && Auth::user()->hasRole('admin'))
                 <x-responsive-nav-link href="{{ route('admin.dashboard') }}" :active="request()->routeIs('admin.dashboard')">
-                    {{ __('Panel administratora') }}
+                    {{ __('Administrator panel') }}
                 </x-responsive-nav-link>
             @endif
             
             @if(Auth::check() && Auth::user()->hasRole('manager'))
                 <x-responsive-nav-link href="{{ route('manager.dashboard') }}" :active="request()->routeIs('manager.dashboard')">
-                    {{ __('Panel managera') }}
+                    {{ __('Manager panel') }}
                 </x-responsive-nav-link>
             @endif
             
             @if(Auth::check() && Auth::user()->hasActiveSubscription())
                 <x-responsive-nav-link href="{{ route('projects.index') }}" :active="request()->routeIs('projects.*')">
-                    {{ __('Projekty') }}
+                    {{ __('Projects') }}
                 </x-responsive-nav-link>
                 
                 @if(Auth::user()->hasRole('investor'))
                     <x-responsive-nav-link href="{{ route('investments.index') }}" :active="request()->routeIs('investments.*')">
-                        {{ __('Moje inwestycje') }}
+                        {{ __('My investments') }}
                     </x-responsive-nav-link>
                 @endif
                 
                 @if(Auth::user()->isPremiumInvestor() || Auth::user()->isProjectOwner())
                     <x-responsive-nav-link href="{{ route('projects.exclusive') }}" :active="request()->routeIs('projects.exclusive')">
-                        {{ __('Projekty ekskluzywne') }}
+                        {{ __('Exclusive projects') }}
                     </x-responsive-nav-link>
                 @endif
                 
                 @if(Auth::user()->isProjectOwner() || Auth::user()->isAdmin())
                     <x-responsive-nav-link href="{{ route('project.dashboard') }}" :active="request()->routeIs('project.dashboard')">
-                        {{ __('Panel właściciela') }}
+                        {{ __('Owner panel') }}
                     </x-responsive-nav-link>
                 @endif
             @else
                 <x-responsive-nav-link href="{{ route('projects.index') }}" :active="request()->routeIs('projects.*')">
-                    {{ __('Projekty') }}
+                    {{ __('Projects') }}
                 </x-responsive-nav-link>
             @endif
             
             @if(Auth::check() && Auth::user()->hasAnyRole(['admin', 'manager']))
                 <x-responsive-nav-link href="{{ route('users.index') }}" :active="request()->routeIs('users.*')">
-                    {{ __('Użytkownicy') }}
+                    {{ __('Users') }}
                 </x-responsive-nav-link>
             @endif
             
             <!-- Weryfikacja KYC i Subskrypcja (mobilne) -->
             @if(Auth::check())
                 <x-responsive-nav-link href="{{ route('subscription') }}" :active="request()->routeIs('subscription.*')">
-                    {{ __('Subskrypcja') }}
+                    {{ __('Subscription') }}
                 </x-responsive-nav-link>
                 
                 @if(Auth::user()->kyc_status !== 'verified')
                     <x-responsive-nav-link href="{{ route('kyc.verify') }}" :active="request()->routeIs('kyc.*')">
-                        {{ __('Weryfikacja KYC') }}
+                        {{ __('KYC Verification') }}
                     </x-responsive-nav-link>
                 @endif
             @endif
@@ -329,7 +329,7 @@
                 @if(Auth::check() && Auth::user()->stripe_customer_id)
                     <x-responsive-nav-link href="#" 
                         onclick="event.preventDefault(); document.getElementById('stripe-portal-form').submit();">
-                        {{ __('Portal płatności') }}
+                        {{ __('Payment portal') }}
                     </x-responsive-nav-link>
                     
                     <form id="stripe-portal-form" action="{{ route('stripe.portal') }}" method="POST" class="hidden">

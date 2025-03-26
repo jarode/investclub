@@ -22,7 +22,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <!-- Imię -->
                         <div>
-                            <x-label for="name" value="{{ __('Imię') }}" />
+                            <x-label for="name" value="{{ __('First name') }}" />
                             <x-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required autofocus />
                             <x-input-error for="name" class="mt-2" />
                         </div>
@@ -36,14 +36,14 @@
                         
                         <!-- Hasło -->
                         <div>
-                            <x-label for="password" value="{{ __('Hasło') }}" />
+                            <x-label for="password" value="{{ __('Password') }}" />
                             <x-input id="password" class="block mt-1 w-full" type="password" name="password" required autocomplete="new-password" />
                             <x-input-error for="password" class="mt-2" />
                         </div>
                         
                         <!-- Potwierdzenie hasła -->
                         <div>
-                            <x-label for="password_confirmation" value="{{ __('Potwierdź hasło') }}" />
+                            <x-label for="password_confirmation" value="{{ __('Confirm password') }}" />
                             <x-input id="password_confirmation" class="block mt-1 w-full" type="password" name="password_confirmation" required autocomplete="new-password" />
                             <x-input-error for="password_confirmation" class="mt-2" />
                         </div>

@@ -23,6 +23,6 @@ class CheckRole
         }
 
         return redirect()->route('dashboard')
-            ->with('error', 'Nie masz uprawnień do dostępu do tej sekcji.');
+            ->with('error', __('You do not have permission to access this section'));
     }
 } 

@@ -5,7 +5,7 @@
         </div>
 
         <div class="w-full sm:max-w-md mt-6 px-6 py-4 bg-white shadow-md overflow-hidden sm:rounded-lg">
-            <h1 class="text-2xl font-bold mb-6 text-center text-gray-700">{{ __('Rejestracja') }}</h1>
+            <h1 class="text-2xl font-bold mb-6 text-center text-gray-700">{{ __('Register') }}</h1>
 
             <x-validation-errors class="mb-4" />
 
@@ -13,7 +13,7 @@
                 @csrf
 
                 <div>
-                    <x-label for="name" value="{{ __('Imię i nazwisko') }}" />
+                    <x-label for="name" value="{{ __('First name') }}" />
                     <x-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name')" required autofocus autocomplete="name" />
                 </div>
 
@@ -23,12 +23,12 @@
                 </div>
 
                 <div class="mt-4">
-                    <x-label for="password" value="{{ __('Hasło') }}" />
+                    <x-label for="password" value="{{ __('Password') }}" />
                     <x-input id="password" class="block mt-1 w-full" type="password" name="password" required autocomplete="new-password" />
                 </div>
 
                 <div class="mt-4">
-                    <x-label for="password_confirmation" value="{{ __('Potwierdź hasło') }}" />
+                    <x-label for="password_confirmation" value="{{ __('Confirm password') }}" />
                     <x-input id="password_confirmation" class="block mt-1 w-full" type="password" name="password_confirmation" required autocomplete="new-password" />
                 </div>
 
@@ -39,9 +39,9 @@
                                 <x-checkbox name="terms" id="terms" required />
 
                                 <div class="ms-2">
-                                    {!! __('Akceptuję :terms_of_service i :privacy_policy', [
-                                            'terms_of_service' => '<a target="_blank" href="'.route('terms.show').'" class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">'.__('Regulamin').'</a>',
-                                            'privacy_policy' => '<a target="_blank" href="'.route('policy.show').'" class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">'.__('Politykę prywatności').'</a>',
+                                    {!! __('I accept :terms_of_service and :privacy_policy', [
+                                            'terms_of_service' => '<a target="_blank" href="'.route('terms.show').'" class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">'.__('Terms of Service').'</a>',
+                                            'privacy_policy' => '<a target="_blank" href="'.route('policy.show').'" class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">'.__('Privacy Policy').'</a>',
                                     ]) !!}
                                 </div>
                             </div>
@@ -51,11 +51,11 @@
 
                 <div class="flex items-center justify-end mt-4">
                     <a class="underline text-sm text-gray-600 hover:text-gray-900 rounded-md focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500" href="{{ route('login') }}">
-                        {{ __('Masz już konto?') }}
+                        {{ __('Already have an account?') }}
                     </a>
 
                     <x-button class="ms-4">
-                        {{ __('Zarejestruj') }}
+                        {{ __('Register') }}
                     </x-button>
                 </div>
             </form>

@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Subskrypcja') }}
+            {{ __('Subscription') }}
         </h2>
     </x-slot>
 
@@ -10,7 +10,7 @@
             <div class="bg-white overflow-hidden shadow-xl sm:rounded-lg">
                 <div class="p-6 lg:p-8">
                     <h1 class="text-2xl font-medium text-gray-900">
-                        Wybierz plan subskrypcji
+                        {{ __('Choose subscription plan') }}
                     </h1>
 
                     @if(session('error'))
@@ -68,8 +68,8 @@
                                 </div>
                                 <div class="ml-3">
                                     <p class="text-sm text-green-700">
-                                        Masz aktywną subskrypcję: <strong>{{ auth()->user()->plan_type === 'free-investor' ? 'Plan darmowy' : (auth()->user()->plan_type === 'premium-investor' ? 'Plan premium dla inwestorów' : 'Plan premium dla właścicieli') }}</strong>. 
-                                        Możesz zmienić plan lub zarządzać swoją subskrypcją.
+                                        {{ __('You have an active subscription') }}: <strong>{{ auth()->user()->plan_type === 'free-investor' ? __('Free plan') : (auth()->user()->plan_type === 'premium-investor' ? __('Premium plan for investors') : __('Premium plan for owners')) }}</strong>. 
+                                        {{ __('You can change your plan or manage your subscription.') }}
                                     </p>
                                 </div>
                             </div>
@@ -78,24 +78,24 @@
                         <div class="mt-6 text-center space-y-4">
                             <div>
                                 <x-button onclick="openUpdateSubscriptionPortal()" class="bg-indigo-600 hover:bg-indigo-700">
-                                    Zmień plan subskrypcji
+                                    {{ __('Change subscription plan') }}
                                 </x-button>
                             </div>
                             <div>
                                 <x-button onclick="openCustomerPortal()">
-                                    Zarządzaj subskrypcją
+                                    {{ __('Manage subscription') }}
                                 </x-button>
                             </div>
                         </div>
                         
                         <div class="mt-8">
-                            <h2 class="text-xl font-semibold text-center mb-6">Dostępne plany:</h2>
+                            <h2 class="text-xl font-semibold text-center mb-6">{{ __('Available plans') }}:</h2>
                             <div class="grid md:grid-cols-3 gap-6">
                                 <!-- Plan Darmowy -->
                                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg {{ auth()->user()->plan_type === 'free-investor' ? 'border-2 border-green-500' : '' }}">
                                     <div class="p-6">
-                                        <h2 class="text-xl font-semibold text-gray-900">I-Free</h2>
-                                        <p class="mt-2 text-gray-600">Darmowy plan dla inwestorów</p>
+                                        <h2 class="text-xl font-semibold text-gray-900">{{ __('I-Free') }}</h2>
+                                        <p class="mt-2 text-gray-600">{{ __('Free plan for investors') }}</p>
                                         <p class="mt-4 text-3xl font-bold text-gray-900">0 zł</p>
                                         <ul class="mt-6 space-y-4">
                                             <li class="flex items-start">
@@ -104,7 +104,7 @@
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                                     </svg>
                                                 </div>
-                                                <p class="ml-3 text-sm text-gray-700">Przeglądanie projektów</p>
+                                                <p class="ml-3 text-sm text-gray-700">{{ __('Browse projects') }}</p>
                                             </li>
                                             <li class="flex items-start">
                                                 <div class="flex-shrink-0">
@@ -112,7 +112,7 @@
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                                     </svg>
                                                 </div>
-                                                <p class="ml-3 text-sm text-gray-700">Wyrażanie zainteresowania</p>
+                                                <p class="ml-3 text-sm text-gray-700">{{ __('Express interest') }}</p>
                                             </li>
                                             <li class="flex items-start">
                                                 <div class="flex-shrink-0">
@@ -120,17 +120,17 @@
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                                     </svg>
                                                 </div>
-                                                <p class="ml-3 text-sm text-gray-700">Ograniczony dostęp do szczegółów</p>
+                                                <p class="ml-3 text-sm text-gray-700">{{ __('Limited access to details') }}</p>
                                             </li>
                                         </ul>
                                         <div class="mt-8">
                                             @if(auth()->user()->plan_type === 'free-investor')
                                                 <span class="w-full block py-2 px-4 bg-gray-100 text-gray-700 text-center rounded-md font-medium">
-                                                    Aktualny plan
+                                                    {{ __('Current plan') }}
                                                 </span>
                                             @else
                                                 <x-button onclick="changeToFreePlan()" class="w-full justify-center">
-                                                    Wybierz plan darmowy
+                                                    {{ __('Choose free plan') }}
                                                 </x-button>
                                             @endif
                                         </div>
@@ -140,10 +140,10 @@
                                 <!-- Plan Premium dla Inwestorów -->
                                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg {{ auth()->user()->plan_type === 'premium-investor' ? 'border-2 border-green-500' : 'border-2 border-indigo-500' }}">
                                     <div class="p-6">
-                                        <div class="absolute top-0 right-0 bg-indigo-500 text-white px-2 py-1 text-sm rounded-bl">Popularny</div>
-                                        <h2 class="text-xl font-semibold text-gray-900">I-Premium</h2>
-                                        <p class="mt-2 text-gray-600">Plan premium dla inwestorów</p>
-                                        <p class="mt-4 text-3xl font-bold text-gray-900">500 zł<span class="text-sm text-gray-500">/miesiąc</span></p>
+                                        <div class="absolute top-0 right-0 bg-indigo-500 text-white px-2 py-1 text-sm rounded-bl">{{ __('Popular') }}</div>
+                                        <h2 class="text-xl font-semibold text-gray-900">{{ __('I-Premium') }}</h2>
+                                        <p class="mt-2 text-gray-600">{{ __('Premium plan for investors') }}</p>
+                                        <p class="mt-4 text-3xl font-bold text-gray-900">500 zł<span class="text-sm text-gray-500">/{{ __('month') }}</span></p>
                                         <ul class="mt-6 space-y-4">
                                             <li class="flex items-start">
                                                 <div class="flex-shrink-0">
@@ -151,7 +151,7 @@
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                                     </svg>
                                                 </div>
-                                                <p class="ml-3 text-sm text-gray-700">Wszystko z planu I-Free</p>
+                                                <p class="ml-3 text-sm text-gray-700">{{ __('Everything from I-Free plan') }}</p>
                                             </li>
                                             <li class="flex items-start">
                                                 <div class="flex-shrink-0">
@@ -159,7 +159,7 @@
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                                     </svg>
                                                 </div>
-                                                <p class="ml-3 text-sm text-gray-700">Priorytetowy dostęp do projektów</p>
+                                                <p class="ml-3 text-sm text-gray-700">{{ __('Priority access to projects') }}</p>
                                             </li>
                                             <li class="flex items-start">
                                                 <div class="flex-shrink-0">
@@ -167,7 +167,7 @@
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                                     </svg>
                                                 </div>
-                                                <p class="ml-3 text-sm text-gray-700">Zaawansowane analizy</p>
+                                                <p class="ml-3 text-sm text-gray-700">{{ __('Advanced analytics') }}</p>
                                             </li>
                                             <li class="flex items-start">
                                                 <div class="flex-shrink-0">
@@ -175,17 +175,17 @@
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                                     </svg>
                                                 </div>
-                                                <p class="ml-3 text-sm text-gray-700">Dostęp do ekskluzywnych projektów</p>
+                                                <p class="ml-3 text-sm text-gray-700">{{ __('Access to exclusive projects') }}</p>
                                             </li>
                                         </ul>
                                         <div class="mt-8">
                                             @if(auth()->user()->plan_type === 'premium-investor')
                                                 <span class="w-full block py-2 px-4 bg-gray-100 text-gray-700 text-center rounded-md font-medium">
-                                                    Aktualny plan
+                                                    {{ __('Current plan') }}
                                                 </span>
                                             @else
                                                 <x-button onclick="changeToPremiumInvestorPlan()" class="w-full justify-center bg-indigo-600 hover:bg-indigo-700">
-                                                    Wybierz plan
+                                                    {{ __('Choose plan') }}
                                                 </x-button>
                                             @endif
                                         </div>
@@ -195,9 +195,9 @@
                                 <!-- Plan Premium dla Właścicieli -->
                                 <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg {{ auth()->user()->plan_type === 'premium-owner' ? 'border-2 border-green-500' : '' }}">
                                     <div class="p-6">
-                                        <h2 class="text-xl font-semibold text-gray-900">O-Premium</h2>
-                                        <p class="mt-2 text-gray-600">Plan premium dla właścicieli projektów</p>
-                                        <p class="mt-4 text-3xl font-bold text-gray-900">1000 zł<span class="text-sm text-gray-500">/miesiąc</span></p>
+                                        <h2 class="text-xl font-semibold text-gray-900">{{ __('O-Premium') }}</h2>
+                                        <p class="mt-2 text-gray-600">{{ __('Premium plan for project owners') }}</p>
+                                        <p class="mt-4 text-3xl font-bold text-gray-900">1000 zł<span class="text-sm text-gray-500">/{{ __('month') }}</span></p>
                                         <ul class="mt-6 space-y-4">
                                             <li class="flex items-start">
                                                 <div class="flex-shrink-0">
@@ -205,7 +205,7 @@
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                                     </svg>
                                                 </div>
-                                                <p class="ml-3 text-sm text-gray-700">Możliwość dodawania projektów</p>
+                                                <p class="ml-3 text-sm text-gray-700">{{ __('Ability to add projects') }}</p>
                                             </li>
                                             <li class="flex items-start">
                                                 <div class="flex-shrink-0">
@@ -213,7 +213,7 @@
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                                     </svg>
                                                 </div>
-                                                <p class="ml-3 text-sm text-gray-700">Dostęp do bazy inwestorów premium</p>
+                                                <p class="ml-3 text-sm text-gray-700">{{ __('Access to premium investor database') }}</p>
                                             </li>
                                             <li class="flex items-start">
                                                 <div class="flex-shrink-0">
@@ -221,7 +221,7 @@
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                                     </svg>
                                                 </div>
-                                                <p class="ml-3 text-sm text-gray-700">Narzędzia do analizy zainteresowania</p>
+                                                <p class="ml-3 text-sm text-gray-700">{{ __('Interest analysis tools') }}</p>
                                             </li>
                                             <li class="flex items-start">
                                                 <div class="flex-shrink-0">
@@ -229,17 +229,17 @@
                                                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                                     </svg>
                                                 </div>
-                                                <p class="ml-3 text-sm text-gray-700">Wsparcie w procesie finansowania</p>
+                                                <p class="ml-3 text-sm text-gray-700">{{ __('Support in funding process') }}</p>
                                             </li>
                                         </ul>
                                         <div class="mt-8">
                                             @if(auth()->user()->plan_type === 'premium-owner')
                                                 <span class="w-full block py-2 px-4 bg-gray-100 text-gray-700 text-center rounded-md font-medium">
-                                                    Aktualny plan
+                                                    {{ __('Current plan') }}
                                                 </span>
                                             @else
                                                 <x-button onclick="changeToPremiumOwnerPlan()" class="w-full justify-center">
-                                                    Wybierz plan
+                                                    {{ __('Choose plan') }}
                                                 </x-button>
                                             @endif
                                         </div>
@@ -252,8 +252,8 @@
                             <!-- Plan Darmowy -->
                             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                                 <div class="p-6">
-                                    <h2 class="text-xl font-semibold text-gray-900">I-Free</h2>
-                                    <p class="mt-2 text-gray-600">Darmowy plan dla inwestorów</p>
+                                    <h2 class="text-xl font-semibold text-gray-900">{{ __('I-Free') }}</h2>
+                                    <p class="mt-2 text-gray-600">{{ __('Free plan for investors') }}</p>
                                     <p class="mt-4 text-3xl font-bold text-gray-900">0 zł</p>
                                     <ul class="mt-6 space-y-4">
                                         <li class="flex items-start">
@@ -262,7 +262,7 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                                 </svg>
                                             </div>
-                                            <p class="ml-3 text-sm text-gray-700">Przeglądanie projektów</p>
+                                            <p class="ml-3 text-sm text-gray-700">{{ __('Browse projects') }}</p>
                                         </li>
                                         <li class="flex items-start">
                                             <div class="flex-shrink-0">
@@ -270,7 +270,7 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                                 </svg>
                                             </div>
-                                            <p class="ml-3 text-sm text-gray-700">Wyrażanie zainteresowania</p>
+                                            <p class="ml-3 text-sm text-gray-700">{{ __('Express interest') }}</p>
                                         </li>
                                         <li class="flex items-start">
                                             <div class="flex-shrink-0">
@@ -278,12 +278,12 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                                 </svg>
                                             </div>
-                                            <p class="ml-3 text-sm text-gray-700">Ograniczony dostęp do szczegółów</p>
+                                            <p class="ml-3 text-sm text-gray-700">{{ __('Limited access to details') }}</p>
                                         </li>
                                     </ul>
                                     <div class="mt-8">
                                         <x-button onclick="activateFreePlan()" class="w-full justify-center">
-                                            Aktywuj plan darmowy
+                                            {{ __('Activate free plan') }}
                                         </x-button>
                                     </div>
                                 </div>
@@ -292,10 +292,10 @@
                             <!-- Plan Premium dla Inwestorów -->
                             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg border-2 border-indigo-500">
                                 <div class="p-6">
-                                    <div class="absolute top-0 right-0 bg-indigo-500 text-white px-2 py-1 text-sm rounded-bl">Popularny</div>
-                                    <h2 class="text-xl font-semibold text-gray-900">I-Premium</h2>
-                                    <p class="mt-2 text-gray-600">Plan premium dla inwestorów</p>
-                                    <p class="mt-4 text-3xl font-bold text-gray-900">500 zł<span class="text-sm text-gray-500">/miesiąc</span></p>
+                                    <div class="absolute top-0 right-0 bg-indigo-500 text-white px-2 py-1 text-sm rounded-bl">{{ __('Popular') }}</div>
+                                    <h2 class="text-xl font-semibold text-gray-900">{{ __('I-Premium') }}</h2>
+                                    <p class="mt-2 text-gray-600">{{ __('Premium plan for investors') }}</p>
+                                    <p class="mt-4 text-3xl font-bold text-gray-900">500 zł<span class="text-sm text-gray-500">/{{ __('month') }}</span></p>
                                     <ul class="mt-6 space-y-4">
                                         <li class="flex items-start">
                                             <div class="flex-shrink-0">
@@ -303,7 +303,7 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                                 </svg>
                                             </div>
-                                            <p class="ml-3 text-sm text-gray-700">Wszystko z planu I-Free</p>
+                                            <p class="ml-3 text-sm text-gray-700">{{ __('Everything from I-Free plan') }}</p>
                                         </li>
                                         <li class="flex items-start">
                                             <div class="flex-shrink-0">
@@ -311,7 +311,7 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                                 </svg>
                                             </div>
-                                            <p class="ml-3 text-sm text-gray-700">Priorytetowy dostęp do projektów</p>
+                                            <p class="ml-3 text-sm text-gray-700">{{ __('Priority access to projects') }}</p>
                                         </li>
                                         <li class="flex items-start">
                                             <div class="flex-shrink-0">
@@ -319,7 +319,7 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                                 </svg>
                                             </div>
-                                            <p class="ml-3 text-sm text-gray-700">Zaawansowane analizy</p>
+                                            <p class="ml-3 text-sm text-gray-700">{{ __('Advanced analytics') }}</p>
                                         </li>
                                         <li class="flex items-start">
                                             <div class="flex-shrink-0">
@@ -327,12 +327,12 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                                 </svg>
                                             </div>
-                                            <p class="ml-3 text-sm text-gray-700">Dostęp do ekskluzywnych projektów</p>
+                                            <p class="ml-3 text-sm text-gray-700">{{ __('Access to exclusive projects') }}</p>
                                         </li>
                                     </ul>
                                     <div class="mt-8">
                                         <x-button onclick="activatePremiumInvestorPlan()" class="w-full justify-center bg-indigo-600 hover:bg-indigo-700">
-                                            Wybierz plan
+                                            {{ __('Activate plan') }}
                                         </x-button>
                                     </div>
                                 </div>
@@ -341,9 +341,9 @@
                             <!-- Plan Premium dla Właścicieli -->
                             <div class="bg-white overflow-hidden shadow-sm sm:rounded-lg">
                                 <div class="p-6">
-                                    <h2 class="text-xl font-semibold text-gray-900">O-Premium</h2>
-                                    <p class="mt-2 text-gray-600">Plan premium dla właścicieli projektów</p>
-                                    <p class="mt-4 text-3xl font-bold text-gray-900">1000 zł<span class="text-sm text-gray-500">/miesiąc</span></p>
+                                    <h2 class="text-xl font-semibold text-gray-900">{{ __('O-Premium') }}</h2>
+                                    <p class="mt-2 text-gray-600">{{ __('Premium plan for project owners') }}</p>
+                                    <p class="mt-4 text-3xl font-bold text-gray-900">1000 zł<span class="text-sm text-gray-500">/{{ __('month') }}</span></p>
                                     <ul class="mt-6 space-y-4">
                                         <li class="flex items-start">
                                             <div class="flex-shrink-0">
@@ -351,7 +351,7 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                                 </svg>
                                             </div>
-                                            <p class="ml-3 text-sm text-gray-700">Możliwość dodawania projektów</p>
+                                            <p class="ml-3 text-sm text-gray-700">{{ __('Ability to add projects') }}</p>
                                         </li>
                                         <li class="flex items-start">
                                             <div class="flex-shrink-0">
@@ -359,7 +359,7 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                                 </svg>
                                             </div>
-                                            <p class="ml-3 text-sm text-gray-700">Dostęp do bazy inwestorów premium</p>
+                                            <p class="ml-3 text-sm text-gray-700">{{ __('Access to premium investor database') }}</p>
                                         </li>
                                         <li class="flex items-start">
                                             <div class="flex-shrink-0">
@@ -367,7 +367,7 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                                 </svg>
                                             </div>
-                                            <p class="ml-3 text-sm text-gray-700">Narzędzia do analizy zainteresowania</p>
+                                            <p class="ml-3 text-sm text-gray-700">{{ __('Interest analysis tools') }}</p>
                                         </li>
                                         <li class="flex items-start">
                                             <div class="flex-shrink-0">
@@ -375,12 +375,12 @@
                                                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                                                 </svg>
                                             </div>
-                                            <p class="ml-3 text-sm text-gray-700">Wsparcie w procesie finansowania</p>
+                                            <p class="ml-3 text-sm text-gray-700">{{ __('Support in funding process') }}</p>
                                         </li>
                                     </ul>
                                     <div class="mt-8">
                                         <x-button onclick="activatePremiumOwnerPlan()" class="w-full justify-center">
-                                            Wybierz plan
+                                            {{ __('Choose plan') }}
                                         </x-button>
                                     </div>
                                 </div>

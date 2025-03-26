@@ -19,7 +19,7 @@ class EnsureSubscriptionIsActive
     {
         if ($request->user() && !$request->user()->hasActiveSubscription()) {
             return redirect()->route('subscription')
-                ->with('warning', 'Wymagana aktywna subskrypcja przed dostępem do tej funkcji.');
+                ->with('warning', __('Active subscription is required before accessing this feature'));
         }
 
         return $next($request);

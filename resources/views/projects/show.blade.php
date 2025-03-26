@@ -12,7 +12,7 @@
                             @method('PATCH')
                             <input type="hidden" name="status" value="active">
                             <button type="submit" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded text-sm">
-                                Publikuj projekt
+                                {{ __('Publish project') }}
                             </button>
                         </form>
                     @endcan
@@ -20,7 +20,7 @@
                 
                 @can('update', $project)
                     <a href="{{ route('projects.edit', $project) }}" class="bg-yellow-500 hover:bg-yellow-700 text-white font-bold py-2 px-4 rounded text-sm">
-                        Edytuj projekt
+                        {{ __('Edit project') }}
                     </a>
                 @endcan
                 
@@ -28,8 +28,8 @@
                     <form action="{{ route('projects.destroy', $project) }}" method="POST" class="inline">
                         @csrf
                         @method('DELETE')
-                        <button type="submit" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded text-sm" onclick="return confirm('Czy na pewno chcesz usunąć ten projekt?')">
-                            Usuń projekt
+                        <button type="submit" class="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded text-sm" onclick="return confirm('{{ __('Are you sure you want to delete this project?') }}')">
+                            {{ __('Delete project') }}
                         </button>
                     </form>
                 @endcan
@@ -51,10 +51,10 @@
                                 @elseif($project->status === 'completed') bg-purple-100 text-purple-800
                                 @endif
                             ">
-                                @if($project->status === 'draft') Szkic
-                                @elseif($project->status === 'active') Aktywny
-                                @elseif($project->status === 'funded') Sfinansowany
-                                @elseif($project->status === 'completed') Zakończony
+                                @if($project->status === 'draft') {{ __('Draft') }}
+                                @elseif($project->status === 'active') {{ __('Active') }}
+                                @elseif($project->status === 'funded') {{ __('Funded') }}
+                                @elseif($project->status === 'completed') {{ __('Completed') }}
                                 @endif
                             </span>
                             <span class="ml-2 px-3 py-1 inline-flex text-sm leading-5 font-semibold rounded-full 
@@ -63,27 +63,27 @@
                                 @elseif($project->risk_level === 'high') bg-red-100 text-red-800
                                 @endif
                             ">
-                                Ryzyko: 
-                                @if($project->risk_level === 'low') Niskie
-                                @elseif($project->risk_level === 'medium') Średnie
-                                @elseif($project->risk_level === 'high') Wysokie
+                                {{ __('Risk') }}: 
+                                @if($project->risk_level === 'low') {{ __('Low') }}
+                                @elseif($project->risk_level === 'medium') {{ __('Medium') }}
+                                @elseif($project->risk_level === 'high') {{ __('High') }}
                                 @endif
                             </span>
                         </div>
                         <div class="text-right">
-                            <p class="text-sm text-gray-500">Utworzono: {{ $project->created_at->format('d.m.Y H:i') }}</p>
-                            <p class="text-sm text-gray-500">Ostatnia aktualizacja: {{ $project->updated_at->format('d.m.Y H:i') }}</p>
-                            <p class="text-sm text-gray-500">Właściciel: {{ $project->owner->name }}</p>
+                            <p class="text-sm text-gray-500">{{ __('Created') }}: {{ $project->created_at->format('d.m.Y H:i') }}</p>
+                            <p class="text-sm text-gray-500">{{ __('Last update') }}: {{ $project->updated_at->format('d.m.Y H:i') }}</p>
+                            <p class="text-sm text-gray-500">{{ __('Owner') }}: {{ $project->owner->name }}</p>
                         </div>
                     </div>
                     
                     <!-- Postęp finansowania -->
                     <div class="mb-6">
-                        <h3 class="text-lg font-medium text-gray-900 mb-2">Finansowanie</h3>
+                        <h3 class="text-lg font-medium text-gray-900 mb-2">{{ __('Financing') }}</h3>
                         <div class="flex items-end justify-between mb-2">
                             <div>
-                                <p class="text-sm text-gray-500">Cel: <span class="font-bold">{{ number_format($project->target_amount, 2, ',', ' ') }} zł</span></p>
-                                <p class="text-sm text-gray-500">Zebrano: <span class="font-bold">{{ number_format($project->current_amount, 2, ',', ' ') }} zł</span></p>
+                                <p class="text-sm text-gray-500">{{ __('Target') }}: <span class="font-bold">{{ number_format($project->target_amount, 2, ',', ' ') }} zł</span></p>
+                                <p class="text-sm text-gray-500">{{ __('Collected') }}: <span class="font-bold">{{ number_format($project->current_amount, 2, ',', ' ') }} zł</span></p>
                             </div>
                             <div>
                                 @php $percentage = min(100, ($project->current_amount / $project->target_amount) * 100); @endphp
@@ -98,15 +98,15 @@
                     <!-- Detale czasowe -->
                     <div class="mb-6 grid grid-cols-1 md:grid-cols-3 gap-4">
                         <div class="p-4 bg-gray-50 rounded-lg">
-                            <h4 class="text-sm font-medium text-gray-500">Data rozpoczęcia</h4>
+                            <h4 class="text-sm font-medium text-gray-500">{{ __('Start date') }}</h4>
                             <p class="text-lg font-semibold">{{ \Carbon\Carbon::parse($project->start_date)->format('d.m.Y') }}</p>
                         </div>
                         <div class="p-4 bg-gray-50 rounded-lg">
-                            <h4 class="text-sm font-medium text-gray-500">Data zakończenia</h4>
+                            <h4 class="text-sm font-medium text-gray-500">{{ __('End date') }}</h4>
                             <p class="text-lg font-semibold">{{ \Carbon\Carbon::parse($project->end_date)->format('d.m.Y') }}</p>
                         </div>
                         <div class="p-4 bg-gray-50 rounded-lg">
-                            <h4 class="text-sm font-medium text-gray-500">Minimalna inwestycja</h4>
+                            <h4 class="text-sm font-medium text-gray-500">{{ __('Minimum investment') }}</h4>
                             <p class="text-lg font-semibold">{{ number_format($project->min_investment, 2, ',', ' ') }} zł</p>
                         </div>
                     </div>
@@ -114,30 +114,30 @@
                     <!-- Kategoria i lokalizacja -->
                     <div class="mb-6 grid grid-cols-1 md:grid-cols-2 gap-4">
                         <div class="p-4 bg-gray-50 rounded-lg">
-                            <h4 class="text-sm font-medium text-gray-500">Kategoria</h4>
+                            <h4 class="text-sm font-medium text-gray-500">{{ __('Category') }}</h4>
                             <p class="text-lg font-semibold">{{ $project->category }}</p>
                         </div>
                         <div class="p-4 bg-gray-50 rounded-lg">
-                            <h4 class="text-sm font-medium text-gray-500">Lokalizacja</h4>
+                            <h4 class="text-sm font-medium text-gray-500">{{ __('Location') }}</h4>
                             <p class="text-lg font-semibold">{{ $project->location }}</p>
                         </div>
                     </div>
                     
                     <!-- Prognoza zwrotu -->
                     <div class="mb-6 p-4 bg-indigo-50 rounded-lg">
-                        <h3 class="text-lg font-medium text-indigo-900 mb-2">Prognozowany zwrot</h3>
+                        <h3 class="text-lg font-medium text-indigo-900 mb-2">{{ __('Projected return') }}</h3>
                         <div class="flex items-center">
                             <div class="text-3xl font-bold text-indigo-600">{{ $project->returns_projection }}%</div>
                             <div class="ml-4 text-sm text-gray-500">
-                                <p>Przy minimalnej inwestycji: {{ number_format($project->min_investment * ($project->returns_projection / 100), 2, ',', ' ') }} zł</p>
-                                <p>Szacowany całkowity zwrot: {{ number_format($project->target_amount * ($project->returns_projection / 100), 2, ',', ' ') }} zł</p>
+                                <p>{{ __('With minimum investment') }}: {{ number_format($project->min_investment * ($project->returns_projection / 100), 2, ',', ' ') }} zł</p>
+                                <p>{{ __('Estimated total return') }}: {{ number_format($project->target_amount * ($project->returns_projection / 100), 2, ',', ' ') }} zł</p>
                             </div>
                         </div>
                     </div>
                     
                     <!-- Opis projektu -->
                     <div class="mb-6">
-                        <h3 class="text-lg font-medium text-gray-900 mb-2">Opis projektu</h3>
+                        <h3 class="text-lg font-medium text-gray-900 mb-2">{{ __('Project description') }}</h3>
                         <div class="prose max-w-none">
                             {{ $project->description }}
                         </div>
@@ -146,14 +146,14 @@
                     @if($project->status === 'active')
                         <!-- Panel inwestycyjny (tylko dla aktywnych projektów) -->
                         <div class="mt-8 p-6 bg-green-50 rounded-lg border border-green-200">
-                            <h3 class="text-xl font-bold text-green-800 mb-4">Wyraź zainteresowanie tym projektem</h3>
+                            <h3 class="text-xl font-bold text-green-800 mb-4">{{ __('Express interest in this project') }}</h3>
                             
                             @if(auth()->user()->kyc_status === 'verified' && auth()->user()->hasActiveSubscription())
                                 <form action="{{ route('investments.store') }}" method="POST" class="space-y-4">
                                     @csrf
                                     <input type="hidden" name="project_id" value="{{ $project->id }}">
                                     <div>
-                                        <label for="amount" class="block text-sm font-medium text-gray-700">Kwota potencjalnej inwestycji (min. {{ number_format($project->min_investment, 2, ',', ' ') }} zł)</label>
+                                        <label for="amount" class="block text-sm font-medium text-gray-700">{{ __('Potential investment amount') }} (min. {{ number_format($project->min_investment, 2, ',', ' ') }} zł)</label>
                                         <div class="mt-1 flex rounded-md shadow-sm">
                                             <input type="number" name="amount" id="amount" min="{{ $project->min_investment }}" step="100" value="{{ $project->min_investment }}"
                                                 class="focus:ring-indigo-500 focus:border-indigo-500 flex-1 block w-full rounded-md sm:text-sm border-gray-300">
@@ -164,35 +164,35 @@
                                     </div>
                                     
                                     <div>
-                                        <label for="contact_preference" class="block text-sm font-medium text-gray-700">Preferowana metoda kontaktu</label>
+                                        <label for="contact_preference" class="block text-sm font-medium text-gray-700">{{ __('Preferred contact method') }}</label>
                                         <select name="contact_preference" id="contact_preference" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
                                             <option value="email">Email</option>
-                                            <option value="phone">Telefon</option>
-                                            <option value="meeting">Spotkanie osobiste</option>
+                                            <option value="phone">{{ __('Phone') }}</option>
+                                            <option value="meeting">{{ __('Personal meeting') }}</option>
                                         </select>
                                     </div>
                                     
                                     <div>
-                                        <label for="contact_details" class="block text-sm font-medium text-gray-700">Dane kontaktowe</label>
+                                        <label for="contact_details" class="block text-sm font-medium text-gray-700">{{ __('Contact details') }}</label>
                                         <input type="text" name="contact_details" id="contact_details" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500"
-                                               placeholder="Adres email lub numer telefonu">
+                                               placeholder="{{ __('Email address or phone number') }}">
                                     </div>
                                     
                                     <div>
-                                        <label for="notes" class="block text-sm font-medium text-gray-700">Uwagi (opcjonalnie)</label>
+                                        <label for="notes" class="block text-sm font-medium text-gray-700">{{ __('Notes') }} ({{ __('optional') }})</label>
                                         <textarea id="notes" name="notes" rows="3" class="shadow-sm focus:ring-indigo-500 focus:border-indigo-500 mt-1 block w-full sm:text-sm border border-gray-300 rounded-md"></textarea>
                                     </div>
                                     
                                     <div class="flex items-center">
                                         <input id="agreement" name="agreement" type="checkbox" class="h-4 w-4 text-indigo-600 focus:ring-indigo-500 border-gray-300 rounded" required>
                                         <label for="agreement" class="ml-2 block text-sm text-gray-900">
-                                            Wyrażam zgodę na kontakt ze strony właściciela projektu i akceptuję regulamin platformy.
+                                            {{ __('I agree to be contacted by the project owner and accept the platform\'s terms and conditions.') }}
                                         </label>
                                     </div>
                                     
                                     <div>
                                         <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-green-600 hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500">
-                                            Wyślij zgłoszenie
+                                            {{ __('Submit application') }}
                                         </button>
                                     </div>
                                 </form>
@@ -205,14 +205,14 @@
                                             </svg>
                                         </div>
                                         <div class="ml-3">
-                                            <h3 class="text-sm font-medium text-yellow-800">Weryfikacja KYC wymagana</h3>
+                                            <h3 class="text-sm font-medium text-yellow-800">{{ __('KYC verification required') }}</h3>
                                             <div class="mt-2 text-sm text-yellow-700">
-                                                <p>Aby wyrazić zainteresowanie projektem, musisz najpierw zweryfikować swoją tożsamość. Przejdź do ustawień profilu, aby ukończyć proces weryfikacji KYC.</p>
+                                                <p>{{ __('To express interest in the project, you must first verify your identity. Go to profile settings to complete the KYC verification process.') }}</p>
                                             </div>
                                             <div class="mt-4">
                                                 <div class="-mx-2 -my-1.5 flex">
                                                     <a href="{{ route('kyc.verify') }}" class="bg-yellow-200 px-2 py-1.5 rounded-md text-sm font-medium text-yellow-800 hover:bg-yellow-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-yellow-50 focus:ring-yellow-600">
-                                                        Przejdź do weryfikacji
+                                                        {{ __('Go to verification') }}
                                                     </a>
                                                 </div>
                                             </div>
@@ -228,14 +228,14 @@
                                             </svg>
                                         </div>
                                         <div class="ml-3">
-                                            <h3 class="text-sm font-medium text-yellow-800">Aktywna subskrypcja wymagana</h3>
+                                            <h3 class="text-sm font-medium text-yellow-800">{{ __('Active subscription required') }}</h3>
                                             <div class="mt-2 text-sm text-yellow-700">
-                                                <p>Aby wyrazić zainteresowanie projektami, musisz posiadać aktywną subskrypcję. Przejdź do ustawień subskrypcji, aby wybrać odpowiedni plan.</p>
+                                                <p>{{ __('To express interest in projects, you must have an active subscription. Go to subscription settings to choose the appropriate plan.') }}</p>
                                             </div>
                                             <div class="mt-4">
                                                 <div class="-mx-2 -my-1.5 flex">
                                                     <a href="{{ route('subscription') }}" class="bg-yellow-200 px-2 py-1.5 rounded-md text-sm font-medium text-yellow-800 hover:bg-yellow-100 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-offset-yellow-50 focus:ring-yellow-600">
-                                                        Wybierz plan subskrypcji
+                                                        {{ __('Choose subscription plan') }}
                                                     </a>
                                                 </div>
                                             </div>
@@ -262,21 +262,21 @@
                         <div class="mt-8">
                             <h3 class="text-lg font-medium text-gray-900 mb-4">
                                 @if($isAdmin || $isProjectOwner)
-                                    Inwestycje w projekcie
+                                    {{ __('Investments in the project') }}
                                 @else
-                                    Twoje inwestycje w tym projekcie
+                                    {{ __('Your investments in this project') }}
                                 @endif
                             </h3>
                             <div class="overflow-x-auto">
                                 <table class="min-w-full divide-y divide-gray-200">
                                     <thead class="bg-gray-50">
                                         <tr>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Inwestor</th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Kwota</th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Data</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('Investor') }}</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('Amount') }}</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('Status') }}</th>
+                                            <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('Date') }}</th>
                                             @if(auth()->user()->id === $project->owner_id)
-                                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Akcje</th>
+                                                <th class="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">{{ __('Actions') }}</th>
                                             @endif
                                         </tr>
                                     </thead>
@@ -307,7 +307,7 @@
                                                     <td class="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                                         <div class="flex space-x-2 justify-end">
                                                             <a href="{{ route('investments.show', $investment) }}" class="text-indigo-600 hover:text-indigo-900">
-                                                                Szczegóły
+                                                                {{ __('Details') }}
                                                             </a>
                                                             @if($investment->status !== 'cancelled')
                                                                 <form method="POST" action="{{ route('investments.changeStatus', $investment) }}" class="inline">
@@ -333,29 +333,29 @@
                         </div>
                     @elseif(auth()->user()->id === $project->owner_id && $project->investments->isEmpty())
                         <div class="mt-8 p-4 bg-gray-50 rounded-lg">
-                            <p class="text-gray-600 text-center">Ten projekt nie ma jeszcze żadnych inwestycji.</p>
+                            <p class="text-gray-600 text-center">{{ __('This project has no investments yet.') }}</p>
                         </div>
                     @elseif(!$isAdmin && !$isProjectOwner && $userInvestments->isEmpty())
                         <div class="mt-8 p-4 bg-gray-50 rounded-lg">
-                            <p class="text-gray-600 text-center">Nie masz jeszcze żadnych inwestycji w tym projekcie.</p>
+                            <p class="text-gray-600 text-center">{{ __('You have no investments in this project yet.') }}</p>
                         </div>
                     @endif
                     
                     <!-- Zarządzanie statusem projektu (tylko dla administratorów) -->
                     @can('changeStatus', $project)
                         <div class="mt-8 p-6 bg-gray-50 rounded-lg border border-gray-200">
-                            <h3 class="text-lg font-medium text-gray-900 mb-4">Zmień status projektu</h3>
+                            <h3 class="text-lg font-medium text-gray-900 mb-4">{{ __('Change project status') }}</h3>
                             <form action="{{ route('projects.changeStatus', $project) }}" method="POST" class="flex space-x-2">
                                 @csrf
                                 @method('PATCH')
                                 <select name="status" class="mt-1 block w-full rounded-md border-gray-300 shadow-sm focus:border-indigo-500 focus:ring-indigo-500">
-                                    <option value="draft" {{ $project->status === 'draft' ? 'selected' : '' }}>Szkic</option>
-                                    <option value="active" {{ $project->status === 'active' ? 'selected' : '' }}>Aktywny</option>
-                                    <option value="funded" {{ $project->status === 'funded' ? 'selected' : '' }}>Sfinansowany</option>
-                                    <option value="completed" {{ $project->status === 'completed' ? 'selected' : '' }}>Zakończony</option>
+                                    <option value="draft" {{ $project->status === 'draft' ? 'selected' : '' }}>{{ __('Draft') }}</option>
+                                    <option value="active" {{ $project->status === 'active' ? 'selected' : '' }}>{{ __('Active') }}</option>
+                                    <option value="funded" {{ $project->status === 'funded' ? 'selected' : '' }}>{{ __('Funded') }}</option>
+                                    <option value="completed" {{ $project->status === 'completed' ? 'selected' : '' }}>{{ __('Completed') }}</option>
                                 </select>
                                 <button type="submit" class="inline-flex justify-center py-2 px-4 border border-transparent shadow-sm text-sm font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500">
-                                    Aktualizuj status
+                                    {{ __('Update status') }}
                                 </button>
                             </form>
                         </div>

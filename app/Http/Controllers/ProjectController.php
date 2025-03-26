@@ -120,7 +120,7 @@ class ProjectController extends Controller
         $project = Project::create($validated);
         
         return redirect()->route('projects.show', $project)
-                         ->with('success', 'Projekt został utworzony pomyślnie.');
+                         ->with('success', __('Projekt został utworzony pomyślnie.'));
     }
 
     /**
@@ -180,7 +180,7 @@ class ProjectController extends Controller
         $project->update($validated);
         
         return redirect()->route('projects.show', $project)
-                         ->with('success', 'Projekt został zaktualizowany pomyślnie.');
+                         ->with('success', __('Projekt został zaktualizowany pomyślnie.'));
     }
 
     /**
@@ -194,7 +194,7 @@ class ProjectController extends Controller
         $project->delete();
         
         return redirect()->route('projects.index')
-                         ->with('success', 'Projekt został usunięty pomyślnie.');
+                         ->with('success', __('Projekt został usunięty pomyślnie.'));
     }
     
     /**

@@ -30,7 +30,7 @@ class CheckActiveSubscription
         if (!$user->hasActiveSubscription()) {
             Log::warning('Użytkownik nie ma aktywnej subskrypcji: ' . $user->id);
             return redirect()->route('subscription')
-                ->with('warning', 'Aby uzyskać dostęp do tej funkcji, potrzebujesz aktywnej subskrypcji.');
+                ->with('warning', __('Active subscription is required before accessing this feature'));
         }
         
         return $next($request);

@@ -74,7 +74,7 @@ class InvestmentController extends Controller
             // Sprawdź czy projekt jest aktywny
             if (!$project->isActive()) {
                 return redirect()->route('projects.show', $project)
-                    ->with('error', 'Możesz inwestować tylko w aktywne projekty.');
+                    ->with('error', __('You can only invest in active projects'));
             }
         }
         
@@ -85,7 +85,7 @@ class InvestmentController extends Controller
             
             if ($availableProjects->isEmpty()) {
                 return redirect()->route('projects.index')
-                    ->with('info', 'Aktualnie nie ma dostępnych projektów do inwestowania.');
+                    ->with('info', __('There are currently no projects available for investment'));
             }
         }
         
@@ -115,13 +115,13 @@ class InvestmentController extends Controller
         // Sprawdź czy projekt jest aktywny
         if (!$project->isActive()) {
             return redirect()->route('projects.show', $project)
-                ->with('error', 'Możesz wyrazić zainteresowanie tylko aktywnymi projektami.');
+                ->with('error', __('You can only express interest in active projects'));
         }
         
         // Sprawdź czy kwota inwestycji jest wystarczająca
         if ($validated['amount'] < $project->min_investment) {
             return redirect()->route('investments.create', ['project_id' => $project->id])
-                ->with('error', "Minimalna kwota inwestycji to {$project->min_investment} zł.")
+                ->with('error', __('The minimum investment amount is :amount PLN', ['amount' => $project->min_investment]))
                 ->withInput();
         }
         
@@ -142,7 +142,7 @@ class InvestmentController extends Controller
         }
         
         return redirect()->route('investments.show', $investment)
-                         ->with('success', 'Twoje zainteresowanie zostało zarejestrowane.');
+                         ->with('success', __('Your interest has been registered'));
     }
 
     /**
@@ -217,55 +217,59 @@ class InvestmentController extends Controller
         $investment->update($validated);
         
         return redirect()->route('investments.show', $investment)
-                         ->with('success', 'Inwestycja została zaktualizowana pomyślnie.');
+                         ->with('success', __('Investment updated successfully'));
     }
 
     /**
-     * Anuluje inwestycję.
+     * Usuwa inwestycję.
      */
     public function destroy(Investment $investment)
     {
-        // Sprawdź czy użytkownik może anulować tę inwestycję
+        // Sprawdź czy użytkownik może usunąć tę inwestycję
         $this->authorize('delete', $investment);
         
         // Sprawdź czy inwestycja może być anulowana
         if (!in_array($investment->status, ['interested', 'in_talks'])) {
             return redirect()->route('investments.show', $investment)
-                ->with('error', 'Nie można anulować inwestycji w bieżącym statusie.');
+                ->with('error', __('Investment cannot be cancelled in its current status'));
         }
         
-        // Anuluj inwestycję
-        $investment->update(['status' => 'cancelled']);
+        // Usuń inwestycję
+        $investment->delete();
         
         return redirect()->route('investments.index')
-                         ->with('success', 'Inwestycja została anulowana.');
+                         ->with('success', __('Investment has been successfully cancelled'));
     }
-    
+
     /**
-     * Zmiana statusu inwestycji.
+     * Zmienia status inwestycji.
      */
     public function changeStatus(Request $request, Investment $investment)
     {
-        // Sprawdź uprawnienia na podstawie polityki dostępu
-        $this->authorize('changeStatus', $investment);
-
-        $validated = $request->validate([
-            'status' => 'required|in:' . implode(',', array_keys(Investment::getStatusList())),
-        ]);
-
-        // Pobieramy obecny status przed aktualizacją
-        $previousStatus = $investment->status;
+        // Sprawdź czy użytkownik może zmieniać status inwestycji
+        $this->authorize('updateStatus', $investment);
         
-        // Aktualizujemy status inwestycji
-        $investment->update([
-            'status' => $validated['status']
+        // Walidacja danych
+        $validated = $request->validate([
+            'status' => 'required|in:interested,in_talks,contract_signed,finalized,rejected,cancelled',
+            'notes' => 'nullable|string|max:1000',
         ]);
+        
+        // Zapisz poprzedni status
+        $oldStatus = $investment->status;
+        
+        // Aktualizuj status i notatki
+        $investment->status = $validated['status'];
+        if (isset($validated['notes'])) {
+            $investment->status_notes = $validated['notes'];
+        }
+        $investment->save();
         
         // Pobieramy projekt
         $project = $investment->project;
         
         // Jeśli status zmienił się na "contract_signed" (umowa podpisana), zwiększamy kwotę zebraną w projekcie
-        if ($validated['status'] === 'contract_signed' && $previousStatus !== 'contract_signed') {
+        if ($validated['status'] === 'contract_signed' && $oldStatus !== 'contract_signed') {
             $project->current_amount = $project->current_amount + $investment->amount;
             $project->save();
             
@@ -279,7 +283,7 @@ class InvestmentController extends Controller
             ]);
         }
         // Jeśli status zmienił się z "contract_signed" na inny, zmniejszamy kwotę zebraną w projekcie
-        elseif ($previousStatus === 'contract_signed' && $validated['status'] !== 'contract_signed') {
+        elseif ($oldStatus === 'contract_signed' && $validated['status'] !== 'contract_signed') {
             $project->current_amount = max(0, $project->current_amount - $investment->amount);
             $project->save();
             
@@ -293,6 +297,7 @@ class InvestmentController extends Controller
             ]);
         }
 
-        return back()->with('success', 'Status inwestycji został zaktualizowany.');
+        return redirect()->route('investments.show', $investment)
+                         ->with('success', __('Investment status has been updated'));
     }
 }

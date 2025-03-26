@@ -13,14 +13,14 @@
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <!-- Zarządzanie projektami -->
                     <a href="{{ route('projects.index') }}" class="block border rounded-lg p-4 hover:bg-gray-50 transition duration-300">
-                        <h4 class="font-semibold mb-2">Projekty</h4>
-                        <p class="text-sm text-gray-600">Przeglądaj i zarządzaj projektami inwestycyjnymi.</p>
+                        <h4 class="font-semibold mb-2">{{ __('Projekty') }}</h4>
+                        <p class="text-sm text-gray-600">{{ __('Przeglądaj i zarządzaj projektami inwestycyjnymi.') }}</p>
                     </a>
                     
                     <!-- Zarządzanie inwestycjami -->
                     <a href="{{ route('investments.index') }}" class="block border rounded-lg p-4 hover:bg-gray-50 transition duration-300">
-                        <h4 class="font-semibold mb-2">Inwestycje</h4>
-                        <p class="text-sm text-gray-600">Monitoruj inwestycje na platformie.</p>
+                        <h4 class="font-semibold mb-2">{{ __('Inwestycje') }}</h4>
+                        <p class="text-sm text-gray-600">{{ __('Monitoruj inwestycje na platformie.') }}</p>
                     </a>
                 </div>
             </div>

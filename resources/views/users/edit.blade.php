@@ -23,7 +23,7 @@
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <!-- Imię -->
                         <div>
-                            <x-label for="name" value="{{ __('Imię') }}" />
+                            <x-label for="name" value="{{ __('First name') }}" />
                             <x-input id="name" class="block mt-1 w-full" type="text" name="name" :value="old('name', $user->name)" required autofocus />
                             <x-input-error for="name" class="mt-2" />
                         </div>

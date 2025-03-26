@@ -1,7 +1,7 @@
 <x-app-layout>
     <x-slot name="header">
         <h2 class="font-semibold text-xl text-gray-800 leading-tight">
-            {{ __('Weryfikacja KYC') }}
+            {{ __('KYC Verification') }}
         </h2>
     </x-slot>
 
@@ -27,81 +27,80 @@
                 @endif
 
                 <div class="mb-6">
-                    <h3 class="text-lg font-medium mb-2">Status weryfikacji KYC</h3>
+                    <h3 class="text-lg font-medium mb-2">{{ __('KYC Verification Status') }}</h3>
                     
                     @if ($kycStatus === 'verified')
                         <div class="flex items-center text-green-600">
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
                             </svg>
-                            <span>Weryfikacja KYC zakończona pomyślnie</span>
+                            <span>{{ __('KYC verification completed successfully') }}</span>
                         </div>
-                        <p class="mt-2 text-gray-600">Masz pełny dostęp do platformy InvestClub.</p>
+                        <p class="mt-2 text-gray-600">{{ __('You have full access to the InvestClub platform.') }}</p>
                     @elseif ($kycStatus === 'pending')
                         <div class="flex items-center text-yellow-600">
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
-                            <span>Weryfikacja KYC w trakcie przetwarzania</span>
+                            <span>{{ __('KYC verification in progress') }}</span>
                         </div>
-                        <p class="mt-2 text-gray-600">Twoja weryfikacja jest w trakcie przetwarzania. Proces może potrwać do 24 godzin.</p>
+                        <p class="mt-2 text-gray-600">{{ __('Your verification is being processed. The process may take up to 24 hours.') }}</p>
                     @elseif ($kycStatus === 'requires_input')
                         <div class="flex items-center text-yellow-600">
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                             </svg>
-                            <span>Weryfikacja KYC wymaga dodatkowych informacji</span>
+                            <span>{{ __('KYC verification requires additional information') }}</span>
                         </div>
-                        <p class="mt-2 text-gray-600">Aby dokończyć proces weryfikacji, potrzebujemy dodatkowych informacji. Proszę spróbować ponownie.</p>
+                        <p class="mt-2 text-gray-600">{{ __('To complete the verification process, we need additional information. Please try again.') }}</p>
                     @elseif ($kycStatus === 'canceled')
                         <div class="flex items-center text-red-600">
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                             </svg>
-                            <span>Weryfikacja KYC została anulowana</span>
+                            <span>{{ __('KYC verification has been canceled') }}</span>
                         </div>
-                        <p class="mt-2 text-gray-600">Weryfikacja została anulowana lub przerwana. Proszę rozpocząć proces weryfikacji ponownie.</p>
+                        <p class="mt-2 text-gray-600">{{ __('The verification was canceled or interrupted. Please start the verification process again.') }}</p>
                     @elseif ($kycStatus === 'rejected')
                         <div class="flex items-center text-red-600">
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                             </svg>
-                            <span>Weryfikacja KYC została odrzucona</span>
+                            <span>{{ __('KYC verification has been rejected') }}</span>
                         </div>
-                        <p class="mt-2 text-gray-600">Niestety, Twoja weryfikacja została odrzucona. Proszę skontaktować się z obsługą klienta, aby uzyskać więcej informacji.</p>
+                        <p class="mt-2 text-gray-600">{{ __('Unfortunately, your verification has been rejected. Please contact customer support for more information.') }}</p>
                     @else
                         <div class="flex items-center text-red-600">
                             <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
                             </svg>
-                            <span>Weryfikacja KYC nie została przeprowadzona</span>
+                            <span>{{ __('KYC verification not performed') }}</span>
                         </div>
-                        <p class="mt-2 text-gray-600">Aby uzyskać pełny dostęp do platformy InvestClub, musisz przejść weryfikację KYC.</p>
+                        <p class="mt-2 text-gray-600">{{ __('To gain full access to the InvestClub platform, you must complete KYC verification.') }}</p>
                     @endif
                 </div>
 
                 @if ($kycStatus !== 'verified')
                     <div class="mb-6">
-                        <h3 class="text-lg font-medium mb-2">Przeprowadź weryfikację KYC</h3>
+                        <h3 class="text-lg font-medium mb-2">{{ __('Complete KYC verification') }}</h3>
                         <p class="mb-4 text-gray-600">
-                            Weryfikacja KYC (Know Your Customer) jest wymagana przez przepisy prawne i pomaga nam zapewnić bezpieczeństwo wszystkim uczestnikom. 
-                            Zostaniesz przekierowany do bezpiecznego procesu weryfikacji obsługiwanego przez Stripe.
+                            {{ __('KYC (Know Your Customer) verification is required by law and helps us ensure security for all participants. You will be redirected to a secure verification process operated by Stripe.') }}
                         </p>
                         
                         @if ($kycStatus !== 'pending' && $kycStatus !== 'requires_input')
                         <form action="{{ route('kyc.start') }}" method="POST">
                             @csrf
                             <button type="submit" class="bg-indigo-600 text-white py-2 px-4 rounded hover:bg-indigo-700">
-                                Rozpocznij weryfikację KYC
+                                {{ __('Start KYC verification') }}
                             </button>
                         </form>
                         @else
                         <div class="p-4 bg-yellow-50 border border-yellow-200 rounded-md">
                             <p class="text-yellow-700">
                                 @if ($kycStatus === 'pending')
-                                    Twoja weryfikacja jest obecnie w trakcie przetwarzania. Prosimy o cierpliwość.
+                                    {{ __('Your verification is currently being processed. Please be patient.') }}
                                 @else
-                                    Twoja weryfikacja wymaga dodatkowych informacji. Skontaktuj się z obsługą klienta.
+                                    {{ __('Your verification requires additional information. Please contact customer support.') }}
                                 @endif
                             </p>
                         </div>
@@ -110,15 +109,15 @@
                 @endif
 
                 <div>
-                    <h3 class="text-lg font-medium mb-2">Dlaczego weryfikacja KYC jest ważna?</h3>
+                    <h3 class="text-lg font-medium mb-2">{{ __('Why KYC verification is important') }}</h3>
                     <p class="text-gray-600">
-                        Weryfikacja KYC jest istotnym elementem bezpieczeństwa w branży inwestycyjnej. Pomaga nam:
+                        {{ __('KYC verification is an essential security element in the investment industry. It helps us:') }}
                     </p>
                     <ul class="mt-2 space-y-1 list-disc list-inside text-gray-600">
-                        <li>Zapobiegać oszustwom i praniu pieniędzy</li>
-                        <li>Spełniać wymogi prawne i regulacyjne</li>
-                        <li>Zwiększać bezpieczeństwo i zaufanie wszystkich uczestników platformy</li>
-                        <li>Zapewniać najwyższe standardy bezpieczeństwa transakcji</li>
+                        <li>{{ __('Prevent fraud and money laundering') }}</li>
+                        <li>{{ __('Meet legal and regulatory requirements') }}</li>
+                        <li>{{ __('Increase security and trust for all platform participants') }}</li>
+                        <li>{{ __('Ensure the highest standards of transaction security') }}</li>
                     </ul>
                 </div>
             </div>

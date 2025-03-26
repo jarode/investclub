@@ -38,7 +38,7 @@ class CheckSubscriptionPlan
         if (!$user->hasActiveSubscription()) {
             \Illuminate\Support\Facades\Log::info('Brak aktywnej subskrypcji - przekierowanie', ['user_id' => $user->id]);
             return redirect()->route('subscription')
-                ->with('warning', 'Potrzebujesz aktywnej subskrypcji, aby uzyskać dostęp do tej funkcji.');
+                ->with('warning', __('Active subscription is required before accessing this feature'));
         }
         
         // Administratorzy zawsze mają dostęp
@@ -76,7 +76,7 @@ class CheckSubscriptionPlan
         
         // Jeśli użytkownik nie ma wymaganego planu, przekieruj do strony subskrypcji
         return redirect()->route('subscription')
-            ->with('warning', 'Potrzebujesz subskrypcji ' . $this->getPlanName($planType) . ', aby uzyskać dostęp do tej funkcji.');
+            ->with('warning', __('You need a :plan subscription to access this feature', ['plan' => $this->getPlanName($planType)]));
     }
     
     /**
@@ -97,9 +97,9 @@ class CheckSubscriptionPlan
     private function getPlanName(string $planType): string
     {
         return match($planType) {
-            'owner' => 'Premium dla właścicieli projektów (O-Premium)',
-            'premium' => 'Premium dla inwestorów (I-Premium)',
-            'any' => 'Dowolnej',
+            'owner' => __('Premium for project owners (O-Premium)'),
+            'premium' => __('Premium for investors (I-Premium)'),
+            'any' => __('Any'),
             default => $planType
         };
     }

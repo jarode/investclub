@@ -19,7 +19,7 @@ class EnsureKycIsVerified
     {
         if ($request->user() && $request->user()->kyc_status !== 'verified') {
             return redirect()->route('kyc.verify')
-                ->with('warning', 'Wymagana weryfikacja KYC przed dostępem do tej funkcji.');
+                ->with('warning', __('KYC verification is required before accessing this feature'));
         }
 
         return $next($request);
