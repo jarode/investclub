@@ -55,7 +55,7 @@
             <div class="text-center">
                 <h2 class="text-base text-indigo-600 font-semibold tracking-wide uppercase">{{ __('Current investments') }}</h2>
                 <p class="mt-3 text-3xl leading-8 font-bold tracking-tight text-gray-900 sm:text-4xl">
-                    Najlepsze projekty inwestycyjne
+                    {{ __('Best investment projects') }}
                 </p>
             </div>
 
@@ -71,7 +71,7 @@
                             </div>
                             <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                             <div class="absolute top-4 left-4 bg-white px-2 py-1 rounded text-xs font-semibold text-blue-600">
-                                Premium
+                                {{ __('Premium') }}
                             </div>
                             <div class="absolute bottom-4 left-4 right-4">
                                 <h3 class="text-xl font-bold text-white">{{ __('Apartamenty Centrum') }}</h3>
@@ -94,7 +94,7 @@
                                     <div class="bg-indigo-600 h-full rounded-full" style="width: 87%"></div>
                                 </div>
                                 <div class="flex justify-between text-xs text-gray-500 mt-1">
-                                    <span>Zebrano: 435,000 zł</span>
+                                    <span>{{ __('Collected:') }} 435,000 zł</span>
                                     <span>87%</span>
                                 </div>
                             </div>
@@ -111,7 +111,7 @@
                             </div>
                             <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                             <div class="absolute top-4 left-4 bg-white px-2 py-1 rounded text-xs font-semibold text-purple-600">
-                                Popularny
+                                {{ __('Popular') }}
                             </div>
                             <div class="absolute bottom-4 left-4 right-4">
                                 <h3 class="text-xl font-bold text-white">{{ __('Marina Mokotów') }}</h3>
@@ -134,7 +134,7 @@
                                     <div class="bg-indigo-600 h-full rounded-full" style="width: 65%"></div>
                                 </div>
                                 <div class="flex justify-between text-xs text-gray-500 mt-1">
-                                    <span>Zebrano: 325,000 zł</span>
+                                    <span>{{ __('Collected:') }} 325,000 zł</span>
                                     <span>65%</span>
                                 </div>
                             </div>
@@ -151,7 +151,7 @@
                             </div>
                             <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
                             <div class="absolute top-4 left-4 bg-white px-2 py-1 rounded text-xs font-semibold text-green-600">
-                                Nowy
+                                {{ __('New') }}
                             </div>
                             <div class="absolute bottom-4 left-4 right-4">
                                 <h3 class="text-xl font-bold text-white">{{ __('Apartamenty Nadmorskie') }}</h3>
@@ -174,7 +174,7 @@
                                     <div class="bg-indigo-600 h-full rounded-full" style="width: 42%"></div>
                                 </div>
                                 <div class="flex justify-between text-xs text-gray-500 mt-1">
-                                    <span>Zebrano: 210,000 zł</span>
+                                    <span>{{ __('Collected:') }} 210,000 zł</span>
                                     <span>42%</span>
                                 </div>
                             </div>
@@ -191,19 +191,19 @@
             <div class="grid grid-cols-2 md:grid-cols-4 gap-10">
                 <div class="text-center">
                     <div class="text-3xl font-extrabold text-white md:text-4xl">250+</div>
-                    <div class="mt-2 text-sm text-indigo-300">Zweryfikowanych członków</div>
+                    <div class="mt-2 text-sm text-indigo-300">{{ __('Verified members') }}</div>
                 </div>
                 <div class="text-center">
                     <div class="text-3xl font-extrabold text-white md:text-4xl">45+</div>
-                    <div class="mt-2 text-sm text-indigo-300">Wyselekcjonowanych projektów</div>
+                    <div class="mt-2 text-sm text-indigo-300">{{ __('Selected projects') }}</div>
                 </div>
                 <div class="text-center">
                     <div class="text-3xl font-extrabold text-white md:text-4xl">7.8%</div>
-                    <div class="mt-2 text-sm text-indigo-300">Średni zwrot z inwestycji</div>
+                    <div class="mt-2 text-sm text-indigo-300">{{ __('Average investment return') }}</div>
                 </div>
                 <div class="text-center">
                     <div class="text-3xl font-extrabold text-white md:text-4xl">15M+</div>
-                    <div class="mt-2 text-sm text-indigo-300">Łączna wartość inwestycji</div>
+                    <div class="mt-2 text-sm text-indigo-300">{{ __('Total investment value') }}</div>
                 </div>
             </div>
         </div>
@@ -218,7 +218,7 @@
                     LINK + INVEST = LINV
                 </p>
                 <p class="mt-5 max-w-2xl text-xl text-gray-500 mx-auto">
-                    Łączymy inwestorów z wyselekcjonowanymi projektami w ramach ekskluzywnego klubu inwestycyjnego
+                    {{ __('We connect investors with selected projects within an exclusive investment club') }}
                 </p>
             </div>
 
@@ -232,7 +232,7 @@
                         <div class="ml-16">
                             <h3 class="text-lg leading-6 font-medium text-gray-900">{{ __('KYC Verification') }}</h3>
                             <p class="mt-2 text-base text-gray-500">
-                                Przejdź weryfikację tożsamości i uzyskaj dostęp do ekskluzywnego klubu inwestorów.
+                                {{ __('Go through identity verification and get access to an exclusive investor club.') }}
                             </p>
                         </div>
                     </div>
@@ -245,7 +245,7 @@
                         <div class="ml-16">
                             <h3 class="text-lg leading-6 font-medium text-gray-900">{{ __('Browse selected projects') }}</h3>
                             <p class="mt-2 text-base text-gray-500">
-                                Poznaj szczegóły starannie wybranych projektów inwestycyjnych o wysokim potencjale.
+                                {{ __('Learn the details of carefully selected investment projects with high potential.') }}
                             </p>
                         </div>
                     </div>
@@ -258,7 +258,7 @@
                         <div class="ml-16">
                             <h3 class="text-lg leading-6 font-medium text-gray-900">{{ __('Direct contact') }}</h3>
                             <p class="mt-2 text-base text-gray-500">
-                                Skontaktuj się bezpośrednio z właścicielami projektów i negocjuj warunki inwestycji.
+                                {{ __('Contact project owners directly and negotiate investment terms.') }}
                             </p>
                         </div>
                     </div>
@@ -271,7 +271,7 @@
                         <div class="ml-16">
                             <h3 class="text-lg leading-6 font-medium text-gray-900">{{ __('Achieve profits') }}</h3>
                             <p class="mt-2 text-base text-gray-500">
-                                Ciesz się regularnym zwrotem z inwestycji i buduj długoterminowe bogactwo.
+                                {{ __('Enjoy regular return on investment and build long-term wealth.') }}
                             </p>
                         </div>
                     </div>
@@ -280,7 +280,7 @@
             
             <div class="mt-20 text-center">
                 <div class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-700 transition duration-300">
-                    <a href="{{ route('register') }}">Dołącz do elitarnego grona</a>
+                    <a href="{{ route('register') }}">{{ __('Join the elite group') }}</a>
                 </div>
             </div>
         </div>
@@ -292,7 +292,7 @@
             <div class="text-center mb-16">
                 <h2 class="text-base text-indigo-600 font-semibold tracking-wide uppercase">{{ __('Why LINV?') }}</h2>
                 <p class="mt-3 text-3xl leading-8 font-bold tracking-tight text-gray-900 sm:text-4xl">
-                    Korzyści członkostwa
+                    {{ __('Membership benefits') }}
                 </p>
             </div>
 
@@ -307,7 +307,7 @@
                         </div>
                         <h3 class="text-lg leading-6 font-medium text-gray-900">{{ __('Security') }}</h3>
                         <p class="mt-2 text-base text-gray-500">
-                            Wszyscy członkowie platformy przechodzą weryfikację KYC. Projekty są sprawdzane pod kątem legalności i potencjału.
+                            {{ __('All members of the platform undergo KYC verification. Projects are checked for legality and potential.') }}
                         </p>
                     </div>
 
@@ -320,7 +320,7 @@
                         </div>
                         <h3 class="text-lg leading-6 font-medium text-gray-900">{{ __('Exclusive community') }}</h3>
                         <p class="mt-2 text-base text-gray-500">
-                            Dołącz do grupy doświadczonych inwestorów. Wymieniaj się wiedzą i doświadczeniami z innymi członkami klubu.
+                            {{ __('Join a group of experienced investors. Exchange knowledge and experiences with other club members.') }}
                         </p>
                     </div>
 
@@ -333,7 +333,7 @@
                         </div>
                         <h3 class="text-lg leading-6 font-medium text-gray-900">{{ __('Unique projects') }}</h3>
                         <p class="mt-2 text-base text-gray-500">
-                            Dostęp do starannie wyselekcjonowanych projektów o wysokim potencjale zwrotu, niedostępnych dla szerokiej publiczności.
+                            {{ __('Access to carefully selected high-potential return projects not available to the general public.') }}
                         </p>
                     </div>
                 </div>
@@ -345,18 +345,18 @@
     <div class="bg-indigo-700">
         <div class="max-w-7xl mx-auto py-16 px-4 sm:px-6 lg:py-24 lg:px-8 lg:flex lg:items-center lg:justify-between">
             <h2 class="text-2xl font-extrabold tracking-tight text-white sm:text-3xl lg:text-4xl">
-                <span class="block">Gotowy na nowe możliwości inwestycyjne?</span>
-                <span class="block text-indigo-200 mt-2">Dołącz do LINV i zacznij budować swój portfel.</span>
+                <span class="block">{{ __('Ready for new investment opportunities?') }}</span>
+                <span class="block text-indigo-200 mt-2">{{ __('Join LINV and start building your portfolio.') }}</span>
             </h2>
             <div class="mt-10 flex flex-col sm:flex-row gap-4 lg:mt-0 lg:flex-shrink-0">
                 <div class="inline-flex rounded-md shadow">
                     <a href="{{ route('register') }}" class="inline-flex items-center justify-center px-6 py-4 border border-transparent text-base font-medium rounded-md text-indigo-600 bg-white hover:bg-indigo-50 transition duration-300">
-                        Aplikuj teraz
+                        {{ __('Apply now') }}
                     </a>
                 </div>
                 <div class="inline-flex rounded-md shadow">
                     <a href="{{ route('login') }}" class="inline-flex items-center justify-center px-6 py-4 border border-transparent text-base font-medium rounded-md text-white bg-indigo-600 hover:bg-indigo-800 transition duration-300">
-                        Zaloguj się
+                        {{ __('Log in') }}
                     </a>
                 </div>
             </div>
